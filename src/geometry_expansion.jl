@@ -1,0 +1,1 @@
+# = Laurent's expansion of the geometry-dependent part of kernels : kernel agnostic = #

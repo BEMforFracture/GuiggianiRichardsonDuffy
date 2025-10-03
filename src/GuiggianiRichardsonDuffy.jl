@@ -13,9 +13,9 @@ include("kernels.jl")
 """
 	polar_kernel_fun(K::Inti.AbstractKernel, el::Inti.ReferenceInterpolant, û, x̂)
 
-	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`.
+	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`. `K` has to be called as `K(qx, qy)` where `qx = (coords = x, normal = nx)` and `qy = (coords = y, normal = ny)` are cartesian points with their normals.
 """
-function polar_kernel_fun(K::Inti.AbstractKernel, el::Inti.ReferenceInterpolant, û, x̂)
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
 	x = el(x̂)
 	ori = 1
 	jac_x = Inti.jacobian(el, x̂)
@@ -53,7 +53,7 @@ end
 
 	K̂ as to be called as K̂(r̂, qx, qy) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny).
 """
-function f_minus_two_fun(K̂::Inti.HyperSingularKernel, el::Inti.ReferenceInterpolant, û, x̂)
+function f_minus_two_fun(K̂, el::Inti.ReferenceInterpolant, û, x̂)
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	ori = 1
