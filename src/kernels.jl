@@ -7,7 +7,7 @@
 function SplitLaplaceSingleLayer(qx, qy, r̂ = nothing)
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	return 1 / d, 1 / (4π)
 end
 
@@ -16,7 +16,7 @@ LaplaceSingleLayer(args...) = prod(SplitLaplaceSingleLayer(args...))
 function SplitLaplaceDoubleLayer(qx, qy, r̂ = nothing)
 	r = qx.coords - qy.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	ny = qy.normal
 	return 1 / d^2, -1 / (4π) * dot(r̂, ny)
 end
@@ -26,7 +26,7 @@ LaplaceDoubleLayer(args...) = prod(SplitLaplaceDoubleLayer(args...))
 function SplitLaplaceAdjointDoubleLayer(qx, qy, r̂ = nothing)
 	r = qx.coords - qy.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	nx = qx.normal
 	return -1 / d^2, 1 / (4π) * dot(r̂, nx)
 end
@@ -36,7 +36,7 @@ LaplaceAdjointDoubleLayer(args...) = prod(SplitLaplaceAdjointDoubleLayer(args...
 function SplitLaplaceHypersingular(qx, qy, r̂ = nothing)
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	nx = p.normal
 	ny = q.normal
 	return 1 / d^3, 1 / (4π) * transpose(nx) * ((I - 3 * r̂ ⊗ r̂) * ny)
@@ -52,7 +52,7 @@ function SplitElastostaticSingleLayer(qx, qy, r̂ = nothing; μ, λ)
 	ν = λ / (2 * (μ + λ))
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	return 1 / d, 1 / (16π * μ * (1 - ν)) * ((3 - 4 * ν) * I + r̂ ⊗ r̂)
 end
 
@@ -62,7 +62,7 @@ function SplitElastostaticDoubleLayer(qx, qy, r̂ = nothing; μ, λ)
 	ν = λ / (2 * (μ + λ))
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	ny = qy.normal
 	return 1 / d^2, -1 / (8π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2 * ν) * I + 3 * r̂ ⊗ r̂) + (1 - 2 * ν) * (r̂ ⊗ ny - ny ⊗ r̂))
 end
@@ -73,7 +73,7 @@ function SplitElastostaticAdjointDoubleLayer(qx, qy, r̂ = nothing; μ, λ)
 	ν = λ / (2 * (μ + λ))
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	nx = qx.normal
 	return -1 / d^2, 1 / (8π * (1 - ν)) * (dot(r̂, nx) * ((1 - 2 * ν) * I + 3 * r̂ ⊗ r̂) + (1 - 2 * ν) * (r̂ ⊗ nx - nx ⊗ r̂))
 end
@@ -84,7 +84,7 @@ function SplitElastostaticHypersingular(qx, qy, r̂ = nothing; μ, λ)
 	ν = λ / (2 * (μ + λ))
 	r = qy.coords - qx.coords
 	d = norm(r)
-	isnothing(r̂) && r̂ = r / d
+	r̂ = isnothing(r̂) ? r / d : r̂
 	nx = qx.normal
 	ny = qy.normal
 	return 1 / d^3,

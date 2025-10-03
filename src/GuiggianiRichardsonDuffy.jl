@@ -7,6 +7,8 @@ using Richardson
 
 include("utils.jl")
 include("kernels.jl")
+include("geometry_expansion.jl")
+include("closed_forms.jl")
 
 @info "Loading GuiggianiRichardsonDuffy.jl"
 
@@ -104,5 +106,20 @@ function f_minus_one_fun(fun, rho_max_fun, f₋₂; first_contract, contract)
 	end
 	return f_minus_one
 end
+
+function guiggiani_singular_integral(
+	K,
+	û,
+	x̂,
+	el::Inti.ReferenceInterpolant,
+	n_rho,
+	n_theta,
+	sorder::Val{P} = Val(-2),
+) where {P}
+	#TODO
+	return nothing
+end
+
+export singular_integral
 
 end # module GuiggianiRichardsonDuffy

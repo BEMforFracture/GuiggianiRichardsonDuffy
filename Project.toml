@@ -6,11 +6,13 @@ version = "0.1.0"
 [deps]
 Inti = "fb74042b-437e-4c5b-88cf-d4e2beb394d5"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
 Richardson = "708f8203-808e-40c0-ba2d-98a6953ed40d"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 Inti = "0.2.0"
 LinearAlgebra = "1.11.0"
+Memoization = "0.2.2"
 Richardson = "1.4.2"
 StaticArrays = "1.9.15"
