@@ -5,6 +5,7 @@ using StaticArrays
 using Inti
 using Richardson
 using Memoization
+using ForwardDiff
 
 include("utils.jl")
 include("kernels.jl")

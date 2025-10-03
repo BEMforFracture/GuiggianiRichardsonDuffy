@@ -1,20 +1,16 @@
 # = Laurent's expansion of the geometry-dependent part of any kernel : kernel agnostic = #
 
-function u_func()::Function
-	return θ -> SVector(cos(θ), sin(θ))
-end
+u_func(θ) = SVector(cos(θ), sin(θ))
 
 function A_func(τ::Inti.ReferenceInterpolant, η)::Function
 	Dτ = Inti.jacobian(τ, η)
-	u = u_func()
-	A(θ) = Dτ ⋅ u(θ)
+	A(θ) = Dτ * u_func(θ)
 	return A
 end
 
 function B_func(τ::Inti.ReferenceInterpolant, η)::Function
 	D²τ = Inti.hessian(τ, η)
-	u = u_func()
-	B(θ) = 0.5 * custom_contraction(D²τ, u(θ) ⊗ u(θ))
+	B(θ) = 0.5 * custom_contraction(D²τ, u_func(θ) ⊗ u_func(θ))
 	return B
 end
 
@@ -48,7 +44,7 @@ function DJn(τ::Inti.ReferenceInterpolant, η)
 end
 
 function Dû(û::Function, η)
-	Dû = Inti.jacobian(û, η)
+	Dû = ForwardDiff.gradient(û, η)
 	return Dû
 end
 
