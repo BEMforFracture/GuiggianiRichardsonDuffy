@@ -1,4 +1,5 @@
-using GuiggianiRichardsonDuffy
+import GuiggianiRichardsonDuffy as GRD
+
 using Inti
 using StaticArrays
 
@@ -12,17 +13,14 @@ nodes = (y¹, y², y³, y⁴)
 
 η = SVector(0.5, 0.5)
 
-τ = Inti.LagrangeSquare(nodes)
-ref_domain = Inti.reference_domain(τ)
+el = Inti.LagrangeSquare(nodes)
+ref_domain = Inti.reference_domain(el)
 
 p = 1
-û = ξ -> Inti.lagrange_basis(typeof(τ))(ξ)[p]
+û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
 
-ν = 0.3 # Poisson ratio
-i, j, k = 1, 1, 1 # indices of the derivative of the kernel
-
-F₋₂ = θ -> navier_hypersingular_F₋₂(θ, τ, i, j, k, û, η, ν)
-F₋₁ = θ -> navier_hypersingular_F₋₁(θ, τ, i, j, k, û, η, ν)
+F₋₂ = θ -> GRD.LaplaceHypersingularClosedFormF₋₂(θ, η, el, û)
+F₋₁ = θ -> GRD.LaplaceHypersingularClosedFormF₋₁(θ, η, el, û)
 
 θ = π
 

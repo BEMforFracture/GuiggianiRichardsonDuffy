@@ -4,6 +4,7 @@ using LinearAlgebra
 using StaticArrays
 using Inti
 using Richardson
+using Memoization
 
 include("utils.jl")
 include("kernels.jl")

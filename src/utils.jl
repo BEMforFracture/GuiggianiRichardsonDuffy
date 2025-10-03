@@ -3,3 +3,21 @@
 function ⊗(u::AbstractVector, v::AbstractVector)
 	return u * transpose(v)
 end
+
+function ⋅(u::AbstractVector, v::AbstractVector)
+	return transpose(u) * v
+end
+
+export ⊗, ⋅
+
+function custom_contraction(T::SArray{Tuple{3, 2, 2}, Float64, 3, 12}, M::SMatrix{2, 2, Float64, 4})
+	res = MVector{3, Float64}(0.0, 0.0, 0.0)
+	for i in 1:3
+		res[i] = [T[i, j, k] * M[j, k] for j in 1:2, k in 1:2] |> sum
+	end
+	return res |> SVector
+end
+
+function notimplemented()
+	throw(ErrorException("This function is not yet implemented."))
+end
