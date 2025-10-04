@@ -37,8 +37,8 @@ function SplitLaplaceHypersingular(qx, qy, r̂ = nothing)
 	r = qy.coords - qx.coords
 	d = norm(r)
 	r̂ = isnothing(r̂) ? r / d : r̂
-	nx = p.normal
-	ny = q.normal
+	nx = qx.normal
+	ny = qy.normal
 	return 1 / d^3, 1 / (4π) * transpose(nx) * ((I - 3 * r̂ ⊗ r̂) * ny)
 end
 

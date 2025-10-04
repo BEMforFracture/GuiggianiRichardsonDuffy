@@ -10,7 +10,17 @@ end
 
 function B_func(τ::Inti.ReferenceInterpolant, η)::Function
 	D²τ = Inti.hessian(τ, η)
-	B(θ) = 0.5 * custom_contraction(D²τ, u_func(θ) ⊗ u_func(θ))
+	function B(θ)
+		out = MVector{3, Float64}(0.0, 0.0, 0.0)
+		for i in 1:size(D²τ, 1)
+			for j in 1:size(D²τ, 2)
+				for k in 1:size(D²τ, 3)
+					out[i] += D²τ[i, j, k] * u_func(θ)[j] * u_func(θ)[k]
+				end
+			end
+		end
+		return 1 / 2 * out |> SVector{3, Float64}
+	end
 	return B
 end
 
@@ -29,7 +39,7 @@ end
 
 function Jn_func(τ::Inti.ReferenceInterpolant, η)::Function
 	Jn = ξ -> begin
-		J = Inti.jacobian(τ, η)
+		J = Inti.jacobian(τ, ξ)
 		n = Inti._normal(J)
 		μ = Inti._integration_measure(J)
 		return μ * n

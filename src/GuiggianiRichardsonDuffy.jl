@@ -1,3 +1,5 @@
+#= GuiggianiRichardsonDuffy module definition, includes, usings, and exports with main function =#
+
 module GuiggianiRichardsonDuffy
 
 using LinearAlgebra
@@ -39,36 +41,25 @@ function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
 end
 
 """
-	A_factor_0_fun(el::Inti.ReferenceInterpolant, x̂)
+	f_minus_two(K, el::Inti.ReferenceInterpolant, û, x̂)
 
-	Given a reference element `el` and a point `x̂` on the reference element, returns the function `A(θ)` such that the relative position vector `y - x` can be expressed as `y - x = ρ * A(θ) + O(ρ^2)` where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, and `y = el(ŷ)`. `A` will be called as `A(θ)`.
+	Computes the laurent coefficient f_{-2} for the kernel K = K̂ / rˢ in polar coordinates centered at x̂, where K̂ is a smooth kernel, el is a reference element, û is a function defined on the reference element, and x̂ is a point on the reference element containing the singularity.
+
+	K as to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
 """
-function A_factor_0_fun(el::Inti.ReferenceInterpolant, x̂)
-	Dτ = Inti.jacobian(el, x̂)
-	u(θ) = SVector(cos(θ), sin(θ))
-	A(θ) = Dτ ⋅ u(θ)
-	return A
-end
-
-"""
-	f_minus_two(K̂::Inti.HyperSingularKernel, el::Inti.ReferenceInterpolant, û, x̂)
-
-	Computes the laurent coefficient f_{-2} for the kernel K = K̂ / r³ in polar coordinates centered at x̂, where K̂ is a smooth kernel, el is a reference element, û is a function defined on the reference element, and x̂ is a point on the reference element.
-
-	K̂ as to be called as K̂(r̂, qx, qy) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny).
-"""
-function f_minus_two_fun(K̂, el::Inti.ReferenceInterpolant, û, x̂)
+function f_minus_two_func(K, el::Inti.ReferenceInterpolant, û, x̂)
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	ori = 1
 	nx = Inti._normal(jac_x, ori)
 	qx = (coords = x, normal = nx)
 	μ = Inti._integration_measure(jac_x)
-	A = A_factor_0_fun(el, x̂)
+	A = A_func(el, x̂)
 	function f_minus_two(θ)
 		Aθ = A(θ)
 		Âθ = Aθ / norm(Aθ)
-		return K̂(Âθ, qx, qx) * μ * û(x̂) / norm(Aθ)^3
+		_, K̂ = K(qx, qx, Âθ)
+		return K̂ * μ * û(x̂) / norm(Aθ)^3
 	end
 	return f_minus_two
 end
@@ -97,14 +88,16 @@ end
 """
 	function f_minus_one_fun(fun, rho_max_fun, f₋₂; first_contract, contract)
 
-	Given a function `fun(ρ)`, a function `rho_max_fun(θ)` that gives the maximum value of `ρ` for each `θ`, and the laurent coefficient `f₋₂`, returns the function `f₋₁(θ)` that computes the laurent coefficient `f₋₁` using Richardson extrapolation. The parameters `first_contract` and `contract` control the extrapolation process.
+	Given a function `fun(ρ)`, a function `rho_max_fun(θ)` that gives the maximum value of `ρ` for each `θ`, and the laurent coefficient `f₋₂` (which has to be a function of θ), returns the function `f₋₁(θ)` that computes the laurent coefficient `f₋₁` using Richardson extrapolation. The parameters `first_contract` and `contract` control the extrapolation process.
 """
-function f_minus_one_fun(fun, rho_max_fun, f₋₂; first_contract, contract)
+function f_minus_one_func(fun, rho_max_fun, f₋₂; first_contract, contract)
 	function f_minus_one(θ)
+		fun_rho = ρ -> fun(ρ, θ)
 		h = rho_max_fun(θ) * first_contract
-		f₋₁, e₋₁ = extrapolate(h; x0 = 0, contract = contract) do x
-			return x * fun(x) - f₋₂ / x
+		f₋₁, e₋₁ = extrapolate(h; x0 = h, contract = contract) do x
+			return x * fun_rho(x) - f₋₂(θ) / x
 		end
+		return f₋₁
 	end
 	return f_minus_one
 end
