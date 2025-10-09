@@ -21,7 +21,7 @@ include("closed_forms.jl")
 
 	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`. `K` has to be called as `K(qx, qy)` where `qx = (coords = x, normal = nx)` and `qy = (coords = y, normal = ny)` are cartesian points with their normals.
 """
-function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
 	x = el(x̂)
 	ori = 1
 	jac_x = Inti.jacobian(el, x̂)
@@ -35,7 +35,7 @@ function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
 		ny = Inti._normal(jac_y, ori)
 		μ = Inti._integration_measure(jac_y)
 		qy = (coords = y, normal = ny)
-		return K(qx, qy) * μ * ρ * û(ŷ)
+		return K(qx, qy; kwargs...) * μ * ρ * û(ŷ)
 	end
 	return F
 end
@@ -47,7 +47,7 @@ end
 
 	K as to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
 """
-function f_minus_two_func(K, el::Inti.ReferenceInterpolant, û, x̂)
+function f_minus_two_func(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	ori = 1
@@ -58,7 +58,7 @@ function f_minus_two_func(K, el::Inti.ReferenceInterpolant, û, x̂)
 	function f_minus_two(θ)
 		Aθ = A(θ)
 		Âθ = Aθ / norm(Aθ)
-		_, K̂ = K(qx, qx, Âθ)
+		_, K̂ = K(qx, qx, Âθ; kwargs...)
 		return K̂ * μ * û(x̂) / norm(Aθ)^3
 	end
 	return f_minus_two
@@ -88,7 +88,7 @@ end
 """
 	function f_minus_one_fun(fun, rho_max_fun, f₋₂; first_contract, contract)
 
-	Given a function `fun(ρ)`, a function `rho_max_fun(θ)` that gives the maximum value of `ρ` for each `θ`, and the laurent coefficient `f₋₂` (which has to be a function of θ), returns the function `f₋₁(θ)` that computes the laurent coefficient `f₋₁` using Richardson extrapolation. The parameters `first_contract` and `contract` control the extrapolation process.
+	Given a function `fun(ρ, θ)`, a function `rho_max_fun(θ)` that gives the maximum value of `ρ` for each `θ`, and the laurent coefficient `f₋₂` (which has to be a function of θ), returns the function `f₋₁(θ)` that computes the laurent coefficient `f₋₁` using Richardson extrapolation. The parameters `first_contract` and `contract` control the extrapolation process.
 """
 function f_minus_one_func(fun, rho_max_fun, f₋₂; first_contract, contract)
 	function f_minus_one(θ)
@@ -115,6 +115,6 @@ function guiggiani_singular_integral(
 	return nothing
 end
 
-export singular_integral
+export guiggiani_singular_integral
 
 end # module GuiggianiRichardsonDuffy

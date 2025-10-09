@@ -4,7 +4,7 @@ function LaplaceAdjointDoubleLayerClosedFormCoeffs()
 	notimplemented()
 end
 
-@memoize function LaplaceHypersingularClosedFormCoeffs(θ, η, el::Inti.LagrangeElement, û)
+@memoize function _laplace_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û)
 	A = A_func(el, η)
 	B = B_func(el, η)
 
@@ -35,16 +35,16 @@ end
 """
 Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
-function LaplaceHypersingularClosedFormF₋₁(θ, η, el::Inti.LagrangeElement, û)
-	f, _ = LaplaceHypersingularClosedFormCoeffs(θ, η, el::Inti.LagrangeElement, û)
+function LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
+	f, _ = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
 
 """
 Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
-function LaplaceHypersingularClosedFormF₋₂(θ, η, el::Inti.LagrangeElement, û)
-	_, f = LaplaceHypersingularClosedFormCoeffs(θ, η, el::Inti.LagrangeElement, û)
+function LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
+	_, f = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
 
@@ -52,89 +52,103 @@ function ElastostaticAdjointDoubleLayerClosedFormCoeffs()
 	notimplemented()
 end
 
-@memoize function ElastostaticHypersingularClosedFormCoeffs()
+@memoize function _elastostatic_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û; λ, μ)
+	ν = λ / (2 * (λ + μ))
 	β = 3
-	α = 2
+	α = β - 1
 	Λ = 1 / (4 * π * α * (1 - ν))
 
-	SS₋₂ = S₋₂(θ, η, el)
-	SS₋₃ = S₋₃(θ, η, el)
+	A = A_func(el, η)
+	B = B_func(el, η)
 
-	JJᵢ₀ = Jₖ₀(η, el, i)
-	JJᵢ₁ = Jₖ₁(θ, η, el, i)
+	Jn = Jn_func(el, η)
+	DJn_η = DJn(el, η)
+	Dû_η = Dû(û, η)
 
-	JJⱼ₀ = Jₖ₀(η, el, j)
-	JJⱼ₁ = Jₖ₁(θ, η, el, j)
+	nx = Inti.normal(el, η)
 
-	JJₖ₀ = Jₖ₀(η, el, k)
-	JJₖ₁ = Jₖ₁(θ, η, el, k)
+	S₋₂ = -3 * A(θ) ⋅ B(θ) / norm(A(θ))^5
+	S₋₃ = 1 / norm(A(θ))^3
 
-	JJ₁₀ = Jₖ₀(η, el, 1)
-	JJ₁₁ = Jₖ₁(θ, η, el, 1)
+	function V_coeffs_12(i, k, j)
+		δᵢⱼ = i == j
+		δᵢₖ = i == k
+		δⱼₖ = j == k
+		d₀ = A(θ) / norm(A(θ))
+		d₁ = B(θ) / norm(A(θ)) - A(θ) * (A(θ) ⋅ B(θ)) / norm(A(θ))^3
+		J₀ = Jn(η)
+		J₁ = DJn_η * u_func(θ)
 
-	JJ₂₀ = Jₖ₀(η, el, 2)
-	JJ₂₁ = Jₖ₁(θ, η, el, 2)
+		dᵢ₀ = d₀[i]
+		dⱼ₀ = d₀[j]
+		dₖ₀ = d₀[k]
 
-	JJ₃₀ = Jₖ₀(η, el, 3)
-	JJ₃₁ = Jₖ₁(θ, η, el, 3)
+		dᵢ₁ = d₁[i]
+		dⱼ₁ = d₁[j]
+		dₖ₁ = d₁[k]
 
-	NNᵖ₀ = Nᵖ₀(η, N_p)
-	NNᵖ₁ = Nᵖ₁(θ, η, N_p)
+		Jᵢ₀ = J₀[i]
+		Jⱼ₀ = J₀[j]
+		Jₖ₀ = J₀[k]
 
-	ddᵢ₀ = dₖ₀(θ, η, el, i)
-	ddᵢ₁ = dₖ₁(θ, η, el, i)
+		Jᵢ₁ = J₁[i]
+		Jⱼ₁ = J₁[j]
+		Jₖ₁ = J₁[k]
 
-	ddⱼ₀ = dₖ₀(θ, η, el, j)
-	ddⱼ₁ = dₖ₁(θ, η, el, j)
+		aᵢⱼ₀ = Jᵢ₀ * dⱼ₀ - Jⱼ₀ * dᵢ₀
+		aᵢⱼ₁ = Jᵢ₁ * dⱼ₀ + Jᵢ₀ * dⱼ₁ - Jⱼ₁ * dᵢ₀ - Jⱼ₀ * dᵢ₁
+		bᵢⱼₖ₀ = -Jᵢ₀ * δⱼₖ + Jⱼ₀ * δᵢₖ - Jₖ₀ * δᵢⱼ
+		bᵢⱼₖ₁ = -Jᵢ₁ * δⱼₖ + Jⱼ₁ * δᵢₖ - Jₖ₁ * δᵢⱼ
+		dᵢⱼₖ₀ = Jₖ₀ * dᵢ₀ * dⱼ₀
+		dᵢⱼₖ₁ = Jₖ₁ * dᵢ₀ * dⱼ₀ + Jₖ₀ * dᵢ₁ * dⱼ₀ + Jₖ₀ * dᵢ₀ * dⱼ₁
+		gᵢⱼₖ₀ = dᵢ₀ * dⱼ₀ * dₖ₀
+		gᵢⱼₖ₁ = dᵢ₁ * dⱼ₀ * dₖ₀ + dᵢ₀ * dⱼ₀ * dₖ₁ + dᵢ₀ * dⱼ₁ * dₖ₀
 
-	ddₖ₀ = dₖ₀(θ, η, el, k)
-	ddₖ₁ = dₖ₁(θ, η, el, k)
+		h₀ = J₀ ⋅ d₀
+		h₁ = J₁ ⋅ d₀ + J₀ ⋅ d₁
 
-	dd₁₀ = dₖ₀(θ, η, el, 1)
-	dd₁₁ = dₖ₁(θ, η, el, 1)
+		kᵢⱼₖ₀ = (1 - 2 * ν) * (β * dₖ₀ * aᵢⱼ₀ + bᵢⱼₖ₀) - β * dᵢⱼₖ₀ +
+				β * h₀ * ((α + 3) * gᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * dₖ₀ - δᵢₖ * dⱼ₀ - δⱼₖ * dᵢ₀)
 
-	dd₂₀ = dₖ₀(θ, η, el, 2)
-	dd₂₁ = dₖ₁(θ, η, el, 2)
+		kᵢⱼₖ₁ = β * h₁ * ((α + 3) * gᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * dₖ₀ - δᵢₖ * dⱼ₀ - δⱼₖ * dᵢ₀) +
+				(1 - 2 * ν) * (β * dₖ₁ * aᵢⱼ₀ + β * aᵢⱼ₁ * dₖ₀ + bᵢⱼₖ₁) - β * dᵢⱼₖ₁ + β * h₀ * ((α + 3) * gᵢⱼₖ₁ + (1 - 2 * ν) * δᵢⱼ * dₖ₁ - δᵢₖ * dⱼ₁ - δⱼₖ * dᵢ₁)
 
-	dd₃₀ = dₖ₀(θ, η, el, 3)
-	dd₃₁ = dₖ₁(θ, η, el, 3)
-
-	δᵢⱼ = i == j ? 1 : 0
-	δᵢₖ = i == k ? 1 : 0
-	δⱼₖ = j == k ? 1 : 0
-
-	hh₀ = JJ₁₀ * dd₁₀ + JJ₂₀ * dd₂₀ + JJ₃₀ * dd₃₀
-	hh₁ = JJ₁₁ * dd₁₀ + JJ₂₁ * dd₂₀ + JJ₃₁ * dd₃₀ + JJ₁₀ * dd₁₁ + JJ₂₀ * dd₂₁ + JJ₃₀ * dd₃₁
-
-	ggᵢⱼₖ₀ = ddᵢ₀ * ddⱼ₀ * ddₖ₀
-	ggᵢⱼₖ₁ = ddᵢ₁ * ddⱼ₀ * ddₖ₀ + ddᵢ₀ * ddⱼ₁ * ddₖ₀ + ddᵢ₀ * ddⱼ₀ * ddₖ₁
-
-	ddᵢⱼₖ₀ = JJₖ₀ * ddᵢ₀ * ddⱼ₀
-	ddᵢⱼₖ₁ = JJₖ₁ * ddᵢ₀ * ddⱼ₀ + JJₖ₀ * ddᵢ₁ * ddⱼ₀ + JJₖ₀ * ddᵢ₀ * ddⱼ₁
-
-	bbᵢⱼₖ₀ = -JJᵢ₀ * δⱼₖ + JJⱼ₀ * δᵢₖ - JJₖ₀ * δᵢⱼ
-	bbᵢⱼₖ₁ = -JJᵢ₁ * δⱼₖ + JJⱼ₁ * δᵢₖ - JJₖ₁ * δᵢⱼ
-
-	aaᵢⱼ₀ = JJᵢ₀ * ddⱼ₀ - JJⱼ₀ * ddᵢ₀
-	aaᵢⱼ₁ = JJᵢ₁ * ddⱼ₀ - JJⱼ₁ * ddᵢ₀ + JJᵢ₀ * ddⱼ₁ - JJⱼ₀ * ddᵢ₁
-
-	kkᵢⱼₖ₀ = (1 - 2 * ν) * (β * ddₖ₀ * aaᵢⱼ₀ + bbᵢⱼₖ₀) - β * ddᵢⱼₖ₀ +
-			 β * hh₀ * ((α + 3) * ggᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * ddₖ₀ - δᵢₖ * ddⱼ₀ - δⱼₖ * ddᵢ₀)
-
-	kkᵢⱼₖ₁ =
-		β * hh₁ * ((α + 3) * ggᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * ddₖ₀ - δᵢₖ * ddⱼ₀ - δⱼₖ * ddᵢ₀) + (1 - 2 * ν) * (β * ddₖ₁ * aaᵢⱼ₀ + β * aaᵢⱼ₁ * ddₖ₀ + bbᵢⱼₖ₁) - β * ddᵢⱼₖ₁ + β * hh₀ * ((α + 3) * ggᵢⱼₖ₁ + (1 - 2 * ν) * δᵢⱼ * ddₖ₁ - δᵢₖ * ddⱼ₁ - δⱼₖ * ddᵢ₁)
-
-	F₋₂ = -Λ * SS₋₃ * NNᵖ₀ * kkᵢⱼₖ₀
-	F₋₁ = -Λ * (SS₋₂ * NNᵖ₀ * kkᵢⱼₖ₀ + SS₋₃ * (NNᵖ₁ * kkᵢⱼₖ₀ + NNᵖ₀ * kkᵢⱼₖ₁))
+		V₋₁ = -Λ * (S₋₂ * û(η) * kᵢⱼₖ₀ + S₋₃ * (Dû_η ⋅ u_func(θ) * kᵢⱼₖ₀ + û(η) * kᵢⱼₖ₁))
+		V₋₂ = -Λ * S₋₃ * û(η) * kᵢⱼₖ₀
+		return V₋₁, V₋₂
+	end
+	function H_coeff_12(i, j)
+		h₋₁ = 0.0
+		h₋₂ = 0.0
+		for (b, k, ℓ) in Iterators.product(1:3, 1:3, 1:3)
+			V₋₁, V₋₂ = V_coeffs_12(i, k, j)
+			C_ibkℓ = hooke_tensor_iso(i, b, k, ℓ; λ, μ)
+			h₋₁ += C_ibkℓ * nx[b] * V₋₁
+			h₋₂ += C_ibkℓ * nx[b] * V₋₂
+		end
+		return h₋₁, h₋₂
+	end
+	F₋₁, F₋₂ = zeros(3, 3), zeros(3, 3)
+	for (i, j) in Iterators.product(1:3, 1:3)
+		h₋₁, h₋₂ = H_coeff_12(i, j)
+		F₋₁[i, j] += h₋₁
+		F₋₂[i, j] += h₋₂
+	end
 	return F₋₁, F₋₂
 end
 
-function ElastostaticHypersingularClosedFormF₋₁()
-	f, _ = ElastostaticHypersingularClosedFormCoeffs()
+"""
+Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
+"""
+function ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
+	f, _ = _elastostatic_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
 
-function ElastostaticHypersingularClosedFormF₋₂()
-	f, _ = ElastostaticHypersingularClosedFormCoeffs()
+"""
+Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
+"""
+function ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
+	_, f = _elastostatic_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end

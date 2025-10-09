@@ -21,3 +21,7 @@ end
 function notimplemented()
 	throw(ErrorException("This function is not yet implemented."))
 end
+
+function hooke_tensor_iso(i, j, k, ℓ; λ, μ)
+	return λ * (i == j) * (k == ℓ) + μ * ((i == k) * (j == ℓ) + (i == ℓ) * (j == k))
+end

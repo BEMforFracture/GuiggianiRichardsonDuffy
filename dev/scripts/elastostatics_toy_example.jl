@@ -4,6 +4,9 @@ using Inti
 using StaticArrays
 using Plots
 
+λ = 1.0
+μ = 1.0
+
 δ = 0.5
 z = 0.0
 y¹ = SVector(-1.0, -1.0, z)
@@ -20,14 +23,14 @@ ref_domain = Inti.reference_domain(el)
 p = 1
 û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
 
-F₋₂ = θ -> GRD.ElastostaticHypersingularClosedFormF₋₂(θ, x̂, el, û)
-F₋₁ = θ -> GRD.ElastostaticHypersingularClosedFormF₋₁(θ, x̂, el, û)
+F₋₂ = θ -> GRD.ElastostaticHypersingularClosedFormF₋₂(θ, x̂, el, û; λ = λ, μ = μ)
+F₋₁ = θ -> GRD.ElastostaticHypersingularClosedFormF₋₁(θ, x̂, el, û; λ = λ, μ = μ)
 
 K = GRD.SplitElastostaticHypersingular
-F̃₋₂ = GRD.f_minus_two_func(K, el, û, x̂)
+F̃₋₂ = GRD.f_minus_two_func(K, el, û, x̂; λ = λ, μ = μ)
 
 Km = GRD.ElastostaticHypersingular
-K_polar = GRD.polar_kernel_fun(Km, el, û, x̂)
+K_polar = GRD.polar_kernel_fun(Km, el, û, x̂; λ = λ, μ = μ)
 rho_max_fun = GRD.rho_fun(ref_domain, x̂)
 
 first_contract = 1e-2
