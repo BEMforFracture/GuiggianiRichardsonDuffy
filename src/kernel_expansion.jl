@@ -1,16 +1,21 @@
-function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, args...; kwargs...)
-	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs...))
+function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
 	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
-	h_user, other_args = isempty(args) ? (1e-2, ()) : (first(args), Base.tail(args))
+	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
+	ratio = haskey(kwargs_rich, :contract) ? kwargs_rich.contract : 0.5
+	breaktol = haskey(kwargs_rich, :breaktol) ? kwargs_rich.breaktol : 2
+	maxeval = haskey(kwargs_rich, :maxeval) ? kwargs_rich.maxeval : typemax(Int)
+	atol = haskey(kwargs_rich, :atol) ? kwargs_rich.atol : 0.0
+	rtol = haskey(kwargs_rich, :rtol) ? kwargs_rich.rtol : (atol > 0 ? 0.0 : sqrt(eps()))
 	@memoize function ℒ(θ)
 		h = rho_max_fun(θ) * h_user
 		g = ρ -> ρ^2 * K_polar(ρ, θ)
-		f₋₂, e₋₂ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+		f₋₂, e₋₂ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
 			return g(x)
 		end
-		f₋₁, e₋₁ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+		f₋₁, e₋₁ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
 			return x * K_polar(x, θ) - f₋₂ / x
 		end
 		return f₋₂, f₋₁
@@ -26,6 +31,8 @@ function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂;
 	ori = 1
 	nx = Inti._normal(jac_x, ori)
 	qx = (coords = x, normal = nx)
+	Dτ = Inti.jacobian(el, x̂)
+	D²τ = Inti.hessian(el, x̂)
 	function ℱ(ρ, θ)
 		uθ = u_func(θ)
 		ŷ = x̂ + ρ * uθ
@@ -35,8 +42,6 @@ function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂;
 		y = el(ŷ)
 		qy = (coords = y, normal = ny)
 		μ = Inti._integration_measure(jac_y)
-		Dτ = Inti.jacobian(el, ŷ)
-		D²τ = Inti.hessian(el, ŷ)
 		δ = ntuple(i -> transpose(uθ) * D²τ[i, :, :] * uθ, 3) |> SVector
 		A = Dτ * uθ + ρ / 2 * δ
 		Â = A / norm(A)
@@ -53,7 +58,7 @@ function _laurents_coeff_semi_analytical_lvl_1(K, el::Inti.ReferenceInterpolant,
 	return F₋₂, F₋₁
 end
 
-function _laurents_coeff_semi_analytical_lvl_2(K, el::Inti.ReferenceInterpolant, û, x̂, args...; kwargs...)
+function _laurents_coeff_semi_analytical_lvl_2(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)
@@ -63,15 +68,20 @@ function _laurents_coeff_semi_analytical_lvl_2(K, el::Inti.ReferenceInterpolant,
 	nx = Inti._normal(jac_x, ori)
 	qx = (coords = x, normal = nx)
 	μ = Inti._integration_measure(jac_x)
-	h_user, other_args = isempty(args) ? (1e-2, ()) : (first(args), Base.tail(args))
-	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs...))
+	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
+	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
+	ratio = haskey(kwargs_rich, :contract) ? kwargs_rich.contract : 0.5
+	breaktol = haskey(kwargs_rich, :breaktol) ? kwargs_rich.breaktol : 2
+	maxeval = haskey(kwargs_rich, :maxeval) ? kwargs_rich.maxeval : typemax(Int)
+	atol = haskey(kwargs_rich, :atol) ? kwargs_rich.atol : 0.0
+	rtol = haskey(kwargs_rich, :rtol) ? kwargs_rich.rtol : (atol > 0 ? 0.0 : sqrt(eps()))
 	@memoize function ℒ(θ)
 		Â = A(θ) / norm(A(θ))
-		_, K̂ = K(qx, qx, Â; kwargs...)
+		_, K̂ = K(qx, qx, Â; kwargs_kernel...)
 		F₋₂ = K̂ * μ * û(x̂) / norm(A(θ))^3
 		F = ρ -> polar_kernel_fun(Kprod, el, û, x̂)(ρ, θ)
 		h = rho_max_fun(θ) * h_user
-		F₋₁, e₋₁ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+		F₋₁, e₋₁ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
 			return x * F(x) - F₋₂ / x
 		end
 		return F₋₂, F₋₁

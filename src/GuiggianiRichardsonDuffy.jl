@@ -89,21 +89,32 @@ end
 
 	K has to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
 """
-function laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂, args...; expansion = :richardson, kwargs...)
+function laurents_coeffs(
+	K, el::Inti.ReferenceInterpolant, û, x̂;
+	expansion::Symbol = :full_richardson,
+	kernel_kwargs::NamedTuple = NamedTuple(),
+	richardson_kwargs::NamedTuple = NamedTuple(),
+	name::Symbol = :LaplaceHypersingular,
+	kwargs...,
+)
+	# 1) Répartition auto des kwargs libres (compatibilité et ergonomie)
+	auto_kernel, auto_rich = split_kwargs(kwargs)
+	kwargs_kernel = (; kernel_kwargs..., auto_kernel...)
+	kwargs_rich = (; richardson_kwargs..., auto_rich...)
+
+	# 2) Délégation par méthode
 	if expansion == :analytical
-		name = kwargs[:name]
-		other_kwargs = isempty(kwargs) ? () : filter(kv -> kv[1] != :name, collect(kwargs))
-		F₋₂, F₋₁ = _laurents_coeff_analytical(el, û, x̂, args...; name = name, other_kwargs...)
+		# Ne passer que les kwargs noyau
+		return _laurents_coeff_analytical(el, û, x̂; name = name, kwargs_kernel...)
 	elseif expansion == :semi_analytical_lvl_1
-		F₋₂, F₋₁ = _laurents_coeff_semi_analytical_lvl_1(K, el, û, x̂; kwargs...)
+		return _laurents_coeff_semi_analytical_lvl_1(K, el, û, x̂; kwargs_kernel...)
 	elseif expansion == :semi_analytical_lvl_2
-		F₋₂, F₋₁ = _laurents_coeff_semi_analytical_lvl_2(K, el, û, x̂, args...; kwargs...)
+		return _laurents_coeff_semi_analytical_lvl_2(K, el, û, x̂, kwargs_kernel, kwargs_rich)
 	elseif expansion == :full_richardson
-		F₋₂, F₋₁ = _laurents_coeff_full_richardson(K, el, û, x̂, args...; kwargs...)
+		return _laurents_coeff_full_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich)
 	else
 		error("Unknown expansion type: $(expansion). Available types are: $(EXPANSION_METHODS)")
 	end
-	return F₋₂, F₋₁
 end
 
 """
