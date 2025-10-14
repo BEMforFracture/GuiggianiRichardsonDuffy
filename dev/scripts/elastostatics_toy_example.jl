@@ -3,6 +3,7 @@ import GuiggianiRichardsonDuffy as GRD
 using Inti
 using StaticArrays
 using Plots
+using LinearAlgebra
 
 λ = 1.0
 μ = 1.0
@@ -40,10 +41,22 @@ F̃₋₁ = GRD.f_minus_one_func(K_polar, rho_max_fun, F̃₋₂; first_contract
 N = 10000
 θs = range(0, 2π, length = N)
 
-plot(θs, F₋₂.(θs), label = "F₋₂ exact", lw = 2)
-plot!(θs, F̃₋₂.(θs), label = "F₋₂ exact bis", lw = 2, ls = :dash)
-plot!(θs, F₋₁.(θs), label = "F₋₁ exact", lw = 2)
-plot!(θs, F̃₋₁.(θs), label = "F₋₁ approx (ρ₀/ρ_max = $first_contract), ρₙ₊₁/ρₙ = $contract", lw = 2, ls = :dash)
+plot(θs, norm.(F₋₂.(θs)), label = "F₋₂ exact", lw = 2)
+plot!(θs, norm.(F̃₋₂.(θs)), label = "F₋₂ exact bis", lw = 2, ls = :dash)
+# plot(θs, norm.(F₋₂.(θs)) ./ norm.(F̃₋₂.(θs)), label = "Ratio F₋₂", lw = 2)
+plot!(θs, norm.(F₋₁.(θs)), label = "F₋₁ exact", lw = 2)
+plot!(θs, norm.(F̃₋₁.(θs)), label = "F₋₁ approx (ρ₀/ρ_max = $first_contract), ρₙ₊₁/ρₙ = $contract", lw = 2, ls = :dash)
+# plot!(θs, norm.(F₋₁.(θs)) ./ norm.(F̃₋₁.(θs)), label = "Ratio F₋₁", lw = 2)
+ylabel!("Norm Ratio")
 xlabel!("θ")
 title!("Elastostatic Hypersingular Kernel Laurent Coefficients")
-savefig("./dev/figures/hybrid_richardson_vs_closed_form.png")
+savefig("./dev/figures/elastostatic_hybrid_richardson_vs_closed_form.png")
+
+function _guiggiani_hypersingular_kernel(i, k, j)
+end
+
+function _guiggiani_hypersingular_F₋₂(i, k, j)
+end
+
+function _guiggiani_hypersingular_F₋₁(i, k, j)
+end

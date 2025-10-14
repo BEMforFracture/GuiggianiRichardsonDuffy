@@ -16,27 +16,27 @@ end
 
 	Λ = -1 / (4π)
 
-	g₁ = A(θ) * (B(θ) ⋅ Jn(η) + A(θ) ⋅ (DJn_η * u_func(θ))) / norm(A(θ))^2
+	g₁ = A(θ) * (transpose(B(θ)) * Jn(η) + transpose(A(θ)) * (DJn_η * u_func(θ))) / norm(A(θ))^2
 
 	b₀ = -Jn(η)
 	b₁ = 3g₁ - DJn_η * u_func(θ)
 
 	a₀ = b₀ * û(η)
-	a₁ = b₁ * û(η) + b₀ * (Dû_η ⋅ u_func(θ))
+	a₁ = b₁ * û(η) + b₀ * (transpose(Dû_η) * u_func(θ))
 
-	S₋₂ = -3 * (A(θ) ⋅ B(θ)) / norm(A(θ))^5
+	S₋₂ = -3 * (transpose(A(θ)) * B(θ)) / norm(A(θ))^5
 	S₋₃ = 1 / norm(A(θ))^3
 
-	F₋₂ = (Λ * S₋₃ * a₀) ⋅ nx
-	F₋₁ = Λ * (S₋₂ * a₀ + S₋₃ * a₁) ⋅ nx
-	return F₋₁, F₋₂
+	F₋₂ = Λ * S₋₃ * transpose(a₀) * nx
+	F₋₁ = Λ * transpose(S₋₂ * a₀ + S₋₃ * a₁) * nx
+	return F₋₂, F₋₁
 end
 
 """
 Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
 function LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
-	f, _ = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
+	_, f = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
 
@@ -44,7 +44,7 @@ end
 Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
 function LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
-	_, f = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
+	f, _ = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
 
@@ -134,7 +134,7 @@ end
 		F₋₁[i, j] += h₋₁
 		F₋₂[i, j] += h₋₂
 	end
-	return F₋₁, F₋₂
+	return F₋₂, F₋₁
 end
 
 """

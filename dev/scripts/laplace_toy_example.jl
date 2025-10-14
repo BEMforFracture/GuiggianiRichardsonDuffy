@@ -2,7 +2,8 @@ import GuiggianiRichardsonDuffy as GRD
 
 using Inti
 using StaticArrays
-using Plots
+using LinearAlgebra
+using GLMakie
 
 δ = 0.5
 z = 0.0
@@ -16,31 +17,36 @@ x̂ = SVector(0.5, 0.5)
 
 el = Inti.LagrangeSquare(nodes)
 ref_domain = Inti.reference_domain(el)
-
 p = 1
 û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
 
-F₋₂ = θ -> GRD.LaplaceHypersingularClosedFormF₋₂(θ, x̂, el, û)
-F₋₁ = θ -> GRD.LaplaceHypersingularClosedFormF₋₁(θ, x̂, el, û)
-
 K = GRD.SplitLaplaceHypersingular
-F̃₋₂ = GRD.f_minus_two_func(K, el, û, x̂)
 
-Km = GRD.LaplaceHypersingular
-K_polar = GRD.polar_kernel_fun(Km, el, û, x̂)
-rho_max_fun = GRD.rho_fun(ref_domain, x̂)
+D = Dict{Symbol, Tuple{Function, Function}}()
 
-first_contract = 1e-2
-contract = 0.5
-F̃₋₁ = GRD.f_minus_one_func(K_polar, rho_max_fun, F̃₋₂; first_contract = first_contract, contract = contract)
+F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
+D[:analytical] = (F₋₂, F₋₁)
 
-N = 10000
+F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_analytical_lvl_1)
+D[:semi_analytical_lvl_1] = (F₋₂, F₋₁)
+
+F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_analytical_lvl_2)
+D[:semi_analytical_lvl_2] = (F₋₂, F₋₁)
+
+F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson)
+D[:full_richardson] = (F₋₂, F₋₁)
+
+N = 1000
 θs = range(0, 2π, length = N)
 
-plot(θs, F₋₂.(θs), label = "F₋₂ exact", lw = 2)
-plot!(θs, F̃₋₂.(θs), label = "F₋₂ exact bis", lw = 2, ls = :dash)
-plot!(θs, F₋₁.(θs), label = "F₋₁ exact", lw = 2)
-plot!(θs, F̃₋₁.(θs), label = "F₋₁ approx (ρ₀/ρ_max = $first_contract), ρₙ₊₁/ρₙ = $contract", lw = 2, ls = :dash)
-xlabel!("θ")
-title!("Laplace Hypersingular Kernel Laurent Coefficients")
-savefig("./dev/figures/laplace_hybrid_richardson_vs_closed_form.png")
+fig = Figure(; size = (1200, 800))
+ax = Axis(fig[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", title = "Laplace Hypersingular Kernel Laurent Coefficients")
+
+lw = 4
+
+for (method, (F₋₂, F₋₁)) in D
+	lines!(ax, θs, F₋₂.(θs), label = "F₋₂ $method", linewidth = lw)
+	lines!(ax, θs, F₋₁.(θs), label = "F₋₁ $method", linestyle = :dash, linewidth = lw)
+end
+axislegend(ax; position = :rt)
+GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_all_methods.png", fig)

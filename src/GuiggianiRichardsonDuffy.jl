@@ -8,20 +8,36 @@ using Inti
 using Richardson
 using Memoization
 using ForwardDiff
+using GLMakie
 
 include("utils.jl")
 include("kernels.jl")
 include("geometry_expansion.jl")
 include("closed_forms.jl")
+include("kernel_expansion.jl")
 
 @info "Loading GuiggianiRichardsonDuffy.jl"
+
+"""
+	const EXPANSION_METHODS = [:analytical, :semi-analytical, :richardson]
+
+Available expansion methods for Laurent coefficients of singular kernels.
+"""
+const EXPANSION_METHODS = [:analytical, :semi_analytical_lvl_1, :semi_analytical_lvl_2, :full_richardson]
+
+"""
+	const ANALYTICAL_KERNELS = [:LaplaceHypersingular]
+
+Available kernels with analytical Laurent coefficients.
+"""
+const ANALYTICAL_KERNELS = [:LaplaceHypersingular]
 
 """
 	polar_kernel_fun(K::Inti.AbstractKernel, el::Inti.ReferenceInterpolant, û, x̂)
 
 	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`. `K` has to be called as `K(qx, qy)` where `qx = (coords = x, normal = nx)` and `qy = (coords = y, normal = ny)` are cartesian points with their normals.
 """
-function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
 	x = el(x̂)
 	ori = 1
 	jac_x = Inti.jacobian(el, x̂)
@@ -35,33 +51,9 @@ function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
 		ny = Inti._normal(jac_y, ori)
 		μ = Inti._integration_measure(jac_y)
 		qy = (coords = y, normal = ny)
-		return K(qx, qy; kwargs...) * μ * ρ * û(ŷ)
+		return K(qx, qy) * μ * ρ * û(ŷ)
 	end
 	return F
-end
-
-"""
-	f_minus_two(K, el::Inti.ReferenceInterpolant, û, x̂)
-
-	Computes the laurent coefficient f_{-2} for the kernel K = K̂ / rˢ in polar coordinates centered at x̂, where K̂ is a smooth kernel, el is a reference element, û is a function defined on the reference element, and x̂ is a point on the reference element containing the singularity.
-
-	K as to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
-"""
-function f_minus_two_func(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
-	x = el(x̂)
-	jac_x = Inti.jacobian(el, x̂)
-	ori = 1
-	nx = Inti._normal(jac_x, ori)
-	qx = (coords = x, normal = nx)
-	μ = Inti._integration_measure(jac_x)
-	A = A_func(el, x̂)
-	function f_minus_two(θ)
-		Aθ = A(θ)
-		Âθ = Aθ / norm(Aθ)
-		_, K̂ = K(qx, qx, Âθ; kwargs...)
-		return K̂ * μ * û(x̂) / norm(Aθ)^3
-	end
-	return f_minus_two
 end
 
 """
@@ -86,21 +78,49 @@ function rho_fun(ref_domain, η)
 end
 
 """
-	function f_minus_one_fun(fun, rho_max_fun, f₋₂; first_contract, contract)
+	laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂; expansion = (method = :richardson,), kwargs...)
 
-	Given a function `fun(ρ, θ)`, a function `rho_max_fun(θ)` that gives the maximum value of `ρ` for each `θ`, and the laurent coefficient `f₋₂` (which has to be a function of θ), returns the function `f₋₁(θ)` that computes the laurent coefficient `f₋₁` using Richardson extrapolation. The parameters `first_contract` and `contract` control the extrapolation process.
+	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns the laurent coefficients `F₋₂` and `F₋₁` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
+
+	- `:analytical`: uses analytical expressions for the coefficients (if available). `kwargs...` are passed to analytical functions.
+	- `:semi_analytical_lvl_1`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `kwargs...` are passed to the kernel `K̂`.
+	- `:semi_analytical_lvl_2`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `args...` are passed to richardson extrapolation `Richardson.extrapolate` and `kwargs...` are passed to the kernel `K̂`.
+	- `:full_richardson`: uses Richardson extrapolation to compute the coefficients, available by default for any kernel. `kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function.
+
+	K has to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
 """
-function f_minus_one_func(fun, rho_max_fun, f₋₂; first_contract, contract)
-	function f_minus_one(θ)
-		fun_rho = ρ -> fun(ρ, θ)
-		h = rho_max_fun(θ) * first_contract
-		f₋₁, e₋₁ = extrapolate(h; x0 = h, contract = contract) do x
-			return x * fun_rho(x) - f₋₂(θ) / x
-		end
-		return f₋₁
+function laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂, args...; expansion = :richardson, kwargs...)
+	if expansion == :analytical
+		name = kwargs[:name]
+		other_kwargs = isempty(kwargs) ? () : filter(kv -> kv[1] != :name, collect(kwargs))
+		F₋₂, F₋₁ = _laurents_coeff_analytical(el, û, x̂, args...; name = name, other_kwargs...)
+	elseif expansion == :semi_analytical_lvl_1
+		F₋₂, F₋₁ = _laurents_coeff_semi_analytical_lvl_1(K, el, û, x̂; kwargs...)
+	elseif expansion == :semi_analytical_lvl_2
+		F₋₂, F₋₁ = _laurents_coeff_semi_analytical_lvl_2(K, el, û, x̂, args...; kwargs...)
+	elseif expansion == :full_richardson
+		F₋₂, F₋₁ = _laurents_coeff_full_richardson(K, el, û, x̂, args...; kwargs...)
+	else
+		error("Unknown expansion type: $(expansion). Available types are: $(EXPANSION_METHODS)")
 	end
-	return f_minus_one
+	return F₋₂, F₋₁
 end
+
+"""
+	guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el::Inti.ReferenceInterpolant,
+		n_rho,
+		n_theta,
+		sorder::Val{P} = Val(-2),
+	)
+
+	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1 or -2), computes the integral of the kernel over the reference element using the Guiggiani-Richardson-Duffy method.
+
+	K has to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
+"""
 
 function guiggiani_singular_integral(
 	K,

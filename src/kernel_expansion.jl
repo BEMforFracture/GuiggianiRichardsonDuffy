@@ -1,0 +1,92 @@
+function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, args...; kwargs...)
+	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs...))
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	ref_domain = Inti.reference_domain(el)
+	rho_max_fun = rho_fun(ref_domain, x̂)
+	h_user, other_args = isempty(args) ? (1e-2, ()) : (first(args), Base.tail(args))
+	@memoize function ℒ(θ)
+		h = rho_max_fun(θ) * h_user
+		g = ρ -> ρ^2 * K_polar(ρ, θ)
+		f₋₂, e₋₂ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+			return g(x)
+		end
+		f₋₁, e₋₁ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+			return x * K_polar(x, θ) - f₋₂ / x
+		end
+		return f₋₂, f₋₁
+	end
+	F₋₂ = θ -> ℒ(θ)[1]
+	F₋₁ = θ -> ℒ(θ)[2]
+	return F₋₂, F₋₁
+end
+
+function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	ori = 1
+	nx = Inti._normal(jac_x, ori)
+	qx = (coords = x, normal = nx)
+	function ℱ(ρ, θ)
+		uθ = u_func(θ)
+		ŷ = x̂ + ρ * uθ
+		jac_y = Inti.jacobian(el, ŷ)
+		ori = 1
+		ny = Inti._normal(jac_y, ori)
+		y = el(ŷ)
+		qy = (coords = y, normal = ny)
+		μ = Inti._integration_measure(jac_y)
+		Dτ = Inti.jacobian(el, ŷ)
+		D²τ = Inti.hessian(el, ŷ)
+		δ = ntuple(i -> transpose(uθ) * D²τ[i, :, :] * uθ, 3) |> SVector
+		A = Dτ * uθ + ρ / 2 * δ
+		Â = A / norm(A)
+		_, K̂ = K(qx, qy, Â; kwargs...)
+		return K̂ * μ * û(ŷ) / norm(A)^3
+	end
+	return ℱ
+end
+
+function _laurents_coeff_semi_analytical_lvl_1(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+	ℱ = polar_kernel_fun_normalized(K, el, û, x̂; kwargs...)
+	F₋₂ = θ -> ℱ(0, θ)
+	F₋₁ = θ -> ForwardDiff.derivative(ρ -> ℱ(ρ, θ), 0.0)
+	return F₋₂, F₋₁
+end
+
+function _laurents_coeff_semi_analytical_lvl_2(K, el::Inti.ReferenceInterpolant, û, x̂, args...; kwargs...)
+	ref_domain = Inti.reference_domain(el)
+	rho_max_fun = rho_fun(ref_domain, x̂)
+	A = A_func(el, x̂)
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	ori = 1
+	nx = Inti._normal(jac_x, ori)
+	qx = (coords = x, normal = nx)
+	μ = Inti._integration_measure(jac_x)
+	h_user, other_args = isempty(args) ? (1e-2, ()) : (first(args), Base.tail(args))
+	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs...))
+	@memoize function ℒ(θ)
+		Â = A(θ) / norm(A(θ))
+		_, K̂ = K(qx, qx, Â; kwargs...)
+		F₋₂ = K̂ * μ * û(x̂) / norm(A(θ))^3
+		F = ρ -> polar_kernel_fun(Kprod, el, û, x̂)(ρ, θ)
+		h = rho_max_fun(θ) * h_user
+		F₋₁, e₋₁ = extrapolate(h, other_args...; x0 = 0, kwargs...) do x
+			return x * F(x) - F₋₂ / x
+		end
+		return F₋₂, F₋₁
+	end
+	F₋₂ = θ -> ℒ(θ)[1]
+	F₋₁ = θ -> ℒ(θ)[2]
+	return F₋₂, F₋₁
+end
+
+function _laurents_coeff_analytical(el::Inti.ReferenceInterpolant, û, x̂, arg...; name = :LaplaceHypersingular, kwargs...)
+	if name == :LaplaceHypersingular
+		F₋₂ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[1]
+		F₋₁ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[2]
+		return F₋₂, F₋₁
+	else
+		throw(ArgumentError("The kernel $name does not have analytical Laurent coefficients implemented. Available kernels are: $(ANALYTICAL_KERNELS)"))
+	end
+end

@@ -10,7 +10,7 @@ end
 
 function B_func(τ::Inti.ReferenceInterpolant, η)::Function
 	D²τ = Inti.hessian(τ, η)
-	B(θ) = 0.5 * custom_contraction(D²τ, u_func(θ) ⊗ u_func(θ))
+	B(θ) = 0.5 * custom_contraction(D²τ, u_func(θ) * transpose(u_func(θ)))
 	return B
 end
 
