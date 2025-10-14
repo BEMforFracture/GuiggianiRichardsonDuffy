@@ -139,11 +139,49 @@ function guiggiani_singular_integral(
 	x̂,
 	el::Inti.ReferenceInterpolant,
 	n_rho,
-	n_theta,
+	n_theta;
 	sorder::Val{P} = Val(-2),
+	expansion::Symbol = :full_richardson,
+	kernel_kwargs::NamedTuple = NamedTuple(),
+	richardson_kwargs::NamedTuple = NamedTuple(),
+	kwargs...,
 ) where {P}
-	#TODO
-	return nothing
+	ref_shape = Inti.reference_domain(el)
+	auto_kernel, auto_rich = split_kwargs(kwargs)
+	kwargs_kernel = (; kernel_kwargs..., auto_kernel...)
+	kwargs_rich = (; richardson_kwargs..., auto_rich...)
+	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂; kwargs_kernel...)
+	# integrate
+	quad_rho = Inti.GaussLegendre(; order = n_rho)
+	quad_theta = Inti.GaussLegendre(; order = n_theta)
+	# T = Inti.return_type(K_polar, Float64, Float64)
+	acc = zero(K_polar(1.0, 0.0))
+	# F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich; kwargs...)
+	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = :full_richardson; rtol = 1e-9)
+	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
+		Δθ = theta_max - theta_min
+		I_theta = quad_theta() do (theta_ref,)
+			θ = theta_min + theta_ref * Δθ
+			ρ_max = rho_func(θ)
+			I_rho = quad_rho() do (rho_ref,)
+				ρ = ρ_max * rho_ref
+				if P == -2
+					return K_polar(ρ, θ) - F₋₂(θ) / ρ^2 - F₋₁(θ) / ρ
+				else
+					notimplemented()
+				end
+			end
+			if P == -2
+				return I_rho * ρ_max - F₋₁(θ) * log(ρ_max) - F₋₂(θ) / ρ_max
+			else
+				notimplemented()
+			end
+		end
+		I_theta *= Δθ
+		acc += I_theta
+	end
+	return acc
 end
 
 export guiggiani_singular_integral
