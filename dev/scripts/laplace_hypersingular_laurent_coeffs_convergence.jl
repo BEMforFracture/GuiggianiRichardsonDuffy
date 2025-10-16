@@ -17,6 +17,8 @@ contract = 0.5
 first_contract = 1e-2
 breaktol = Inf
 
+maxeval_in_loop = 100
+
 # END INPUTS
 
 δ = 0.5
@@ -77,7 +79,7 @@ F₋₂, F₋₁ = D[method]
 lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method", linewidth = 4)
 lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
 
-maxevals = 1:10
+maxevals = 1:maxeval_in_loop
 
 errors_F₋₂ = zeros(length(maxevals))
 errors_F₋₁ = zeros(length(maxevals))
