@@ -152,3 +152,20 @@ function ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
 	_, f = _elastostatic_hypersingular_closed_form_coeffs(args...; kwargs...)
 	return f
 end
+
+function hypersingular_laplace_integral_on_plane_element(x, el)
+	!(is_plane(el)) && throw(ArgumentError("Element is not planar."))
+	res = 0.0
+	_Y = el.vals
+	n = length(_Y)
+	# renumbering to use cyclic indexing
+	if n == 4
+		_Y = [_Y[1], _Y[2], _Y[4], _Y[3]]
+	end
+	Y = SVector(_Y..., _Y[1])  # close the polygon
+	u = [y - x for y in Y]
+	for p in 1:n
+		res += (norm(u[p]) + norm(u[p+1])) * norm(cross(u[p], u[p+1])) / (norm(u[p]) * norm(u[p+1]) * (norm(u[p]) * norm(u[p+1]) + dot(u[p], u[p+1])))
+	end
+	return -res
+end

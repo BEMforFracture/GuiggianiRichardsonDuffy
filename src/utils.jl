@@ -29,3 +29,19 @@ split_kwargs(kwargs; rich_keys = (:first_contract, :contract, :breaktol, :maxeva
 	rich_nt   = isempty(rich_pairs) ? NamedTuple() : NamedTuple{Tuple(first.(rich_pairs))}(Tuple(last.(rich_pairs)))
 	return kernel_nt, rich_nt
 end
+
+function is_plane(el::Inti.LagrangeElement)
+	tol = eps()
+	nodes = el.vals
+	npts = length(nodes)
+	npts ≤ 3 && return true  # toujours plan avec 3 points ou moins
+	P1, P2, P3 = nodes[1], nodes[2], nodes[3]
+	n = cross(P2 - P1, P3 - P1)
+	# Vérifie la coplanarité de tous les autres points
+	for i in 4:npts
+		if abs(dot(n, nodes[i] - P1)) > tol
+			return false
+		end
+	end
+	return true
+end
