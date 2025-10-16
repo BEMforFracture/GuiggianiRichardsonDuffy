@@ -16,7 +16,7 @@ using StaticArrays
 	va = GRD.hypersingular_laplace_integral_on_plane_element(a, el)
 	vb = GRD.hypersingular_laplace_integral_on_plane_element(b, el)
 	vc = GRD.hypersingular_laplace_integral_on_plane_element(c, el)
-	@test isapprox(va, -5.749237; atol = 1.0e-5)
-	@test isapprox(vb, -9.154585; atol = 1.0e-5)
-	@test isapprox(vc, -15.32850; atol = 1.0e-5)
+	@test isapprox(va, -5.749237 / (4π); atol = 1.0e-5)
+	@test isapprox(vb, -9.154585 / (4π); atol = 1.0e-5)
+	@test isapprox(vc, -15.32850 / (4π); atol = 1.0e-5)
 end

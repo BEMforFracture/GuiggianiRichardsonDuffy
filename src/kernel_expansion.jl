@@ -51,14 +51,14 @@ function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂;
 	return ℱ
 end
 
-function _laurents_coeff_semi_analytical_lvl_1(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+function _laurents_coeff_auto_diff(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
 	ℱ = polar_kernel_fun_normalized(K, el, û, x̂; kwargs...)
 	F₋₂ = θ -> ℱ(0, θ)
 	F₋₁ = θ -> ForwardDiff.derivative(ρ -> ℱ(ρ, θ), 0.0)
 	return F₋₂, F₋₁
 end
 
-function _laurents_coeff_semi_analytical_lvl_2(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)

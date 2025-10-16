@@ -23,7 +23,7 @@ include("kernel_expansion.jl")
 
 Available expansion methods for Laurent coefficients of singular kernels.
 """
-const EXPANSION_METHODS = [:analytical, :semi_analytical_lvl_1, :semi_analytical_lvl_2, :full_richardson]
+const EXPANSION_METHODS = [:analytical, :auto_diff, :semi_richardson, :full_richardson]
 
 """
 	const ANALYTICAL_KERNELS = [:LaplaceHypersingular]
@@ -83,8 +83,8 @@ end
 	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns the laurent coefficients `F₋₂` and `F₋₁` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
 
 	- `:analytical`: uses analytical expressions for the coefficients (if available). `kwargs...` are passed to analytical functions.
-	- `:semi_analytical_lvl_1`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `kwargs...` are passed to the kernel `K̂`.
-	- `:semi_analytical_lvl_2`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `args...` are passed to richardson extrapolation `Richardson.extrapolate` and `kwargs...` are passed to the kernel `K̂`.
+	- `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `kwargs...` are passed to the kernel `K̂`.
+	- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `args...` are passed to richardson extrapolation `Richardson.extrapolate` and `kwargs...` are passed to the kernel `K̂`.
 	- `:full_richardson`: uses Richardson extrapolation to compute the coefficients, available by default for any kernel. `kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function.
 
 	K has to be called as K(qx, qy, r̂; kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kwargs...)) where s is the order of the singularity.
@@ -106,10 +106,10 @@ function laurents_coeffs(
 	if expansion == :analytical
 		# Ne passer que les kwargs noyau
 		return _laurents_coeff_analytical(el, û, x̂; name = name, kwargs_kernel...)
-	elseif expansion == :semi_analytical_lvl_1
-		return _laurents_coeff_semi_analytical_lvl_1(K, el, û, x̂; kwargs_kernel...)
-	elseif expansion == :semi_analytical_lvl_2
-		return _laurents_coeff_semi_analytical_lvl_2(K, el, û, x̂, kwargs_kernel, kwargs_rich)
+	elseif expansion == :auto_diff
+		return _laurents_coeff_auto_diff(K, el, û, x̂; kwargs_kernel...)
+	elseif expansion == :semi_richardson
+		return _laurents_coeff_semi_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich)
 	elseif expansion == :full_richardson
 		return _laurents_coeff_full_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich)
 	else
@@ -157,8 +157,7 @@ function guiggiani_singular_integral(
 	quad_theta = Inti.GaussLegendre(; order = n_theta)
 	# T = Inti.return_type(K_polar, Float64, Float64)
 	acc = zero(K_polar(1.0, 0.0))
-	# F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich; kwargs...)
-	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = :full_richardson; rtol = 1e-9)
+	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich; kwargs...)
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)

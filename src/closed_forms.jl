@@ -167,5 +167,5 @@ function hypersingular_laplace_integral_on_plane_element(x, el)
 	for p in 1:n
 		res += (norm(u[p]) + norm(u[p+1])) * norm(cross(u[p], u[p+1])) / (norm(u[p]) * norm(u[p+1]) * (norm(u[p]) * norm(u[p+1]) + dot(u[p], u[p+1])))
 	end
-	return -res
+	return -res / (4π)
 end
