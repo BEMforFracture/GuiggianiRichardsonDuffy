@@ -56,31 +56,27 @@ ax4 = Axis(
 	yscale = log10,
 )
 
-time_dict = Dict{Tuple{Symbol, String}, Float64}()
+for (i, n_rho) in enumerate(n_rhos)
+	@info "n_rho = $n_rho"
 
-t = @elapsed begin
-	for (i, n_rho) in enumerate(n_rhos)
-		@info "n_rho = $n_rho"
-
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-			rtol = rtol,
-			maxeval = maxeval,
-			first_contract = first_contract,
-			breaktol = breaktol,
-			contract = contract,
-			atol = atol,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_rho[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+		rtol = rtol,
+		maxeval = maxeval,
+		first_contract = first_contract,
+		breaktol = breaktol,
+		contract = contract,
+		atol = atol,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_rho[i] = error
 end
 
 time_dict[method, "rho"] = t
@@ -92,32 +88,28 @@ n_rho = 100
 n_thetas = 1:M
 errors_theta = zeros(length(n_thetas))
 
-t = @elapsed begin
-	for (i, n_theta) in enumerate(n_thetas)
-		@info "n_theta = $n_theta"
+for (i, n_theta) in enumerate(n_thetas)
+	@info "n_theta = $n_theta"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-			maxeval = maxeval,
-			rtol = rtol,
-			first_contract = first_contract,
-			breaktol = breaktol,
-			contract = contract,
-			atol = atol,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_theta[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+		maxeval = maxeval,
+		rtol = rtol,
+		first_contract = first_contract,
+		breaktol = breaktol,
+		contract = contract,
+		atol = atol,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_theta[i] = error
 end
-
-time_dict[method, "theta"] = t
 
 lines!(ax4, n_rhos, errors_rho; label = "error vs n_rho, n_theta = $n_theta", linewidth = 4)
 lines!(ax4, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", linewidth = 4)
@@ -132,64 +124,56 @@ ax5 = Axis(
 	yscale = log10,
 )
 
-t = @elapsed begin
-	for (i, n_rho) in enumerate(n_rhos)
-		@info "n_rho = $n_rho"
+for (i, n_rho) in enumerate(n_rhos)
+	@info "n_rho = $n_rho"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-			rtol = rtol,
-			maxeval = maxeval,
-			first_contract = first_contract,
-			breaktol = breaktol,
-			contract = contract,
-			atol = atol,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_rho[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+		rtol = rtol,
+		maxeval = maxeval,
+		first_contract = first_contract,
+		breaktol = breaktol,
+		contract = contract,
+		atol = atol,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_rho[i] = error
 end
-
-time_dict[method, "rho"] = t
 
 # boucle sur theta
 n_rho = 100
 n_thetas = 1:M
 errors_theta = zeros(length(n_thetas))
 
-t = @elapsed begin
-	for (i, n_theta) in enumerate(n_thetas)
-		@info "n_theta = $n_theta"
+for (i, n_theta) in enumerate(n_thetas)
+	@info "n_theta = $n_theta"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-			maxeval = maxeval,
-			rtol = rtol,
-			first_contract = first_contract,
-			breaktol = breaktol,
-			contract = contract,
-			atol = atol,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_theta[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+		maxeval = maxeval,
+		rtol = rtol,
+		first_contract = first_contract,
+		breaktol = breaktol,
+		contract = contract,
+		atol = atol,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_theta[i] = error
 end
-
-time_dict[method, "theta"] = t
 
 lines!(ax5, n_rhos, errors_rho; label = "error vs n_rho, n_theta = $n_theta", linewidth = 4)
 lines!(ax5, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", linewidth = 4)
@@ -203,26 +187,22 @@ ax6 = Axis(
 	yscale = log10,
 )
 
-t = @elapsed begin
-	for (i, n_rho) in enumerate(n_rhos)
-		@info "n_rho = $n_rho"
+for (i, n_rho) in enumerate(n_rhos)
+	@info "n_rho = $n_rho"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_rho[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_rho[i] = error
 end
-
-time_dict[method, "rho"] = t
 
 # boucle sur theta
 
@@ -230,25 +210,22 @@ n_rho = 100
 n_thetas = 1:M
 errors_theta = zeros(length(n_thetas))
 
-t = @elapsed begin
-	for (i, n_theta) in enumerate(n_thetas)
-		@info "n_theta = $n_theta"
+for (i, n_theta) in enumerate(n_thetas)
+	@info "n_theta = $n_theta"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_theta[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_theta[i] = error
 end
-time_dict[method, "theta"] = t
 
 lines!(ax6, n_rhos, errors_rho; label = "error vs n_rho, n_theta = $n_theta", linewidth = 4)
 lines!(ax6, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", linewidth = 4)
@@ -261,26 +238,22 @@ ax7 = Axis(
 	yscale = log10,
 )
 
-t = @elapsed begin
-	for (i, n_rho) in enumerate(n_rhos)
-		@info "n_rho = $n_rho"
+for (i, n_rho) in enumerate(n_rhos)
+	@info "n_rho = $n_rho"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-		)
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_rho[i] = error
-	end
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+	)
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_rho[i] = error
 end
-
-time_dict[method, "rho"] = t
 
 # boucle sur theta
 
@@ -288,27 +261,23 @@ n_rho = 100
 n_thetas = 1:M
 errors_theta = zeros(length(n_thetas))
 
-t = @elapsed begin
-	for (i, n_theta) in enumerate(n_thetas)
-		@info "n_theta = $n_theta"
+for (i, n_theta) in enumerate(n_thetas)
+	@info "n_theta = $n_theta"
 
-		I = GRD.guiggiani_singular_integral(
-			K,
-			û,
-			x̂,
-			el,
-			n_rho,
-			n_theta;
-			sorder = Val(-2),
-			expansion = method,
-		)
+	I = GRD.guiggiani_singular_integral(
+		K,
+		û,
+		x̂,
+		el,
+		n_rho,
+		n_theta;
+		sorder = Val(-2),
+		expansion = method,
+	)
 
-		error = abs(I - expected_I) / abs(expected_I)
-		errors_theta[i] = error
-	end
+	error = abs(I - expected_I) / abs(expected_I)
+	errors_theta[i] = error
 end
-
-time_dict[method, "theta"] = t
 
 lines!(ax7, n_rhos, errors_rho; label = "error vs n_rho, n_theta = $n_theta", linewidth = 4)
 lines!(ax7, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", linewidth = 4)
@@ -319,5 +288,3 @@ axislegend(ax6, position = :rt)
 axislegend(ax7, position = :rt)
 
 GLMakie.save("./dev/figures/laplace_hypersingular_integral_error_vs_n_rho_n_theta_all_methods.png", fig4)
-
-print(time_dict)

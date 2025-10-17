@@ -118,15 +118,19 @@ function laurents_coeffs(
 end
 
 """
-	guiggiani_singular_integral(
+	function guiggiani_singular_integral(
 		K,
 		û,
 		x̂,
 		el::Inti.ReferenceInterpolant,
 		n_rho,
-		n_theta,
+		n_theta;
 		sorder::Val{P} = Val(-2),
-	)
+		expansion::Symbol = :full_richardson,
+		kernel_kwargs::NamedTuple = NamedTuple(),
+		richardson_kwargs::NamedTuple = NamedTuple(),
+		kwargs...,
+	) where {P}
 
 	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1 or -2), computes the integral of the kernel over the reference element using the Guiggiani-Richardson-Duffy method.
 

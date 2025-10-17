@@ -1,3 +1,6 @@
+using Pkg: Pkg;
+Pkg.activate(joinpath(@__DIR__, ".."));
+
 using Test
 import GuiggianiRichardsonDuffy as GRD
 
