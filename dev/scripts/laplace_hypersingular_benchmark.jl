@@ -16,6 +16,10 @@ contract = 0.5
 first_contract = 1e-2
 breaktol = Inf
 
+# quadrature parameters
+n_rho = 5
+n_theta = 10
+
 # END INPUTS
 
 δ = 0.5
@@ -33,9 +37,6 @@ ref_domain = Inti.reference_domain(el)
 û = ξ -> 1.0
 
 K = GRD.SplitLaplaceHypersingular
-
-n_rho = 5
-n_theta = 10
 
 b_dict_gui = Dict{Symbol, BenchmarkTools.Trial}()
 
@@ -90,6 +91,39 @@ end
 
 for (method, b) in b_dict_laurent
 	println("Laurent coefficients, ", method, ":")
+	display(b)
+	println()
+end
+
+b_dict_eval = Dict{Symbol, BenchmarkTools.Trial}()
+# I want to benchmark the evaluation of F₋₂(θ) and F₋₁(θ) at random values of θ
+θ_test = 2π * rand(n_theta)
+
+for method in GRD.EXPANSION_METHODS
+	F₋₂, F₋₁ = GRD.laurents_coeffs(
+		K,
+		el,
+		û,
+		x̂;
+		expansion = method,
+		maxeval = maxeval,
+		rtol = rtol,
+		atol = atol,
+		contract = contract,
+		first_contract = first_contract,
+		breaktol = breaktol,
+	)
+	b = @benchmark begin
+		for θ in $θ_test
+			$F₋₂(θ)
+			$F₋₁(θ)
+		end
+	end
+	b_dict_eval[method] = b
+end
+
+for (method, b) in b_dict_eval
+	println("Laurent coefficients evaluation, ", method, ":")
 	display(b)
 	println()
 end
