@@ -34,8 +34,6 @@ û = ξ -> 1.0
 
 K = GRD.SplitLaplaceHypersingular
 
-fig1 = Figure(; size = (1200, 800))
-
 n_rho = 10
 n_theta = 10
 
@@ -64,5 +62,3 @@ for method in GRD.EXPANSION_METHODS
 	end
 	b_dict[method] = b
 end
-
-
