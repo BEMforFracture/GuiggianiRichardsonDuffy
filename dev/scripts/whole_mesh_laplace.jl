@@ -1,9 +1,6 @@
 using Inti, Gmsh
 using GLMakie
 using StaticArrays
-using LinearAlgebra
-using LinearAlgebra
-using CrackFastBEM
 
 # === INPUTS ===
 

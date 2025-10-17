@@ -8,7 +8,6 @@ using Inti
 using Richardson
 using Memoization
 using ForwardDiff
-using GLMakie
 
 include("utils.jl")
 include("kernels.jl")

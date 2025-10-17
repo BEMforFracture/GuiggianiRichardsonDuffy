@@ -1,9 +1,7 @@
-import .GuiggianiRichardsonDuffy as GRD
+import GuiggianiRichardsonDuffy as GRD
 
 using Inti
 using StaticArrays
-using LinearAlgebra
-using GLMakie
 using BenchmarkTools
 
 # INPUTS
