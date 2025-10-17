@@ -7,6 +7,11 @@ using GLMakie
 
 # INPUTS
 
+# material properties
+
+μ = 1.0
+λ = 1.0
+
 x̂ = SVector(0.5, 0.5) # source point in reference coordinates
 
 ### Richardson extrapolation parameters
@@ -37,27 +42,45 @@ ref_domain = Inti.reference_domain(el)
 # û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
 û = ξ -> 1.0
 
-K = GRD.SplitLaplaceHypersingular
+K = GRD.SplitElastostaticHypersingular
 
 D = Dict{Symbol, Tuple{Function, Function}}()
 
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
+F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :ElastostaticHypersingular, μ = μ, λ = λ)
 D[:analytical] = (F₋₂, F₋₁)
 
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :auto_diff)
-D[:auto_diff] = (F₋₂, F₋₁)
-
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+F₋₂, F₋₁ =
+	GRD.laurents_coeffs(K, el, û, x̂;
+		expansion = :semi_richardson,
+		kernel_kwargs = (μ = μ, λ = λ),
+		richardson_kwargs = (
+			maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+		),
+	)
 D[:semi_richardson] = (F₋₂, F₋₁)
 
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+F₋₂, F₋₁ =
+	GRD.laurents_coeffs(K, el, û, x̂;
+		expansion = :full_richardson,
+		kernel_kwargs = (μ = μ, λ = λ),
+		richardson_kwargs = (
+			maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+		),
+	)
 D[:full_richardson] = (F₋₂, F₋₁)
+
+F₋₂, F₋₁ =
+	GRD.laurents_coeffs(K, el, û, x̂;
+		expansion = :auto_diff,
+		kernel_kwargs = (μ = μ, λ = λ),
+	)
+D[:auto_diff] = (F₋₂, F₋₁)
 
 N = 1000
 θs = range(0, 2π, length = N)
 
 fig1 = Figure(; size = (1200, 800))
-ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", title = "Laplace Hypersingular Kernel Laurent Coefficients, Richardson max eval = $maxeval")
+ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", title = "Navier Hypersingular Kernel Laurent Coefficients, Richardson max eval = $maxeval")
 
 for (method, (F₋₂, F₋₁)) in D
 	p = 2
@@ -66,17 +89,19 @@ for (method, (F₋₂, F₋₁)) in D
 		@info "Relative error (order $p) F₋₂ ($method vs analytical): $(maximum(error_F₋₂))"
 		error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), p) / norm(D[:analytical][2].(θs), p)
 		@info "Relative error (order $p) F₋₁ ($method vs analytical): $(maximum(error_F₋₁))"
-		lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
-		lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
+		lines!(ax1, θs, norm.(F₋₂.(θs)); label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
+		lines!(ax1, θs, norm.(F₋₁.(θs)); label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
 	end
 end
+
 method = :analytical
 F₋₂, F₋₁ = D[method]
-lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method", linewidth = 4)
-lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
+lines!(ax1, θs, norm.(F₋₂.(θs)); label = "F₋₂ $method", linewidth = 4)
+lines!(ax1, θs, norm.(F₋₁.(θs)); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
 
 axislegend(ax1; position = :rt)
-GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
+
+GLMakie.save("./dev/figures/navier_hypersingular_laurent_coeffs_all_methods.png", fig1)
 
 maxevals = 1:maxeval_in_loop
 
@@ -86,13 +111,28 @@ errors_F₋₁ = zeros(length(maxevals))
 errors_G₋₂ = zeros(length(maxevals))
 errors_G₋₁ = zeros(length(maxevals))
 
+method = :analytical
+F₋₂, F₋₁ = D[method]
+
 for (i, maxeval_) in enumerate(maxevals)
-	F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+	F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂;
+		expansion = :full_richardson,
+		kernel_kwargs = (μ = μ, λ = λ),
+		richardson_kwargs = (
+			maxeval = maxeval_, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+		),
+	)
 	error_F₋₂ = norm(D[:analytical][1].(θs) - F₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
 	errors_F₋₂[i] = error_F₋₂
 	error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
 	errors_F₋₁[i] = error_F₋₁
-	G₋₂, G₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+	G₋₂, G₋₁ = GRD.laurents_coeffs(K, el, û, x̂;
+		expansion = :semi_richardson,
+		kernel_kwargs = (μ = μ, λ = λ),
+		richardson_kwargs = (
+			maxeval = maxeval_, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+		),
+	)
 	error_G₋₂ = norm(D[:analytical][1].(θs) - G₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
 	error_G₋₁ = norm(D[:analytical][2].(θs) - G₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
 	errors_G₋₂[i] = error_G₋₂
@@ -105,7 +145,7 @@ ax2 = Axis(
 	fig2[1, 1];
 	xlabel = "maxeval",
 	ylabel = "Relative Error in norm 2",
-	title = "Laplace Hypersingular Kernel Laurent Coefficients Error vs maxeval, Richardson first contract = $first_contract, contract = $contract, rtol = $rtol, breaktol = $breaktol, atol = $atol",
+	title = "Navier Hypersingular Kernel Laurent Coefficients Error vs maxeval, Richardson first contract = $first_contract, contract = $contract, rtol = $rtol, breaktol = $breaktol, atol = $atol",
 	yscale = log10,
 )
 lines!(ax2, maxevals, errors_F₋₂; label = "F₋₂ full_richardson", linewidth = 4)
@@ -125,4 +165,4 @@ hlines!(ax2, [min_error_G₋₁]; label = "min F₋₁ semi_richardson = $(round
 
 axislegend(ax2; position = :rb)
 
-GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)
+GLMakie.save("./dev/figures/navier_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)

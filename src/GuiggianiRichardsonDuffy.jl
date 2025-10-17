@@ -29,7 +29,7 @@ const EXPANSION_METHODS = [:analytical, :auto_diff, :semi_richardson, :full_rich
 
 Available kernels with analytical Laurent coefficients.
 """
-const ANALYTICAL_KERNELS = [:LaplaceHypersingular]
+const ANALYTICAL_KERNELS = [:LaplaceHypersingular, :ElastostaticHypersingular]
 
 """
 	polar_kernel_fun(K::Inti.AbstractKernel, el::Inti.ReferenceInterpolant, û, x̂)

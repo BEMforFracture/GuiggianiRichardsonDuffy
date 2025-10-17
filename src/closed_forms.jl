@@ -67,17 +67,18 @@ end
 
 	nx = Inti.normal(el, η)
 
-	S₋₂ = -3 * A(θ) ⋅ B(θ) / norm(A(θ))^5
+	S₋₂ = -3 * dot(A(θ), B(θ)) / norm(A(θ))^5
 	S₋₃ = 1 / norm(A(θ))^3
+
+	d₀ = A(θ) / norm(A(θ))
+	d₁ = B(θ) / norm(A(θ)) - A(θ) * (dot(A(θ), B(θ)) / norm(A(θ))^3)
+	J₀ = Jn(η)
+	J₁ = DJn_η * u_func(θ)
 
 	function V_coeffs_12(i, k, j)
 		δᵢⱼ = i == j
 		δᵢₖ = i == k
 		δⱼₖ = j == k
-		d₀ = A(θ) / norm(A(θ))
-		d₁ = B(θ) / norm(A(θ)) - A(θ) * (A(θ) ⋅ B(θ)) / norm(A(θ))^3
-		J₀ = Jn(η)
-		J₁ = DJn_η * u_func(θ)
 
 		dᵢ₀ = d₀[i]
 		dⱼ₀ = d₀[j]
@@ -104,8 +105,8 @@ end
 		gᵢⱼₖ₀ = dᵢ₀ * dⱼ₀ * dₖ₀
 		gᵢⱼₖ₁ = dᵢ₁ * dⱼ₀ * dₖ₀ + dᵢ₀ * dⱼ₀ * dₖ₁ + dᵢ₀ * dⱼ₁ * dₖ₀
 
-		h₀ = J₀ ⋅ d₀
-		h₁ = J₁ ⋅ d₀ + J₀ ⋅ d₁
+		h₀ = dot(J₀, d₀)
+		h₁ = dot(J₁, d₀) + dot(J₀, d₁)
 
 		kᵢⱼₖ₀ = (1 - 2 * ν) * (β * dₖ₀ * aᵢⱼ₀ + bᵢⱼₖ₀) - β * dᵢⱼₖ₀ +
 				β * h₀ * ((α + 3) * gᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * dₖ₀ - δᵢₖ * dⱼ₀ - δⱼₖ * dᵢ₀)
@@ -121,7 +122,7 @@ end
 		h₋₁ = 0.0
 		h₋₂ = 0.0
 		for (b, k, ℓ) in Iterators.product(1:3, 1:3, 1:3)
-			V₋₁, V₋₂ = V_coeffs_12(i, k, j)
+			V₋₁, V₋₂ = V_coeffs_12(k, ℓ, j)
 			C_ibkℓ = hooke_tensor_iso(i, b, k, ℓ; λ, μ)
 			h₋₁ += C_ibkℓ * nx[b] * V₋₁
 			h₋₂ += C_ibkℓ * nx[b] * V₋₂

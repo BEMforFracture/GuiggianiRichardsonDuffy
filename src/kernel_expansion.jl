@@ -96,7 +96,11 @@ function _laurents_coeff_analytical(el::Inti.ReferenceInterpolant, û, x̂, arg
 		F₋₂ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[1]
 		F₋₁ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[2]
 		return F₋₂, F₋₁
+	elseif name == :ElastostaticHypersingular
+		F₋₂ = θ -> _elastostatic_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[1]
+		F₋₁ = θ -> _elastostatic_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[2]
+		return F₋₂, F₋₁
 	else
-		throw(ArgumentError("The kernel $name does not have analytical Laurent coefficients implemented. Available kernels are: $(ANALYTICAL_KERNELS)"))
+		error("Analytical laurent coefficients for kernel $(name) are not implemented. Available kernels are : $ANALYTICAL_KERNELS")
 	end
 end
