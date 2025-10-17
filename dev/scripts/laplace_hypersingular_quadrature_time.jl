@@ -1,9 +1,10 @@
-import GuiggianiRichardsonDuffy as GRD
+import .GuiggianiRichardsonDuffy as GRD
 
 using Inti
 using StaticArrays
 using LinearAlgebra
 using GLMakie
+using BenchmarkTools
 
 # INPUTS
 
@@ -31,8 +32,6 @@ el = Inti.LagrangeSquare(nodes)
 x = el(x̂)
 expected_I = GRD.hypersingular_laplace_integral_on_plane_element(x, el)
 ref_domain = Inti.reference_domain(el)
-# p = 1
-# û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
 û = ξ -> 1.0
 
 K = GRD.SplitLaplaceHypersingular
@@ -44,21 +43,28 @@ n_theta = 10
 
 method = :full_richardson
 
-b = @btime begin
-	res = GRD.guiggiani_singular_integral(
-		K,
-		û,
-		x̂,
-		el,
-		n_rho,
-		n_theta;
-		sorder = Val(-2),
-		expansion = method,
-		rtol = rtol,
-		maxeval = maxeval,
-		first_contract = first_contract,
-		breaktol = breaktol,
-		contract = contract,
-		atol = atol,
-	)
+b_dict = Dict{Symbol, BenchmarkTools.Trial}()
+
+for method in GRD.EXPANSION_METHODS
+	b = @benchmark begin
+		res = GRD.guiggiani_singular_integral(
+			K,
+			û,
+			x̂,
+			el,
+			n_rho,
+			n_theta;
+			sorder = Val(-2),
+			expansion = method,
+			rtol = rtol,
+			maxeval = maxeval,
+			first_contract = first_contract,
+			breaktol = breaktol,
+			contract = contract,
+			atol = atol,
+		)
+	end
+	b_dict[method] = b
 end
+
+
