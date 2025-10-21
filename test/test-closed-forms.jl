@@ -1,7 +1,7 @@
 using Inti
 using StaticArrays
 
-@testset "Closed forms Laplace hypersingular on plane element" begin
+@testset "Closed forms Laplace hypersingular integration on plane element" begin
 	δ = 0.5
 	z = 0.0
 	y¹ = SVector(-1.0, -1.0, z)
