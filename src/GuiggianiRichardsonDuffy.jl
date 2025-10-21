@@ -61,9 +61,9 @@ const ANALYTICAL_KERNELS = [:LaplaceHypersingular, :ElastostaticHypersingular]
 """
 	polar_kernel_fun(K::Inti.AbstractKernel, el::Inti.ReferenceInterpolant, û, x̂)
 
-	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`. `K` has to be called as `K(qx, qy)` where `qx = (coords = x, normal = nx)` and `qy = (coords = y, normal = ny)` are cartesian points with their normals. 
-	
-	`K` must return a unique value.
+Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `F` that computes the complete kernel in polar coordinates centered at `x̂` : F(ρ, θ) = K(x, y) * J(ŷ) * ρ * û(ŷ) where `x = el(x̂)`, `ŷ = x̂ + ρ * (cos(θ), sin(θ))`, `y = el(ŷ)`, and `J(ŷ)` is the integration measure at `ŷ`. `F` will be called as `F(ρ, θ)`. `K` has to be called as `K(qx, qy)` where `qx = (coords = x, normal = nx)` and `qy = (coords = y, normal = ny)` are cartesian points with their normals. 
+
+`K` must return a unique value.
 """
 function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
 	x = el(x̂)
@@ -87,7 +87,7 @@ end
 """
 	rho_fun(ref_domain::Inti.ReferenceDomain, x̂)
 
-	Given a reference domain `ref_domain` and a point `x̂` in the reference domain, returns the function `ρ(θ)` that gives the distance from `x̂` to the boundary of the reference domain in the direction `θ`. `ρ` will be called as `ρ(θ)`.
+Given a reference domain `ref_domain` and a point `x̂` in the reference domain, returns the function `ρ(θ)` that gives the distance from `x̂` to the boundary of the reference domain in the direction `θ`. `ρ` will be called as `ρ(θ)`.
 """
 function rho_fun(ref_domain, x̂)
 	decompo = Inti.polar_decomposition(ref_domain, x̂)
@@ -108,16 +108,16 @@ end
 """
 	laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂; expansion = (method = :full_richardson,), kwargs...)
 
-	Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns the laurent coefficients `F₋₂` and `F₋₁` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
+Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns the laurent coefficients `F₋₂` and `F₋₁` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
 
-	- `:analytical`: uses analytical expressions for the coefficients (if available). `kernel_kwargs...` are passed to analytical functions.
-	- `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds) based on automatic differentiation used in the `ForwardDiff.jl` package. `kernel_kwargs...` are passed to the kernel `K̂`.
-	- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `richardson_kwargs...` are passed to richardson extrapolation [`Richardson.extrapolate`](@ref) and `kernel_kwargs...` are passed to the kernel `K̂`.
-	- `:full_richardson`: uses Richardson extrapolation to compute both coefficients, available by default for any kernel. `richardson_kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function and `kernel_kwargs...` are passed to the kernel `K̂`.
+- `:analytical`: uses analytical expressions for the coefficients (if available). `kernel_kwargs...` are passed to analytical functions.
+- `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds) based on automatic differentiation used in the `ForwardDiff.jl` package. `kernel_kwargs...` are passed to the kernel `K̂`.
+- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `richardson_kwargs...` are passed to richardson extrapolation [`Richardson.extrapolate`](@ref) and `kernel_kwargs...` are passed to the kernel `K̂`.
+- `:full_richardson`: uses Richardson extrapolation to compute both coefficients, available by default for any kernel. `richardson_kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function and `kernel_kwargs...` are passed to the kernel `K̂`.
 
-	K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
+K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
 
-	You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the [`Richardson.extrapolate`](@ref) docxumentation.
+You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the [`Richardson.extrapolate`](@ref) docxumentation.
 """
 function laurents_coeffs(
 	K, el::Inti.ReferenceInterpolant, û, x̂;
@@ -148,7 +148,7 @@ function laurents_coeffs(
 end
 
 """
-	function guiggiani_singular_integral(
+	guiggiani_singular_integral(
 		K,
 		û,
 		x̂,
@@ -162,9 +162,9 @@ end
 		kwargs...,
 	) where {P}
 
-	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1, -2 or -3), computes the integral of the kernel over the reference element using the Guiggiani method using expansion of Laurent coefficients specified in the `expansion` argument.
+Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1, -2 or -3), computes the integral of the kernel over the reference element using the Guiggiani method using expansion of Laurent coefficients specified in the `expansion` argument.
 
-	See [`GuiggianiRichardsonDuffy.laurents_coeffs`](@ref) for the available expansion methods and their parameters.
+See [`GuiggianiRichardsonDuffy.laurents_coeffs`](@ref) for the available expansion methods and their parameters.
 """
 function guiggiani_singular_integral(
 	K,

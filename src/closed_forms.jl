@@ -33,7 +33,9 @@ end
 end
 
 """
-Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
+	LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
+
+Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
 function LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
 	_, f = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
@@ -41,7 +43,9 @@ function LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
 end
 
 """
-Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
+	LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
+
+Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
 """
 function LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
 	f, _ = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
@@ -139,6 +143,8 @@ end
 end
 
 """
+	ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
+
 Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
 """
 function ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
@@ -147,6 +153,8 @@ function ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
 end
 
 """
+	ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
+
 Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
 """
 function ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
