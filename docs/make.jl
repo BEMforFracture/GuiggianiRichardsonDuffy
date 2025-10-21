@@ -2,6 +2,7 @@
 push!(LOAD_PATH, "..")
 
 using Documenter
+using DocumenterCitations
 using GuiggianiRichardsonDuffy
 
 bib = CitationBibliography(
