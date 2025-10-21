@@ -16,7 +16,7 @@ using GuiggianiRichardsonDuffy
 
 # Élément de référence et point singulier
 el = Inti.LagrangeSquare((SVector(0.0,0.0,0.0), SVector(1.0,0.0,0.0),
-                          SVector(0.0,1.0,0.0), SVector(1.0,1.0,0.0)))
+						  SVector(0.0,1.0,0.0), SVector(1.0,1.0,0.0)))
 x̂ = SVector(0.3, 0.4)
 
 # Noyau et fonction d’essai sur l’élément de référence
@@ -162,11 +162,15 @@ end
 		kwargs...,
 	) where {P}
 
-	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1, -2 or -3), computes the integral of the kernel over the reference element using the Guiggiani-Richardson method.
+	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1, -2 or -3), computes the integral of the kernel over the reference element using the Guiggiani method using expansion of Laurent coefficients specified in the `expansion` argument, which can be one of the following:
+
+	- `:analytical`: uses analytical expressions for the coefficients (if available). `kernel_kwargs...` are passed to analytical functions.
+	- `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds) based on automatic differentiation used in the `ForwardDiff.jl` package. `kernel_kwargs...` are passed to the kernel `K̂`.
+	- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `richardson_kwargs...` are passed to richardson extrapolation [`Richardson.extrapolate`](@ref) and `kernel_kwargs...` are passed to the kernel `K̂`.
+	- `:full_richardson`: uses Richardson extrapolation to compute both coefficients, available by default for any kernel. `richardson_kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function and `kernel_kwargs...` are passed to the kernel `K̂`.
 
 	K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
 """
-
 function guiggiani_singular_integral(
 	K,
 	û,
