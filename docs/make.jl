@@ -16,11 +16,11 @@ makedocs(
 	modules = [GuiggianiRichardsonDuffy],
 	format = Documenter.HTML(; prettyurls = false),
 	pages = [
-		"Accueil" => "index.md",
+		"Welcome" => "index.md",
 		"Guide" => "guide.md",
 		"API" => "api.md",
 		"Docstrings" => "docstrings.md",
-		"Références" => "references.md",
+		"References" => "references.md",
 	],
 	doctest = true,
 	warnonly = [:missing_docs, :docs_block],  # Permet de construire malgré les docstrings manquantes
