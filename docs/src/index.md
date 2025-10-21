@@ -22,4 +22,4 @@ I = guiggiani_singular_integral(K, û, x̂, el, 16, 32; expansion = :full_richa
 
 - See the complete [Guide](guide.md) for variants and parameters.
 - The complete API documentation is available in the [API](api.md) section.
-- Dosctrings are available in the [Docstrings](dosctrings.md) section.
+- Docstrings are available in the [Docstrings](docstrings.md) section.

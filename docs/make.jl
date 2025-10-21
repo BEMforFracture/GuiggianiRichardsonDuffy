@@ -11,8 +11,9 @@ makedocs(
 	format = Documenter.HTML(; prettyurls = false),
 	pages = [
 		"Accueil" => "index.md",
-		"Guide"   => "guide.md",
-		"API"     => "api.md",
+		"Guide" => "guide.md",
+		"API" => "api.md",
+		"Docstrings" => "docstrings.md",
 	],
 	doctest = true,
 	warnonly = [:missing_docs, :docs_block],  # Permet de construire malgré les docstrings manquantes
@@ -20,6 +21,6 @@ makedocs(
 
 # Déploiement sur GitHub Pages
 deploydocs(
-    repo = "github.com/Aguelord/GuiggianiRichardsonDuffy",
-    devbranch = "main",
+	repo = "github.com/Aguelord/GuiggianiRichardsonDuffy",
+	devbranch = "main",
 )
