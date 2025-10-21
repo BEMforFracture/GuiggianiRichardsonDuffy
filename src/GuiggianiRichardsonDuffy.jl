@@ -164,7 +164,7 @@ end
 
 	Given a kernel `K`, a function `û` defined on the reference element `el`, a point `x̂` on the reference element where the singularity is located, the number of quadrature points in the radial direction `n_rho`, the number of quadrature points in the angular direction `n_theta`, and the order of the singularity `sorder` (which has to be -1, -2 or -3), computes the integral of the kernel over the reference element using the Guiggiani method using expansion of Laurent coefficients specified in the `expansion` argument.
 
-	See [`laurents_coeffs`](@ref) for the available expansion methods and their parameters.
+	See [`GuiggianiRichardsonMethod.laurents_coeffs`](@ref) for the available expansion methods and their parameters.
 """
 function guiggiani_singular_integral(
 	K,
