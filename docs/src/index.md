@@ -1,6 +1,8 @@
 # GuiggianiRichardsonDuffy.jl
 
-TODO : resume 
+A Julia package for the numerical computation of laurent's coefficients expansion of singular kernels, and the evaluation of the associated singular integrals over boundary elements, which consist of computing the Cauchy principal value or Hadamard finite part over parametric elements.
+
+The idea of this package was originally proposed by Guiggiani in 1992 [guiggianiGeneralAlgorithmNumerical1992](@cite).
 
 ## Install
 
