@@ -3,12 +3,11 @@ push!(LOAD_PATH, "..")
 
 using Documenter
 using GuiggianiRichardsonDuffy
-using Richardson
 
 # Options de build
 makedocs(
 	sitename = "GuiggianiRichardsonDuffy.jl",
-	modules = [GuiggianiRichardsonDuffy, Richardson],
+	modules = [GuiggianiRichardsonDuffy],
 	format = Documenter.HTML(; prettyurls = false),
 	pages = [
 		"Accueil" => "index.md",

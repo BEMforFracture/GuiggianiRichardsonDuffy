@@ -112,12 +112,12 @@ Given a kernel `K`, a reference element `el`, a function `û` defined on the re
 
 - `:analytical`: uses analytical expressions for the coefficients (if available). `kernel_kwargs...` are passed to analytical functions.
 - `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds) based on automatic differentiation used in the `ForwardDiff.jl` package. `kernel_kwargs...` are passed to the kernel `K̂`.
-- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `richardson_kwargs...` are passed to richardson extrapolation [`Richardson.extrapolate`](@ref) and `kernel_kwargs...` are passed to the kernel `K̂`.
-- `:full_richardson`: uses Richardson extrapolation to compute both coefficients, available by default for any kernel. `richardson_kwargs...` are passed to the [`Richardson.extrapolate`](@ref) function and `kernel_kwargs...` are passed to the kernel `K̂`.
+- `:semi_richardson`: uses another semi-analytical method for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds). `richardson_kwargs...` are passed to `Richardson.extrapolate` (see [Richardson.jl](https://github.com/JuliaMath/Richardson.jl)) and `kernel_kwargs...` are passed to the kernel `K̂`.
+- `:full_richardson`: uses Richardson extrapolation to compute both coefficients, available by default for any kernel. `richardson_kwargs...` are passed to `Richardson.extrapolate` (see [Richardson.jl](https://github.com/JuliaMath/Richardson.jl)) and `kernel_kwargs...` are passed to the kernel `K̂`.
 
 K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
 
-You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the [`Richardson.extrapolate`](@ref) docxumentation.
+You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the `Richardson.extrapolate` documentation (see [Richardson.jl](https://github.com/JuliaMath/Richardson.jl)).
 """
 function laurents_coeffs(
 	K, el::Inti.ReferenceInterpolant, û, x̂;
