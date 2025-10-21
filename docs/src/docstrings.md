@@ -6,7 +6,7 @@ CurrentModule = GuiggianiRichardsonDuffy
 
 ```@autodocs
 Modules = [GuiggianiRichardsonDuffy]
-Private = false
+Private = true
 Order = [:module, :constant, :type, :function, :macro]
 
 ```
