@@ -1,7 +1,9 @@
 # GuiggianiRichardsonDuffy
 
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://aguelord.github.io/GuiggianiRichardsonDuffy/dev)
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://aguelord.github.io/GuiggianiRichardsonDuffy/stable)
+<p align="center">
+  <a href="https://aguelord.github.io/GuiggianiRichardsonDuffy/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Docs dev" /></a>
+  <a href="https://aguelord.github.io/GuiggianiRichardsonDuffy/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Docs stable" /></a>
+</p>
 
 Here is a repo linked to a potential article about implementation of a modern version of the Guiggiani algorithm based on 
 
