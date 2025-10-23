@@ -178,7 +178,6 @@ function guiggiani_singular_integral(
 		I_theta = quad_theta() do (theta_ref,)
 			θ = theta_min + theta_ref * Δθ
 			ρ_max = rho_func(θ)
-			# Évaluer les coefficients de Laurent une seule fois par angle
 			f₋₂, f₋₁ = ℒ(θ)
 			I_rho = quad_rho() do (rho_ref,)
 				ρ = ρ_max * rho_ref
