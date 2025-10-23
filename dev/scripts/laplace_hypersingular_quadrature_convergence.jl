@@ -7,10 +7,18 @@ using GLMakie
 
 # INPUTS
 
-x̂ = SVector(0.5, 0.5) # source point in reference coordinates
+x̂ = SVector(0.05, 0.05) # source point in reference coordinates
+# x̂ = SVector(0.5, 0.5) # a value in guiggiani paper
+# x̂ = SVector(1.66 / 2, 0.5) # b value in guiggiani paper
+
+M_rho = 10  # Fixed number of quadrature points in rho direction when varying theta
+M_theta = 50  # Fixed number of quadrature points in theta direction when varying rho
+
+N_max_rho = 20  # Maximum number of quadrature points in rho direction
+N_max_theta = 20  # Maximum number of quadrature points in theta direction
 
 ### Richardson extrapolation parameters
-maxeval = 10
+maxeval = 8
 rtol = 0.0
 atol = 0.0
 contract = 0.5
@@ -37,20 +45,18 @@ û = ξ -> 1.0
 
 K = GRD.SplitLaplaceHypersingular
 
-M = 100
-
-fig4 = Figure(; size = (1200, 800))
+fig = Figure(; size = (1200, 800))
 
 # boucle sur rho
-n_theta = 100
+n_theta = M_theta
 
-n_rhos = 1:M
+n_rhos = 1:N_max_rho
 errors_rho = zeros(length(n_rhos))
 
 method = :full_richardson
 
 ax4 = Axis(
-	fig4[1, 1];
+	fig[1, 1];
 	ylabel = "Relative Error",
 	title = "$method, first contract = $first_contract, contract = $contract, rtol = $rtol, breaktol = $breaktol, atol = $atol, maxeval = $maxeval",
 	yscale = log10,
@@ -79,13 +85,11 @@ for (i, n_rho) in enumerate(n_rhos)
 	errors_rho[i] = error
 end
 
-time_dict[method, "rho"] = t
-
 # boucle sur theta
 
-n_rho = 100
+n_rho = M_rho
 
-n_thetas = 1:M
+n_thetas = 1:N_max_theta
 errors_theta = zeros(length(n_thetas))
 
 for (i, n_theta) in enumerate(n_thetas)
@@ -117,7 +121,7 @@ lines!(ax4, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", 
 method = :semi_richardson
 
 ax5 = Axis(
-	fig4[2, 1];
+	fig[2, 1];
 	xlabel = "nombre de points de quadrature",
 	ylabel = "Relative Error",
 	title = "$method, first contract = $first_contract, contract = $contract, rtol = $rtol, breaktol = $breaktol, atol = $atol, maxeval = $maxeval",
@@ -148,8 +152,8 @@ for (i, n_rho) in enumerate(n_rhos)
 end
 
 # boucle sur theta
-n_rho = 100
-n_thetas = 1:M
+n_rho = M_rho
+n_thetas = 1:N_max_theta
 errors_theta = zeros(length(n_thetas))
 
 for (i, n_theta) in enumerate(n_thetas)
@@ -181,7 +185,7 @@ lines!(ax5, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", 
 method = :analytical
 
 ax6 = Axis(
-	fig4[2, 2];
+	fig[2, 2];
 	xlabel = "nombre de points de quadrature",
 	title = "$method",
 	yscale = log10,
@@ -206,8 +210,8 @@ end
 
 # boucle sur theta
 
-n_rho = 100
-n_thetas = 1:M
+n_rho = M_rho
+n_thetas = 1:N_max_theta
 errors_theta = zeros(length(n_thetas))
 
 for (i, n_theta) in enumerate(n_thetas)
@@ -233,7 +237,7 @@ lines!(ax6, n_thetas, errors_theta; label = "error vs n_theta, n_rho = $n_rho", 
 method = :auto_diff
 
 ax7 = Axis(
-	fig4[1, 2];
+	fig[1, 2];
 	title = "$method",
 	yscale = log10,
 )
@@ -257,8 +261,8 @@ end
 
 # boucle sur theta
 
-n_rho = 100
-n_thetas = 1:M
+n_rho = M_rho
+n_thetas = 1:N_max_theta
 errors_theta = zeros(length(n_thetas))
 
 for (i, n_theta) in enumerate(n_thetas)
@@ -287,4 +291,4 @@ axislegend(ax5, position = :rt)
 axislegend(ax6, position = :rt)
 axislegend(ax7, position = :rt)
 
-GLMakie.save("./dev/figures/laplace_hypersingular_integral_error_vs_n_rho_n_theta_all_methods.png", fig4)
+# GLMakie.save("./dev/figures/laplace_hypersingular_integral_error_vs_n_rho_n_theta_all_methods.png", fig)

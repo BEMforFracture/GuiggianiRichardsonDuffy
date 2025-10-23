@@ -4,7 +4,7 @@ function LaplaceAdjointDoubleLayerClosedFormCoeffs()
 	notimplemented()
 end
 
-@memoize function _laplace_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û)
+@memoize function _laplace_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û; kwargs...)
 	A = A_func(el, η)
 	B = B_func(el, η)
 

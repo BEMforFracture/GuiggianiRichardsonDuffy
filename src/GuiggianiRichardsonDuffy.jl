@@ -185,13 +185,13 @@ function guiggiani_singular_integral(
 	kwargs_kernel = (; kernel_kwargs..., auto_kernel...)
 	kwargs_rich = (; richardson_kwargs..., auto_rich...)
 	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
-	K_polar = polar_kernel_fun(Kprod, el, û, x̂; kwargs_kernel...)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	# integrate
-	quad_rho = Inti.GaussLegendre(; order = n_rho)
-	quad_theta = Inti.GaussLegendre(; order = n_theta)
+	quad_rho = Inti.GaussLegendre(n_rho)
+	quad_theta = Inti.GaussLegendre(n_theta)
 	# T = Inti.return_type(K_polar, Float64, Float64)
 	acc = zero(K_polar(1.0, 0.0))
-	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich; kwargs...)
+	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich)
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
@@ -205,8 +205,8 @@ function guiggiani_singular_integral(
 					notimplemented()
 				end
 			end
-			if P == -2
-				return I_rho * ρ_max - F₋₁(θ) * log(ρ_max) - F₋₂(θ) / ρ_max
+			if s == -3
+				return I_rho * ρ_max + F₋₁(θ) * log(ρ_max) - F₋₂(θ) / ρ_max
 			else
 				notimplemented()
 			end
