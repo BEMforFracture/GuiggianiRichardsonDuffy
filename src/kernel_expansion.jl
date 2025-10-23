@@ -51,10 +51,18 @@ function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂;
 	return ℱ
 end
 
-function _laurents_coeff_auto_diff(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
-	ℱ = polar_kernel_fun_normalized(K, el, û, x̂; kwargs...)
-	F₋₂ = θ -> ℱ(0, θ)
-	F₋₁ = θ -> ForwardDiff.derivative(ρ -> ℱ(ρ, θ), 0.0)
+function _laurents_coeff_auto_diff(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+	ℱ = polar_kernel_fun_normalized(K, el, û, x̂; kwargs...)
+	
+	# Memoïze les coefficients pour éviter de recalculer ForwardDiff à chaque appel
+	@memoize function ℒ(θ)
+		f₋₂ = ℱ(0, θ)
+		f₋₁ = ForwardDiff.derivative(ρ -> ℱ(ρ, θ), 0.0)
+		return f₋₂, f₋₁
+	end
+	
+	F₋₂ = θ -> ℒ(θ)[1]
+	F₋₁ = θ -> ℒ(θ)[2]
 	return F₋₂, F₋₁
 end
 
