@@ -45,23 +45,26 @@ el = Inti.LagrangeSquare(nodes)
 			for (kernel_name, K) in kernels_dict
 				@testset "$method" begin
 					for fun in functions
-						û = fun
+						û = fun
 						kwargs_kernel = kernel_name == :LaplaceHypersingular ? (;) : (; λ = 1.0, μ = 1.0)
-						D = Dict{Symbol, Tuple{Function, Function}}()
-						F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = kernel_name, kernel_kwargs = kwargs_kernel)
-						D[:analytical] = (F₋₂, F₋₁)
+						# Now laurents_coeffs returns a single function ℒ
+						D = Dict{Symbol, Function}()
+						D[:analytical] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = kernel_name, kernel_kwargs = kwargs_kernel)
+						
 						if method == :auto_diff
-							F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, kernel_kwargs = kwargs_kernel)
+							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, kernel_kwargs = kwargs_kernel)
 						else
-							F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, name = kernel_name, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich)
+							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, name = kernel_name, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich)
 						end
-						D[method] = (F₋₂, F₋₁)
 
 						N_θ = 100
 						θs = range(0, 2π; length = N_θ)
 
-						error_F₋₂ = norm(D[:analytical][1].(θs) - D[method][1].(θs), 2) / norm(D[:analytical][1].(θs), 2)
-						error_F₋₁ = norm(D[:analytical][2].(θs) - D[method][2].(θs), 2) / norm(D[:analytical][2].(θs), 2)
+						vals_ana = [D[:analytical](θ) for θ in θs]
+						vals_test = [D[method](θ) for θ in θs]
+						
+						error_F₋₂ = norm([v[1] for v in vals_ana] - [v[1] for v in vals_test], 2) / norm([v[1] for v in vals_ana], 2)
+						error_F₋₁ = norm([v[2] for v in vals_ana] - [v[2] for v in vals_test], 2) / norm([v[2] for v in vals_ana], 2)
 
 						@test error_F₋₂ < 1e-11
 						@test error_F₋₁ < 1e-6
