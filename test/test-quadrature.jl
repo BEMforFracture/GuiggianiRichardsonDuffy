@@ -8,7 +8,7 @@ import GuiggianiRichardsonDuffy as GRD
 N = 10  # Nombre de points testés
 
 ### Richardson extrapolation parameters
-maxeval = 10
+maxeval = 5
 rtol = 0.0
 atol = 0.0
 contract = 0.5
