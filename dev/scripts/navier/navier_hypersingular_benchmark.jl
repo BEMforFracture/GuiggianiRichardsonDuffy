@@ -219,7 +219,7 @@ data_allocs = hcat(methods_names, a_integrals, a_laurents, a_evals, errors_value
 data_gc_bytes = hcat(methods_names, g_integrals, g_laurents, g_evals, errors_values)
 data_memory = hcat(methods_names, m_integrals, m_laurents, m_evals, errors_values)
 
-open("dev/results/benchmark_navier_hypersingular.html", "w") do io
+open("dev/results/navier/benchmark_navier_hypersingular.html", "w") do io
 	write(io, "<h1>Benchmark Navier Hypersingular Kernel</h1>\n")
 	write(io, "<h2>Parameters used:</h2>\n")
 	write(io, "<h3>Source point</h3>\n")
