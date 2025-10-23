@@ -291,4 +291,4 @@ axislegend(ax5, position = :rt)
 axislegend(ax6, position = :rt)
 axislegend(ax7, position = :rt)
 
-# GLMakie.save("./dev/figures/laplace_hypersingular_integral_error_vs_n_rho_n_theta_all_methods.png", fig)
+# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_integral_error_vs_n_rho_n_theta_all_methods.png", fig)

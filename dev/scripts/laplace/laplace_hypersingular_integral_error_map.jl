@@ -220,4 +220,4 @@ end
 
 fig
 GLMakie.display(fig)
-GLMakie.save("./dev/figures/laplace_hypersingular_integral_error_map.png", fig)
+GLMakie.save("./dev/figures/laplace/laplace_hypersingular_integral_error_map.png", fig)

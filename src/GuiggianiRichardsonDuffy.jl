@@ -177,6 +177,7 @@ function guiggiani_singular_integral(
 	expansion::Symbol = :full_richardson,
 	kernel_kwargs::NamedTuple = NamedTuple(),
 	richardson_kwargs::NamedTuple = NamedTuple(),
+	name::Symbol = :LaplaceHypersingular,
 	kwargs...,
 ) where {P}
 	s = P - 1
@@ -191,7 +192,7 @@ function guiggiani_singular_integral(
 	quad_theta = Inti.GaussLegendre(n_theta)
 	# T = Inti.return_type(K_polar, Float64, Float64)
 	acc = zero(K_polar(1.0, 0.0))
-	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich)
+	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂; expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, name = name)
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)

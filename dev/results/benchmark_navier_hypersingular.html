@@ -1,0 +1,194 @@
+<h1>Benchmark Navier Hypersingular Kernel</h1>
+<h2>Parameters used:</h2>
+<h3>Source point</h3>
+<ul>
+<li>x̂ = (0.5, 0.5)</li>
+</ul>
+<h3>Quadrature</h3>
+<ul>
+<li>n_rho = 10</li>
+<li>n_theta = 40</li>
+</ul>
+<h3>Richardson Extrapolation</h3>
+<ul>
+<li>maxeval = 5</li>
+<li>rtol = 0.0</li>
+<li>atol = 0.0</li>
+<li>first_contract = 0.01</li>
+<li>contract = 0.5</li>
+<li>breaktol = Inf</li>
+</ul>
+<h3>Benchmark</h3>
+<ul>
+<li>n_sample = 1000</li>
+<li>seconds = 0.1</li>
+<li>evals = 10</li>
+</ul>
+<h2>Execution Time (μs)</h2>
+<table>
+  <thead>
+    <tr class = "columnLabelRow">
+      <th style = "font-weight: bold; text-align: left;">Méthode</th>
+      <th style = "font-weight: bold; text-align: right;">Intégrale</th>
+      <th style = "font-weight: bold; text-align: right;">Coefficients</th>
+      <th style = "font-weight: bold; text-align: right;">Évaluation</th>
+      <th style = "font-weight: bold; text-align: right;">Relative Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">analytical</td>
+      <td style = "text-align: right;">1392.34</td>
+      <td style = "text-align: right;">7.095</td>
+      <td style = "text-align: right;">9.87</td>
+      <td style = "text-align: right;">0.0</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">auto_diff</td>
+      <td style = "text-align: right;">5102.23</td>
+      <td style = "text-align: right;">10.24</td>
+      <td style = "text-align: right;">1.52</td>
+      <td style = "text-align: right;">6.27805e-15</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">semi_richardson</td>
+      <td style = "text-align: right;">6058.85</td>
+      <td style = "text-align: right;">11.12</td>
+      <td style = "text-align: right;">9.79</td>
+      <td style = "text-align: right;">9.6752e-10</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">full_richardson</td>
+      <td style = "text-align: right;">4640.34</td>
+      <td style = "text-align: right;">9.16</td>
+      <td style = "text-align: right;">4.07</td>
+      <td style = "text-align: right;">6.75344e-10</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Allocations (nombre)</h2>
+<table>
+  <thead>
+    <tr class = "columnLabelRow">
+      <th style = "font-weight: bold; text-align: left;">Méthode</th>
+      <th style = "font-weight: bold; text-align: right;">Intégrale</th>
+      <th style = "font-weight: bold; text-align: right;">Coefficients</th>
+      <th style = "font-weight: bold; text-align: right;">Évaluation</th>
+      <th style = "font-weight: bold; text-align: right;">Relative Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">analytical</td>
+      <td style = "text-align: right;">14203.0</td>
+      <td style = "text-align: right;">99.0</td>
+      <td style = "text-align: right;">78.0</td>
+      <td style = "text-align: right;">0.0</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">auto_diff</td>
+      <td style = "text-align: right;">75926.0</td>
+      <td style = "text-align: right;">109.0</td>
+      <td style = "text-align: right;">33.0</td>
+      <td style = "text-align: right;">6.27805e-15</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">semi_richardson</td>
+      <td style = "text-align: right;">61829.0</td>
+      <td style = "text-align: right;">98.0</td>
+      <td style = "text-align: right;">193.0</td>
+      <td style = "text-align: right;">9.6752e-10</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">full_richardson</td>
+      <td style = "text-align: right;">36730.0</td>
+      <td style = "text-align: right;">105.0</td>
+      <td style = "text-align: right;">18.0</td>
+      <td style = "text-align: right;">6.75344e-10</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Garbage Collection Time (ns)</h2>
+<table>
+  <thead>
+    <tr class = "columnLabelRow">
+      <th style = "font-weight: bold; text-align: left;">Méthode</th>
+      <th style = "font-weight: bold; text-align: right;">Intégrale</th>
+      <th style = "font-weight: bold; text-align: right;">Coefficients</th>
+      <th style = "font-weight: bold; text-align: right;">Évaluation</th>
+      <th style = "font-weight: bold; text-align: right;">Relative Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">analytical</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">auto_diff</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">6.27805e-15</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">semi_richardson</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">9.6752e-10</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">full_richardson</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">0.0</td>
+      <td style = "text-align: right;">6.75344e-10</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Memory (kB)</h2>
+<table>
+  <thead>
+    <tr class = "columnLabelRow">
+      <th style = "font-weight: bold; text-align: left;">Méthode</th>
+      <th style = "font-weight: bold; text-align: right;">Intégrale</th>
+      <th style = "font-weight: bold; text-align: right;">Coefficients</th>
+      <th style = "font-weight: bold; text-align: right;">Évaluation</th>
+      <th style = "font-weight: bold; text-align: right;">Relative Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">analytical</td>
+      <td style = "text-align: right;">1552.26</td>
+      <td style = "text-align: right;">4.736</td>
+      <td style = "text-align: right;">2.912</td>
+      <td style = "text-align: right;">0.0</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">auto_diff</td>
+      <td style = "text-align: right;">5517.02</td>
+      <td style = "text-align: right;">6.56</td>
+      <td style = "text-align: right;">2.512</td>
+      <td style = "text-align: right;">6.27805e-15</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">semi_richardson</td>
+      <td style = "text-align: right;">5021.23</td>
+      <td style = "text-align: right;">4.416</td>
+      <td style = "text-align: right;">12.31</td>
+      <td style = "text-align: right;">9.6752e-10</td>
+    </tr>
+    <tr class = "dataRow">
+      <td style = "text-align: left;">full_richardson</td>
+      <td style = "text-align: right;">3755.2</td>
+      <td style = "text-align: right;">4.912</td>
+      <td style = "text-align: right;">3.168</td>
+      <td style = "text-align: right;">6.75344e-10</td>
+    </tr>
+  </tbody>
+</table>

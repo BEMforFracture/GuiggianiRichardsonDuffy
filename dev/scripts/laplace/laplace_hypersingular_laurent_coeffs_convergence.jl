@@ -76,7 +76,7 @@ lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method", linewidth = 4)
 lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
 
 axislegend(ax1; position = :rt)
-# GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
+# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
 
 maxevals = 1:maxeval_in_loop
 
@@ -125,4 +125,4 @@ hlines!(ax2, [min_error_G₋₁]; label = "min F₋₁ semi_richardson = $(round
 
 axislegend(ax2; position = :rb)
 
-# GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)
+# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)

@@ -178,4 +178,4 @@ end
 
 fig
 
-# GLMakie.save("./dev/figures/laplace_hypersingular_laurent_coeffs_error_map.png", fig)
+# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_error_map.png", fig)
