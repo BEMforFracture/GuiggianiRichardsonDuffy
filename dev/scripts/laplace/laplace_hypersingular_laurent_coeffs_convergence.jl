@@ -39,19 +39,13 @@ û = ξ -> 1.0
 
 K = GRD.SplitLaplaceHypersingular
 
-D = Dict{Symbol, Tuple{Function, Function}}()
+# Compute Laurent coefficients for each method - now returns a single function ℒ
+D = Dict{Symbol, Function}()
 
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
-D[:analytical] = (F₋₂, F₋₁)
-
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :auto_diff)
-D[:auto_diff] = (F₋₂, F₋₁)
-
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
-D[:semi_richardson] = (F₋₂, F₋₁)
-
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
-D[:full_richardson] = (F₋₂, F₋₁)
+D[:analytical] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
+D[:auto_diff] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :auto_diff)
+D[:semi_richardson] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+D[:full_richardson] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
 
 N = 1000
 θs = range(0, 2π, length = N)
@@ -59,21 +53,33 @@ N = 1000
 fig1 = Figure(; size = (1200, 800))
 ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", title = "Laplace Hypersingular Kernel Laurent Coefficients, Richardson max eval = $maxeval")
 
-for (method, (F₋₂, F₋₁)) in D
+for (method, ℒ) in D
 	p = 2
 	if method != :analytical
-		error_F₋₂ = norm(D[:analytical][1].(θs) - F₋₂.(θs), p) / norm(D[:analytical][1].(θs), p)
+		# Calculer les valeurs pour comparaison
+		vals_test = [ℒ(θ) for θ in θs]
+		F₋₂_test = [v[1] for v in vals_test]
+		F₋₁_test = [v[2] for v in vals_test]
+		
+		vals_ref = [D[:analytical](θ) for θ in θs]
+		F₋₂_ref = [v[1] for v in vals_ref]
+		F₋₁_ref = [v[2] for v in vals_ref]
+		
+		error_F₋₂ = norm(F₋₂_ref - F₋₂_test, p) / norm(F₋₂_ref, p)
 		@info "Relative error (order $p) F₋₂ ($method vs analytical): $(maximum(error_F₋₂))"
-		error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), p) / norm(D[:analytical][2].(θs), p)
+		error_F₋₁ = norm(F₋₁_ref - F₋₁_test, p) / norm(F₋₁_ref, p)
 		@info "Relative error (order $p) F₋₁ ($method vs analytical): $(maximum(error_F₋₁))"
-		lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
-		lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
+		lines!(ax1, θs, F₋₂_test; label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
+		lines!(ax1, θs, F₋₁_test; label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
 	end
 end
 method = :analytical
-F₋₂, F₋₁ = D[method]
-lines!(ax1, θs, F₋₂.(θs); label = "F₋₂ $method", linewidth = 4)
-lines!(ax1, θs, F₋₁.(θs); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
+ℒ = D[method]
+vals_analytical = [ℒ(θ) for θ in θs]
+F₋₂_analytical = [v[1] for v in vals_analytical]
+F₋₁_analytical = [v[2] for v in vals_analytical]
+lines!(ax1, θs, F₋₂_analytical; label = "F₋₂ $method", linewidth = 4)
+lines!(ax1, θs, F₋₁_analytical; label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
 
 axislegend(ax1; position = :rt)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
@@ -87,15 +93,28 @@ errors_G₋₂ = zeros(length(maxevals))
 errors_G₋₁ = zeros(length(maxevals))
 
 for (i, maxeval_) in enumerate(maxevals)
-	F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
-	error_F₋₂ = norm(D[:analytical][1].(θs) - F₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
+	ℒ_full = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+	vals_full = [ℒ_full(θ) for θ in θs]
+	F₋₂_full = [v[1] for v in vals_full]
+	F₋₁_full = [v[2] for v in vals_full]
+	
+	vals_ref = [D[:analytical](θ) for θ in θs]
+	F₋₂_ref = [v[1] for v in vals_ref]
+	F₋₁_ref = [v[2] for v in vals_ref]
+	
+	error_F₋₂ = norm(F₋₂_ref - F₋₂_full, 2) / norm(F₋₂_ref, 2)
 	errors_F₋₂[i] = error_F₋₂
-	error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
+	error_F₋₁ = norm(F₋₁_ref - F₋₁_full, 2) / norm(F₋₁_ref, 2)
 	errors_F₋₁[i] = error_F₋₁
-	G₋₂, G₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
-	error_G₋₂ = norm(D[:analytical][1].(θs) - G₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
-	error_G₋₁ = norm(D[:analytical][2].(θs) - G₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
+	
+	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval_, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+	vals_semi = [ℒ_semi(θ) for θ in θs]
+	G₋₂_semi = [v[1] for v in vals_semi]
+	G₋₁_semi = [v[2] for v in vals_semi]
+	
+	error_G₋₂ = norm(F₋₂_ref - G₋₂_semi, 2) / norm(F₋₂_ref, 2)
 	errors_G₋₂[i] = error_G₋₂
+	error_G₋₁ = norm(F₋₁_ref - G₋₁_semi, 2) / norm(F₋₁_ref, 2)
 	errors_G₋₁[i] = error_G₋₁
 	@info "maxeval = $maxeval_"
 end

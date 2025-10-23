@@ -1,6 +1,6 @@
-function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
 	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
-	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
@@ -20,9 +20,7 @@ function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, 
 		end
 		return f₋₂, f₋₁
 	end
-	F₋₂ = θ -> ℒ(θ)[1]
-	F₋₁ = θ -> ℒ(θ)[2]
-	return F₋₂, F₋₁
+	return ℒ
 end
 
 function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
@@ -61,12 +59,10 @@ function _laurents_coeff_auto_diff(K, el::Inti.ReferenceInterpolant, û, x̂; kw
 		return f₋₂, f₋₁
 	end
 	
-	F₋₂ = θ -> ℒ(θ)[1]
-	F₋₁ = θ -> ℒ(θ)[2]
-	return F₋₂, F₋₁
+	return ℒ
 end
 
-function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)
@@ -77,6 +73,8 @@ function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, 
 	qx = (coords = x, normal = nx)
 	μ = Inti._integration_measure(jac_x)
 	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
+	# Précalculer K_polar une seule fois au lieu de le recréer à chaque appel à ℒ(θ)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
 	ratio = haskey(kwargs_rich, :contract) ? kwargs_rich.contract : 0.5
 	breaktol = haskey(kwargs_rich, :breaktol) ? kwargs_rich.breaktol : 2
@@ -84,30 +82,23 @@ function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, 
 	atol = haskey(kwargs_rich, :atol) ? kwargs_rich.atol : 0.0
 	rtol = haskey(kwargs_rich, :rtol) ? kwargs_rich.rtol : (atol > 0 ? 0.0 : sqrt(eps()))
 	@memoize function ℒ(θ)
-		Â = A(θ) / norm(A(θ))
-		_, K̂ = K(qx, qx, Â; kwargs_kernel...)
-		F₋₂ = K̂ * μ * û(x̂) / norm(A(θ))^3
-		F = ρ -> polar_kernel_fun(Kprod, el, û, x̂)(ρ, θ)
+		Â = A(θ) / norm(A(θ))
+		_, K̂ = K(qx, qx, Â; kwargs_kernel...)
+		F₋₂ = K̂ * μ * û(x̂) / norm(A(θ))^3
 		h = rho_max_fun(θ) * h_user
 		F₋₁, e₋₁ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
-			return x * F(x) - F₋₂ / x
+			return x * K_polar(x, θ) - F₋₂ / x
 		end
 		return F₋₂, F₋₁
 	end
-	F₋₂ = θ -> ℒ(θ)[1]
-	F₋₁ = θ -> ℒ(θ)[2]
-	return F₋₂, F₋₁
+	return ℒ
 end
 
-function _laurents_coeff_analytical(el::Inti.ReferenceInterpolant, û, x̂, arg...; name = :LaplaceHypersingular, kwargs...)
+function _laurents_coeff_analytical(el::Inti.ReferenceInterpolant, û, x̂, arg...; name = :LaplaceHypersingular, kwargs...)
 	if name == :LaplaceHypersingular
-		F₋₂ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[1]
-		F₋₁ = θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[2]
-		return F₋₂, F₋₁
+		return θ -> _laplace_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)
 	elseif name == :ElastostaticHypersingular
-		F₋₂ = θ -> _elastostatic_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[1]
-		F₋₁ = θ -> _elastostatic_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)[2]
-		return F₋₂, F₋₁
+		return θ -> _elastostatic_hypersingular_closed_form_coeffs(θ, x̂, el, û, arg...; kwargs...)
 	else
 		error("Analytical laurent coefficients for kernel $(name) are not implemented. Available kernels are : $ANALYTICAL_KERNELS")
 	end

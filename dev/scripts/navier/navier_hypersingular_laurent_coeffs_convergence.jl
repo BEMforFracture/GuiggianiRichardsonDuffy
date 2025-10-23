@@ -44,37 +44,31 @@ û = ξ -> 1.0
 
 K = GRD.SplitElastostaticHypersingular
 
-D = Dict{Symbol, Tuple{Function, Function}}()
+# Compute Laurent coefficients for each method - now returns a single function ℒ
+D = Dict{Symbol, Function}()
 
-F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :ElastostaticHypersingular, μ = μ, λ = λ)
-D[:analytical] = (F₋₂, F₋₁)
+D[:analytical] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :ElastostaticHypersingular, μ = μ, λ = λ)
 
-F₋₂, F₋₁ =
-	GRD.laurents_coeffs(K, el, û, x̂;
-		expansion = :semi_richardson,
-		kernel_kwargs = (μ = μ, λ = λ),
-		richardson_kwargs = (
-			maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
-		),
-	)
-D[:semi_richardson] = (F₋₂, F₋₁)
+D[:semi_richardson] = GRD.laurents_coeffs(K, el, û, x̂;
+	expansion = :semi_richardson,
+	kernel_kwargs = (μ = μ, λ = λ),
+	richardson_kwargs = (
+		maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+	),
+)
 
-F₋₂, F₋₁ =
-	GRD.laurents_coeffs(K, el, û, x̂;
-		expansion = :full_richardson,
-		kernel_kwargs = (μ = μ, λ = λ),
-		richardson_kwargs = (
-			maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
-		),
-	)
-D[:full_richardson] = (F₋₂, F₋₁)
+D[:full_richardson] = GRD.laurents_coeffs(K, el, û, x̂;
+	expansion = :full_richardson,
+	kernel_kwargs = (μ = μ, λ = λ),
+	richardson_kwargs = (
+		maxeval = maxeval, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
+	),
+)
 
-F₋₂, F₋₁ =
-	GRD.laurents_coeffs(K, el, û, x̂;
-		expansion = :auto_diff,
-		kernel_kwargs = (μ = μ, λ = λ),
-	)
-D[:auto_diff] = (F₋₂, F₋₁)
+D[:auto_diff] = GRD.laurents_coeffs(K, el, û, x̂;
+	expansion = :auto_diff,
+	kernel_kwargs = (μ = μ, λ = λ),
+)
 
 N = 1000
 θs = range(0, 2π, length = N)
@@ -82,22 +76,33 @@ N = 1000
 fig1 = Figure(; size = (1200, 800))
 ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", title = "Navier Hypersingular Kernel Laurent Coefficients, Richardson max eval = $maxeval")
 
-for (method, (F₋₂, F₋₁)) in D
+for (method, ℒ) in D
 	p = 2
 	if method != :analytical
-		error_F₋₂ = norm(D[:analytical][1].(θs) - F₋₂.(θs), p) / norm(D[:analytical][1].(θs), p)
+		vals_ref = [D[:analytical](θ) for θ in θs]
+		vals_test = [ℒ(θ) for θ in θs]
+		
+		F₋₂_ref = [norm(v[1]) for v in vals_ref]
+		F₋₂_test = [norm(v[1]) for v in vals_test]
+		F₋₁_ref = [norm(v[2]) for v in vals_ref]
+		F₋₁_test = [norm(v[2]) for v in vals_test]
+		
+		error_F₋₂ = norm(F₋₂_ref - F₋₂_test, p) / norm(F₋₂_ref, p)
 		@info "Relative error (order $p) F₋₂ ($method vs analytical): $(maximum(error_F₋₂))"
-		error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), p) / norm(D[:analytical][2].(θs), p)
+		error_F₋₁ = norm(F₋₁_ref - F₋₁_test, p) / norm(F₋₁_ref, p)
 		@info "Relative error (order $p) F₋₁ ($method vs analytical): $(maximum(error_F₋₁))"
-		lines!(ax1, θs, norm.(F₋₂.(θs)); label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
-		lines!(ax1, θs, norm.(F₋₁.(θs)); label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
+		lines!(ax1, θs, F₋₂_test; label = "F₋₂ $method (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
+		lines!(ax1, θs, F₋₁_test; label = "F₋₁ $method (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
 	end
 end
 
 method = :analytical
-F₋₂, F₋₁ = D[method]
-lines!(ax1, θs, norm.(F₋₂.(θs)); label = "F₋₂ $method", linewidth = 4)
-lines!(ax1, θs, norm.(F₋₁.(θs)); label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
+ℒ_ana = D[method]
+vals_ana = [ℒ_ana(θ) for θ in θs]
+F₋₂_ana = [norm(v[1]) for v in vals_ana]
+F₋₁_ana = [norm(v[2]) for v in vals_ana]
+lines!(ax1, θs, F₋₂_ana; label = "F₋₂ $method", linewidth = 4)
+lines!(ax1, θs, F₋₁_ana; label = "F₋₁ $method", linewidth = 4, linestyle = :dash)
 
 axislegend(ax1; position = :rt)
 
@@ -111,30 +116,41 @@ errors_F₋₁ = zeros(length(maxevals))
 errors_G₋₂ = zeros(length(maxevals))
 errors_G₋₁ = zeros(length(maxevals))
 
-method = :analytical
-F₋₂, F₋₁ = D[method]
+ℒ_ana = D[:analytical]
+vals_ana = [ℒ_ana(θ) for θ in θs]
+F₋₂_ref = [norm(v[1]) for v in vals_ana]
+F₋₁_ref = [norm(v[2]) for v in vals_ana]
 
 for (i, maxeval_) in enumerate(maxevals)
-	F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂;
+	ℒ_full = GRD.laurents_coeffs(K, el, û, x̂;
 		expansion = :full_richardson,
 		kernel_kwargs = (μ = μ, λ = λ),
 		richardson_kwargs = (
 			maxeval = maxeval_, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
 		),
 	)
-	error_F₋₂ = norm(D[:analytical][1].(θs) - F₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
+	vals_full = [ℒ_full(θ) for θ in θs]
+	F₋₂_full = [norm(v[1]) for v in vals_full]
+	F₋₁_full = [norm(v[2]) for v in vals_full]
+	
+	error_F₋₂ = norm(F₋₂_ref - F₋₂_full, 2) / norm(F₋₂_ref, 2)
 	errors_F₋₂[i] = error_F₋₂
-	error_F₋₁ = norm(D[:analytical][2].(θs) - F₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
+	error_F₋₁ = norm(F₋₁_ref - F₋₁_full, 2) / norm(F₋₁_ref, 2)
 	errors_F₋₁[i] = error_F₋₁
-	G₋₂, G₋₁ = GRD.laurents_coeffs(K, el, û, x̂;
+	
+	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂;
 		expansion = :semi_richardson,
 		kernel_kwargs = (μ = μ, λ = λ),
 		richardson_kwargs = (
 			maxeval = maxeval_, rtol = rtol, atol = atol, contract = contract, first_contract = first_contract, breaktol = breaktol,
 		),
 	)
-	error_G₋₂ = norm(D[:analytical][1].(θs) - G₋₂.(θs), 2) / norm(D[:analytical][1].(θs), 2)
-	error_G₋₁ = norm(D[:analytical][2].(θs) - G₋₁.(θs), 2) / norm(D[:analytical][2].(θs), 2)
+	vals_semi = [ℒ_semi(θ) for θ in θs]
+	G₋₂_semi = [norm(v[1]) for v in vals_semi]
+	G₋₁_semi = [norm(v[2]) for v in vals_semi]
+	
+	error_G₋₂ = norm(F₋₂_ref - G₋₂_semi, 2) / norm(F₋₂_ref, 2)
+	error_G₋₁ = norm(F₋₁_ref - G₋₁_semi, 2) / norm(F₋₁_ref, 2)
 	errors_G₋₂[i] = error_G₋₂
 	errors_G₋₁[i] = error_G₋₁
 	@info "maxeval = $maxeval_"

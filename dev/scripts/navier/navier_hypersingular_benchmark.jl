@@ -127,10 +127,10 @@ b_dict_laurent = Dict{Symbol, BenchmarkTools.Trial}()
 
 for method in GRD.EXPANSION_METHODS
 	b = @benchmark begin
-		F₋₂, F₋₁ = GRD.laurents_coeffs(
+		ℒ = GRD.laurents_coeffs(
 			$K,
 			$el,
-			$û,
+			$û,
 			$x̂;
 			expansion = $method,
 			maxeval = $maxeval,
@@ -156,10 +156,10 @@ end
 b_dict_eval = Dict{Symbol, BenchmarkTools.Trial}()
 
 for method in GRD.EXPANSION_METHODS
-	F₋₂, F₋₁ = GRD.laurents_coeffs(
+	ℒ = GRD.laurents_coeffs(
 		K,
 		el,
-		û,
+		û,
 		x̂;
 		expansion = method,
 		maxeval = maxeval,
@@ -174,8 +174,7 @@ for method in GRD.EXPANSION_METHODS
 	)
 	b = @benchmark begin
 		θ = rand() * 2π
-		$F₋₂(θ)
-		$F₋₁(θ)
+		f₋₂, f₋₁ = $ℒ(θ)
 	end samples = n_sample seconds = seconds evals = evals
 	b_dict_eval[method] = b
 end

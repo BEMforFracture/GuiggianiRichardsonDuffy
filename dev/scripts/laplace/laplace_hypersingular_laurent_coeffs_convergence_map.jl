@@ -61,21 +61,23 @@ for (i, ξ) in enumerate(ξ_range)
 		x = el(x̂)
 
 		# Analytical reference
-		F₋₂_ana, F₋₁_ana = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
+		ℒ_ana = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = :LaplaceHypersingular)
 
 		# Compute errors for each method
 		for method in methods
 			if method == :auto_diff
-				F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :auto_diff)
+				ℒ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :auto_diff)
 			elseif method == :semi_richardson
-				F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+				ℒ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :semi_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
 			elseif method == :full_richardson
-				F₋₂, F₋₁ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
+				ℒ = GRD.laurents_coeffs(K, el, û, x̂; expansion = :full_richardson, maxeval = maxeval, rtol = rtol, first_contract = first_contract, breaktol = breaktol, contract = contract, atol = atol)
 			end
 
 			# Compute relative errors in norm 2
-			error_F₋₂ = norm(F₋₂_ana.(θs) - F₋₂.(θs), 2) / norm(F₋₂_ana.(θs), 2)
-			error_F₋₁ = norm(F₋₁_ana.(θs) - F₋₁.(θs), 2) / norm(F₋₁_ana.(θs), 2)
+			vals_ana = [ℒ_ana(θ) for θ in θs]
+			vals_test = [ℒ(θ) for θ in θs]
+			error_F₋₂ = norm([v[1] for v in vals_ana] - [v[1] for v in vals_test], 2) / norm([v[1] for v in vals_ana], 2)
+			error_F₋₁ = norm([v[2] for v in vals_ana] - [v[2] for v in vals_test], 2) / norm([v[2] for v in vals_ana], 2)
 
 			errors[method].F₋₂[i, j] = error_F₋₂
 			errors[method].F₋₁[i, j] = error_F₋₁

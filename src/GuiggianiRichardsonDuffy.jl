@@ -106,9 +106,9 @@ function rho_fun(ref_domain, x̂)
 end
 
 """
-	laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂; expansion = (method = :full_richardson,), kwargs...)
+	laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂; expansion = (method = :full_richardson,), kwargs...)
 
-Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns the laurent coefficients `F₋₂` and `F₋₁` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
+Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `ℒ(θ)` that computes the Laurent coefficients `(f₋₂, f₋₁)` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
 
 - `:analytical`: uses analytical expressions for the coefficients (if available). `kernel_kwargs...` are passed to analytical functions.
 - `:auto_diff`: uses semi-analytical expressions for the coefficients (if available i.e. when the property of the kernel being translation-invariant holds) based on automatic differentiation used in the `ForwardDiff.jl` package. `kernel_kwargs...` are passed to the kernel `K̂`.
@@ -118,6 +118,15 @@ Given a kernel `K`, a reference element `el`, a function `û` defined on the re
 K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
 
 You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the `Richardson.extrapolate` documentation (see [Richardson.jl](https://github.com/JuliaMath/Richardson.jl)).
+
+# Returns
+- `ℒ`: A memoized function `ℒ(θ)` that returns `(f₋₂, f₋₁)` for a given angle `θ`.
+
+# Example
+```julia
+ℒ = laurents_coeffs(K, el, û, x̂; expansion=:auto_diff)
+f₋₂, f₋₁ = ℒ(0.5)  # Evaluate at θ = 0.5
+```
 """
 function laurents_coeffs(
 	K, el::Inti.ReferenceInterpolant, û, x̂;
@@ -192,22 +201,24 @@ function guiggiani_singular_integral(
 	quad_theta = Inti.GaussLegendre(n_theta)
 	# T = Inti.return_type(K_polar, Float64, Float64)
 	acc = zero(K_polar(1.0, 0.0))
-	F₋₂, F₋₁ = laurents_coeffs(K, el, û, x̂; expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, name = name)
+	ℒ = laurents_coeffs(K, el, û, x̂; expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, name = name)
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
 			θ = theta_min + theta_ref * Δθ
 			ρ_max = rho_func(θ)
+			# Évaluer les coefficients de Laurent une seule fois par angle
+			f₋₂, f₋₁ = ℒ(θ)
 			I_rho = quad_rho() do (rho_ref,)
 				ρ = ρ_max * rho_ref
 				if s == -3
-					return K_polar(ρ, θ) - F₋₂(θ) / ρ^2 - F₋₁(θ) / ρ
+					return K_polar(ρ, θ) - f₋₂ / ρ^2 - f₋₁ / ρ
 				else
 					notimplemented()
 				end
 			end
 			if s == -3
-				return I_rho * ρ_max + F₋₁(θ) * log(ρ_max) - F₋₂(θ) / ρ_max
+				return I_rho * ρ_max + f₋₁ * log(ρ_max) - f₋₂ / ρ_max
 			else
 				notimplemented()
 			end
