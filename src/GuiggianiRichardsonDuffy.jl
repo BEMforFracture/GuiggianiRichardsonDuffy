@@ -1,32 +1,3 @@
-"""
-GuiggianiRichardsonDuffy
-
-Outils pour l’intégration de noyaux singuliers/hypersinguliers en BEM via l’algorithme de Guiggiani,
-avec calcul des coefficients de Laurent par méthodes analytiques, différentiation automatique ou
-extrapolation de Richardson, et quadrature en coordonnées de Duffy.
-
-- Fonction principale: `guiggiani_singular_integral`.
-- Méthodes d’expansion: `:analytical`, `:auto_diff`, `:semi_richardson`, `:full_richardson`.
-- Noyaux fournis: Laplace et Élastostatique (simple/double/adjoint/hypersingulier).
-
-Exemple minimal
-```julia
-using Inti, StaticArrays
-using GuiggianiRichardsonDuffy
-
-# Élément de référence et point singulier
-el = Inti.LagrangeSquare((SVector(0.0,0.0,0.0), SVector(1.0,0.0,0.0),
-						  SVector(0.0,1.0,0.0), SVector(1.0,1.0,0.0)))
-x̂ = SVector(0.3, 0.4)
-
-# Noyau et fonction d’essai sur l’élément de référence
-K = GuiggianiRichardsonDuffy.SplitLaplaceHypersingular
-û(ξ) = 1.0
-
-I = guiggiani_singular_integral(K, û, x̂, el, 16, 32; expansion = :full_richardson)
-```
-"""
-
 module GuiggianiRichardsonDuffy
 
 using LinearAlgebra
