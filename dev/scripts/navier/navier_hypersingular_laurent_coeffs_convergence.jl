@@ -81,12 +81,12 @@ for (method, ℒ) in D
 	if method != :analytical
 		vals_ref = [D[:analytical](θ) for θ in θs]
 		vals_test = [ℒ(θ) for θ in θs]
-		
+
 		F₋₂_ref = [norm(v[1]) for v in vals_ref]
 		F₋₂_test = [norm(v[1]) for v in vals_test]
 		F₋₁_ref = [norm(v[2]) for v in vals_ref]
 		F₋₁_test = [norm(v[2]) for v in vals_test]
-		
+
 		error_F₋₂ = norm(F₋₂_ref - F₋₂_test, p) / norm(F₋₂_ref, p)
 		@info "Relative error (order $p) F₋₂ ($method vs analytical): $(maximum(error_F₋₂))"
 		error_F₋₁ = norm(F₋₁_ref - F₋₁_test, p) / norm(F₋₁_ref, p)
@@ -106,7 +106,7 @@ lines!(ax1, θs, F₋₁_ana; label = "F₋₁ $method", linewidth = 4, linestyl
 
 axislegend(ax1; position = :rt)
 
-GLMakie.save("./dev/figures/navier_hypersingular_laurent_coeffs_all_methods.png", fig1)
+# GLMakie.save("./dev/figures/navier/navier_hypersingular_laurent_coeffs_all_methods.png", fig1)
 
 maxevals = 1:maxeval_in_loop
 
@@ -132,12 +132,12 @@ for (i, maxeval_) in enumerate(maxevals)
 	vals_full = [ℒ_full(θ) for θ in θs]
 	F₋₂_full = [norm(v[1]) for v in vals_full]
 	F₋₁_full = [norm(v[2]) for v in vals_full]
-	
+
 	error_F₋₂ = norm(F₋₂_ref - F₋₂_full, 2) / norm(F₋₂_ref, 2)
 	errors_F₋₂[i] = error_F₋₂
 	error_F₋₁ = norm(F₋₁_ref - F₋₁_full, 2) / norm(F₋₁_ref, 2)
 	errors_F₋₁[i] = error_F₋₁
-	
+
 	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂;
 		expansion = :semi_richardson,
 		kernel_kwargs = (μ = μ, λ = λ),
@@ -148,7 +148,7 @@ for (i, maxeval_) in enumerate(maxevals)
 	vals_semi = [ℒ_semi(θ) for θ in θs]
 	G₋₂_semi = [norm(v[1]) for v in vals_semi]
 	G₋₁_semi = [norm(v[2]) for v in vals_semi]
-	
+
 	error_G₋₂ = norm(F₋₂_ref - G₋₂_semi, 2) / norm(F₋₂_ref, 2)
 	error_G₋₁ = norm(F₋₁_ref - G₋₁_semi, 2) / norm(F₋₁_ref, 2)
 	errors_G₋₂[i] = error_G₋₂
@@ -181,4 +181,4 @@ hlines!(ax2, [min_error_G₋₁]; label = "min F₋₁ semi_richardson = $(round
 
 axislegend(ax2; position = :rb)
 
-GLMakie.save("./dev/figures/navier_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)
+# GLMakie.save("./dev/figures/navier/navier_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)

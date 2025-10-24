@@ -12,11 +12,11 @@ using GeometryBasics
 N = 60 # number of points in each direction (total N² points)
 
 # Quadrature parameters
-n_rho = 20
-n_theta = 20
+n_rho = 10
+n_theta = 40
 
 ### Richardson extrapolation parameters
-maxeval = 10
+maxeval = 5
 rtol = 0.0
 atol = 0.0
 contract = 0.5
@@ -45,14 +45,8 @@ K = GRD.SplitLaplaceHypersingular
 ξ_range = range(ξ_min, ξ_max, length = N)  # avoid boundaries
 η_range = range(ξ_min, ξ_max, length = N)
 
-# Create list of points to test (grid + center point)
+# Create list of points to test (grid points)
 test_points = [(i, j, SVector(ξ, η)) for (i, ξ) in enumerate(ξ_range) for (j, η) in enumerate(η_range)]
-
-# Add center point if not already in the list
-center_point = SVector(0.5, 0.5)
-if !any(p[3] ≈ center_point for p in test_points)
-	push!(test_points, (N + 1, N + 1, center_point))
-end
 
 # Dictionary to store errors for each method
 methods = [:auto_diff, :semi_richardson, :full_richardson, :analytical]
@@ -60,9 +54,8 @@ errors = Dict(
 	method => zeros(N, N)
 	for method in methods
 )
-errors_center = Dict(method => 0.0 for method in methods)
 
-@info "Computing integrals for $(length(test_points)) points ($(N^2) grid + center) with $(length(methods)) methods..."
+@info "Computing integrals for $(length(test_points)) points ($(N^2) grid) with $(length(methods)) methods..."
 
 # Loop over all test points
 for (point_idx, (i, j, x̂)) in enumerate(test_points)
@@ -135,11 +128,7 @@ for (point_idx, (i, j, x̂)) in enumerate(test_points)
 		error = abs(I - expected_I) / abs(expected_I)
 
 		# Store error in appropriate location
-		if i <= N && j <= N
-			errors[method][i, j] = error
-		else
-			errors_center[method] = error
-		end
+		errors[method][i, j] = error
 	end
 
 	if point_idx % 100 == 0
@@ -149,7 +138,7 @@ end
 
 @info "Computation complete. Creating plots..."
 
-# Get physical coordinates as flat vectors (including center point)
+# Get physical coordinates as flat vectors
 x_flat = [el(p[3])[1] for p in test_points]
 y_flat = [el(p[3])[2] for p in test_points]
 
@@ -188,9 +177,8 @@ for (idx, method) in enumerate(methods)
 		aspect = DataAspect(),
 	)
 
-	# Combine grid errors with center point error in correct order
 	# Extract errors in the same order as test_points
-	errors_flat = [p[1] <= N && p[2] <= N ? errors[method][p[1], p[2]] : errors_center[method] for p in test_points]
+	errors_flat = [errors[method][p[1], p[2]] for p in test_points]
 
 	hm = mesh!(ax,
 		Point2f.(x_flat, y_flat),
@@ -215,7 +203,6 @@ for method in methods
 	@info "  Min error: $(minimum(errors[method]))"
 	@info "  Max error: $(maximum(errors[method]))"
 	@info "  Mean error: $(sum(errors[method]) / length(errors[method]))"
-	@info "  Center point (0.5, 0.5) error: $(errors_center[method])"
 end
 
 fig

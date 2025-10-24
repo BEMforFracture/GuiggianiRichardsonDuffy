@@ -77,7 +77,14 @@ function rho_fun(ref_domain, x̂)
 end
 
 """
-	laurents_coeffs(K, el::Inti.ReferenceInterpolant, û, x̂; expansion = (method = :full_richardson,), kwargs...)
+	laurents_coeffs(
+		K, el::Inti.ReferenceInterpolant, û, x̂;
+		expansion::Symbol = :full_richardson,
+		kernel_kwargs::NamedTuple = NamedTuple(),
+		richardson_kwargs::NamedTuple = NamedTuple(),
+		name::Symbol = :LaplaceHypersingular,
+		kwargs...,
+		)
 
 Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, and a point `x̂` on the reference element, returns a function `ℒ(θ)` that computes the Laurent coefficients `(f₋₂, f₋₁)` for the kernel `K` in polar coordinates centered at `x̂`. The coefficients are computed using the method specified in the `expansion` argument, which can be one of the following:
 
@@ -89,6 +96,8 @@ Given a kernel `K`, a reference element `el`, a function `û` defined on the ref
 K has to be called as K(qx, qy, r̂; kernel_kwargs...) where r̂ is the normalized relative position vector, qx = (coords = x, normal = nx) and qy = (coords = y, normal = ny). K(qx, qy, r̂; kernel_kwargs...) is returning the tuple (1/rˢ, K̂(qx, qy, r̂; kernel_kwargs...)) where s is the order of the singularity.
 
 You can also put all the keyword arguments in `kwargs...`, they will be automatically split between kernel and richardson extrapolation arguments, which are in general : first_contract, contract, breaktol, maxeval, atol, rtol, x0, described in the `Richardson.extrapolate` documentation (see [Richardson.jl](https://github.com/JuliaMath/Richardson.jl)).
+
+- name : Name of the kernel, used only for analytical expansions. Available kernels are in `ANALYTICAL_KERNELS`.
 
 # Returns
 - `ℒ`: A memoized function `ℒ(θ)` that returns `(f₋₂, f₋₁)` for a given angle `θ`.
@@ -139,6 +148,7 @@ end
 		expansion::Symbol = :full_richardson,
 		kernel_kwargs::NamedTuple = NamedTuple(),
 		richardson_kwargs::NamedTuple = NamedTuple(),
+		name::Symbol = :LaplaceHypersingular,
 		kwargs...,
 	) where {P}
 
