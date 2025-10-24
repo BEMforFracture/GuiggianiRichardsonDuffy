@@ -59,7 +59,7 @@ The function $\mathcal F(\rho, \theta)$ is mathematically regular but also numer
 
 $$\mathcal F(\rho, \theta) = \frac{1}{\|\mathbf A(\rho, \theta)\|^3}\hat K(\bm x(\bm\eta), \bm x(\bm\xi(\rho, \theta)))N^a(\bm \xi(\rho, \theta)) J(\bm \xi(\rho, \theta))$$
 
-Where $\hat K$ is the regular part of the kernel, i.e. $K(\bm y, \bm x) = \frac{1}{r^3}\hat K(\bm y, \bm x)$ for the Laplace hypersingular kernel, and 
+Where $\hat K$ is the regular part of the kernel, i.e. $K(\bm y, \bm x) = \frac{1}{r^3}\hat K(\bm y, \bm x)$, and 
 
 $$\bm A(\rho, \theta) = D\tau(\bm\eta) \cdot \mathbf c(\theta) + \frac{\rho}{2}\mathbf c(\theta)^TD^2\bm\tau(\bm\eta)\mathbf c(\theta)$$
 
@@ -69,7 +69,7 @@ Here again, we retrieve the $F_{-2}$ coefficient easily by evaluating $\mathcal 
 
 ### Expansion using a mixed approach between semi-analytical formula and Richardson extrapolation
 
-This approach is a hybrid between the two previous ones. The dominant term $F_{-2}(\theta)$ is computed using the analytical formula, while the $F_{-1}(\theta)$ coefficient is computed using a numerical approximation based on Richardson extrapolation:
+This approach is a hybrid between the previous ones and Richardson extrapolation. The dominant term $F_{-2}(\theta)$ is computed using the analytical formula, while the $F_{-1}(\theta)$ coefficient is computed using a numerical approximation based on Richardson extrapolation:
 
 $$F_{-2}(\theta) = \frac{1}{\|\mathbf A(0, \theta)\|^3}\hat K(\bm x(\bm\eta), \bm x(\bm\eta))N^a(\bm\eta) J(\bm\eta)$$
 
