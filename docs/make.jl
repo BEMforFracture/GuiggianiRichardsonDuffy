@@ -20,6 +20,7 @@ makedocs(
 		"Guide" => "guide.md",
 		"API" => "api.md",
 		"Docstrings" => "docstrings.md",
+		"Appendix" => "appendix.md",
 		"References" => "references.md",
 	],
 	doctest = true,

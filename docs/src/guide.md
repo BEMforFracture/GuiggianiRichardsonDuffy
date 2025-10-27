@@ -32,16 +32,7 @@ $$F_{-2}(\theta) = \mathcal V(\mathbf A(\theta)) N^a(\bm \eta) \mathbf J(\bm \et
 
 Where $\mathbf A(\theta) = D\tau(\bm \eta) \cdot \mathbf c(\theta)$, with $D\tau$ the Jacobian matrix of the parametric mapping $\tau$ at the singularity point $\bm \eta$ and $\mathbf J(\bm \eta)$ is the integration measure multiplied by the normal at point $\bm \eta$.
 
-#### Laplace scalar hypersingular kernel
-
-$$F_{-2}(\theta) = \mathcal V(\mathbf A(\theta)) N^a(\bm \eta) \mathbf J(\bm \eta)=\frac{-1}{4\pi A(\theta)^3}\left(n_j(\bm\eta)J_j(\hat{\mathbf y})n_j(\bm\eta)\right)$$
-
-With $A(\theta) = \|\mathbf A(\theta)\|$ et $\hat{\mathbf A}(\theta) = \frac{\mathbf A(\theta)}{A(\theta)}$.
-
-$$F_{-1}(\theta) = \frac{3J(\bm\eta)}{4\pi A(\theta)^5}A_m(\theta)B_m(\theta)N^a(\bm\eta) - \frac{J(\bm\eta)}{4\pi A(\theta)^3}c_{\alpha}(\theta)\partial_{\alpha}N^a(\bm\eta) -\\
-\frac{1}{4\pi A(\theta)^3}c_{\alpha}(\theta)\partial_{\alpha}J(\bm\eta)N^a(\bm\eta)$$
-
-#### Elastostatics hypersingular integral
+Analytical formulas for the Laplace and elastostatics hypersingular kernels are given in the [Appendix](appendix.md).
 
 ### Expansion using automatic differentiation
 
@@ -86,7 +77,7 @@ By taking the combination $(b) - t \times (a)$, we can eliminate the $O(\rho)$ t
 
 $$(c)\quad F_{-1}(\theta) = \frac{1}{1 - t}\rho^{-1}\left\{t^{-1}\mathcal F(t\rho, \theta) - t\mathcal F(\rho, \theta) + (t - t^{-1})F_{-2}(\theta)\right\} + E_2$$
 
-Where $E_2 = t(1 - t)\rho^2 F_1(\theta) + \mathcal O(\rho^3)$ is the truncation error. By repeating the previous procedure, e.g. by using $(c)$ as is, then evaluating it with $\rho$ replaced by $t\rho$ and taking a suitable weighted combination of the two approximations of $F_1(\theta)$ yields a new approximation whose truncation error is $O(\rho^3)$, and so on.
+Where $E_2 = t(1 - t)\rho^2 F_1(\theta) + \mathcal O(\rho^3)$ is the truncation error. By repeating the previous procedure, e.g. by using $(c)$ as is, then evaluating it with $\rho$ replaced by $t\rho$ and taking a suitable weighted combination of the two approximations of $F_{-1}(\theta)$ yields a new approximation whose truncation error is $O(\rho^3)$, and so on.
 
 ### Full Richardson expansion
 
