@@ -1,29 +1,45 @@
-function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+function _laurents_coeff_full_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple; sorder::Val{S} = Val(-3), first_contract = 1e-2) where {S}
 	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
 	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
-	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
-	ratio = haskey(kwargs_rich, :contract) ? kwargs_rich.contract : 0.5
-	breaktol = haskey(kwargs_rich, :breaktol) ? kwargs_rich.breaktol : 2
-	maxeval = haskey(kwargs_rich, :maxeval) ? kwargs_rich.maxeval : typemax(Int)
-	atol = haskey(kwargs_rich, :atol) ? kwargs_rich.atol : 0.0
-	rtol = haskey(kwargs_rich, :rtol) ? kwargs_rich.rtol : (atol > 0 ? 0.0 : sqrt(eps()))
+	kwargs_rich = (; (k => v for (k, v) in pairs(kwargs_rich) if k != :first_contract)...)
 	@memoize function ℒ(θ)
-		h = rho_max_fun(θ) * h_user
-		g = ρ -> ρ^2 * K_polar(ρ, θ)
-		f₋₂, e₋₂ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
-			return g(x)
-		end
-		f₋₁, e₋₁ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
-			return x * K_polar(x, θ) - f₋₂ / x
-		end
-		return f₋₂, f₋₁
+		h = rho_max_fun(θ) * first_contract
+		f = ρ -> K_polar(ρ, θ)
+		return __laurents_coeff_full_richardson(f, h, sorder; kwargs_rich...)
 	end
 	return ℒ
 end
 
-function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
+function __laurents_coeff_full_richardson(f, h, ::Val{-2}; kwargs...)
+	g = ρ -> ρ^2 * f(ρ)
+	f₋₂, e₋₂ = extrapolate(h; kwargs...) do x
+		return g(x)
+	end
+	f₋₁, e₋₁ = extrapolate(h; kwargs...) do x
+		return x * f(x) - f₋₂ / x
+	end
+	return f₋₂, f₋₁
+end
+
+function __laurents_coeff_full_richardson(f, h, ::Val{-1}; kwargs...)
+	g = ρ -> ρ * f(ρ)
+	f₋₁, e₋₁ = extrapolate(h; kwargs...) do x
+		return g(x)
+	end
+	return zero(f₋₁), f₋₁
+end
+
+function __laurents_coeff_full_richardson(f, h, ::Val{N}; kwargs...) where {N}
+	if N > 0
+		return 0.0, 0.0
+	else
+		throw(ArgumentError("order must be >= -2"))
+	end
+end
+
+function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂; sorder::Val{S} = Val(-2), kwargs...) where {S}
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	ori = 1
@@ -44,25 +60,45 @@ function polar_kernel_fun_normalized(K, el::Inti.ReferenceInterpolant, û, x̂;
 		A = Dτ * uθ + ρ / 2 * δ
 		Â = A / norm(A)
 		_, K̂ = K(qx, qy, Â; kwargs...)
-		return K̂ * μ * û(ŷ) / norm(A)^3
+		return K̂ * μ * û(ŷ) / norm(A)^(-S + 1)
 	end
 	return ℱ
 end
 
-function _laurents_coeff_auto_diff(K, el::Inti.ReferenceInterpolant, û, x̂; kwargs...)
-	ℱ = polar_kernel_fun_normalized(K, el, û, x̂; kwargs...)
-	
+function _laurents_coeff_auto_diff(args...; kwargs...)
+	ℱ = polar_kernel_fun_normalized(args...; kwargs...)
+
+	sorder = get(kwargs, :sorder, Val(-2))
+
 	# Memoïze les coefficients pour éviter de recalculer ForwardDiff à chaque appel
 	@memoize function ℒ(θ)
-		f₋₂ = ℱ(0, θ)
-		f₋₁ = ForwardDiff.derivative(ρ -> ℱ(ρ, θ), 0.0)
+		f₋₂, f₋₁ = __laurents_coeff_auto_diff(ρ -> ℱ(ρ, θ), sorder)
 		return f₋₂, f₋₁
 	end
-	
+
 	return ℒ
 end
 
-function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple)
+function __laurents_coeff_auto_diff(f, ::Val{-2})
+	f₋₂ = f(0.0)
+	f₋₁ = ForwardDiff.derivative(f, 0.0)
+	return f₋₂, f₋₁
+end
+
+function __laurents_coeff_auto_diff(f, ::Val{-1})
+	f₋₁ = f(0.0)
+	return zero(f₋₁), f₋₁
+end
+
+function __laurents_coeff_auto_diff(f, ::Val{N}) where {N}
+	if N > 0
+		return 0.0, 0.0
+	else
+		throw(ArgumentError("order must be >= -2"))
+	end
+end
+
+function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x̂, kwargs_kernel::NamedTuple, kwargs_rich::NamedTuple; sorder::Val{S} = Val(-2), first_contract = 1e-2) where {S}
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)
@@ -73,25 +109,35 @@ function _laurents_coeff_semi_richardson(K, el::Inti.ReferenceInterpolant, û, x
 	qx = (coords = x, normal = nx)
 	μ = Inti._integration_measure(jac_x)
 	Kprod = (qx, qy) -> prod(K(qx, qy; kwargs_kernel...))
-	# Précalculer K_polar une seule fois au lieu de le recréer à chaque appel à ℒ(θ)
 	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
-	h_user = haskey(kwargs_rich, :first_contract) ? kwargs_rich.first_contract : 1e-2
-	ratio = haskey(kwargs_rich, :contract) ? kwargs_rich.contract : 0.5
-	breaktol = haskey(kwargs_rich, :breaktol) ? kwargs_rich.breaktol : 2
-	maxeval = haskey(kwargs_rich, :maxeval) ? kwargs_rich.maxeval : typemax(Int)
-	atol = haskey(kwargs_rich, :atol) ? kwargs_rich.atol : 0.0
-	rtol = haskey(kwargs_rich, :rtol) ? kwargs_rich.rtol : (atol > 0 ? 0.0 : sqrt(eps()))
 	@memoize function ℒ(θ)
 		Â = A(θ) / norm(A(θ))
 		_, K̂ = K(qx, qx, Â; kwargs_kernel...)
-		F₋₂ = K̂ * μ * û(x̂) / norm(A(θ))^3
-		h = rho_max_fun(θ) * h_user
-		F₋₁, e₋₁ = extrapolate(h; contract = ratio, x0 = 0, atol = atol, rtol = rtol, maxeval = maxeval, breaktol = breaktol) do x
-			return x * K_polar(x, θ) - F₋₂ / x
-		end
-		return F₋₂, F₋₁
+		f_dom = K̂ * μ * û(x̂) / norm(A(θ))^(-S + 1)
+		h = rho_max_fun(θ) * first_contract
+		f₋₂, f₋₁ = __laurents_coeff_semi_richardson(ρ -> K_polar(ρ, θ), f_dom, h, sorder; kwargs_rich...)
+		return f₋₂, f₋₁
 	end
 	return ℒ
+end
+
+function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{-2}; kwargs...)
+	f₋₁, e₋₁ = extrapolate(h; kwargs...) do x
+		return x * f(x) - f_dom / x
+	end
+	return f_dom, f₋₁
+end
+
+function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{-1}; kwargs...)
+	return zero(f_dom), f_dom
+end
+
+function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{N}; kwargs...) where {N}
+	if N > 0
+		return 0.0, 0.0
+	else
+		throw(ArgumentError("order must be >= -2"))
+	end
 end
 
 function _laurents_coeff_analytical(el::Inti.ReferenceInterpolant, û, x̂, arg...; name = :LaplaceHypersingular, kwargs...)

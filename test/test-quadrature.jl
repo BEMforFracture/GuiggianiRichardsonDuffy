@@ -87,7 +87,7 @@ end
 			el,
 			n_rho,
 			n_theta;
-			sorder = Val(-2),
+			sorder = Val(-3),
 			expansion = :full_richardson,
 			kernel_kwargs = kernel_kwargs,
 			richardson_kwargs = richardson_kwargs,
@@ -111,7 +111,7 @@ end
 			el,
 			n_rho,
 			n_theta;
-			sorder = Val(-2),
+			sorder = Val(-3),
 			expansion = :auto_diff,
 			kernel_kwargs = kernel_kwargs,
 		) for x̂ in test_points]
@@ -134,7 +134,7 @@ end
 			el,
 			n_rho,
 			n_theta;
-			sorder = Val(-2),
+			sorder = Val(-3),
 			expansion = :semi_richardson,
 			kernel_kwargs = kernel_kwargs,
 			richardson_kwargs = richardson_kwargs,
@@ -157,7 +157,7 @@ end
 			el,
 			n_rho,
 			n_theta;
-			sorder = Val(-2),
+			sorder = Val(-3),
 			expansion = :analytical,
 			kernel_kwargs = kernel_kwargs,
 		) for x̂ in test_points]

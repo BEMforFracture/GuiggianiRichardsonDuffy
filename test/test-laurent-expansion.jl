@@ -50,11 +50,11 @@ el = Inti.LagrangeSquare(nodes)
 						# Now laurents_coeffs returns a single function ℒ
 						D = Dict{Symbol, Function}()
 						D[:analytical] = GRD.laurents_coeffs(K, el, û, x̂; expansion = :analytical, name = kernel_name, kernel_kwargs = kwargs_kernel)
-						
+
 						if method == :auto_diff
-							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, kernel_kwargs = kwargs_kernel)
+							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, kernel_kwargs = kwargs_kernel, sorder = Val(-2))
 						else
-							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, name = kernel_name, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich)
+							D[method] = GRD.laurents_coeffs(K, el, û, x̂; expansion = method, name = kernel_name, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, sorder = Val(-2))
 						end
 
 						N_θ = 100
@@ -62,7 +62,7 @@ el = Inti.LagrangeSquare(nodes)
 
 						vals_ana = [D[:analytical](θ) for θ in θs]
 						vals_test = [D[method](θ) for θ in θs]
-						
+
 						error_F₋₂ = norm([v[1] for v in vals_ana] - [v[1] for v in vals_test], 2) / norm([v[1] for v in vals_ana], 2)
 						error_F₋₁ = norm([v[2] for v in vals_ana] - [v[2] for v in vals_test], 2) / norm([v[2] for v in vals_ana], 2)
 

@@ -110,12 +110,13 @@ f₋₂, f₋₁ = ℒ(0.5)  # Evaluate at θ = 0.5
 """
 function laurents_coeffs(
 	K, el::Inti.ReferenceInterpolant, û, x̂;
+	sorder::Val{S} = Val(-2),
 	expansion::Symbol = :full_richardson,
 	kernel_kwargs::NamedTuple = NamedTuple(),
 	richardson_kwargs::NamedTuple = NamedTuple(),
 	name::Symbol = :LaplaceHypersingular,
 	kwargs...,
-)
+) where {S}
 	# 1) Répartition auto des kwargs libres (compatibilité et ergonomie)
 	auto_kernel, auto_rich = split_kwargs(kwargs)
 	kwargs_kernel = (; kernel_kwargs..., auto_kernel...)
@@ -126,11 +127,15 @@ function laurents_coeffs(
 		# Ne passer que les kwargs noyau
 		return _laurents_coeff_analytical(el, û, x̂; name = name, kwargs_kernel...)
 	elseif expansion == :auto_diff
-		return _laurents_coeff_auto_diff(K, el, û, x̂; kwargs_kernel...)
+		return _laurents_coeff_auto_diff(K, el, û, x̂; sorder, kwargs_kernel...)
 	elseif expansion == :semi_richardson
-		return _laurents_coeff_semi_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich)
+		first_contract = get(kwargs_rich, :first_contract, 1e-2)
+		kwargs_rich = (; (k => v for (k, v) in pairs(kwargs_rich) if k != :first_contract)...)
+		return _laurents_coeff_semi_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich; sorder, first_contract)
 	elseif expansion == :full_richardson
-		return _laurents_coeff_full_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich)
+		first_contract = get(kwargs_rich, :first_contract, 1e-2)
+		kwargs_rich = (; (k => v for (k, v) in pairs(kwargs_rich) if k != :first_contract)...)
+		return _laurents_coeff_full_richardson(K, el, û, x̂, kwargs_kernel, kwargs_rich; sorder, first_contract)
 	else
 		error("Unknown expansion type: $(expansion). Available types are: $(EXPANSION_METHODS)")
 	end
@@ -163,14 +168,14 @@ function guiggiani_singular_integral(
 	el::Inti.ReferenceInterpolant,
 	n_rho,
 	n_theta;
-	sorder::Val{P} = Val(-2),
+	sorder::Val{P} = Val(-3),
 	expansion::Symbol = :full_richardson,
 	kernel_kwargs::NamedTuple = NamedTuple(),
 	richardson_kwargs::NamedTuple = NamedTuple(),
 	name::Symbol = :LaplaceHypersingular,
 	kwargs...,
 ) where {P}
-	s = P - 1
+	sorder_polar = Val(P + 1)
 	ref_shape = Inti.reference_domain(el)
 	auto_kernel, auto_rich = split_kwargs(kwargs)
 	kwargs_kernel = (; kernel_kwargs..., auto_kernel...)
@@ -182,7 +187,7 @@ function guiggiani_singular_integral(
 	quad_theta = Inti.GaussLegendre(n_theta)
 	# T = Inti.return_type(K_polar, Float64, Float64)
 	acc = zero(K_polar(1.0, 0.0))
-	ℒ = laurents_coeffs(K, el, û, x̂; expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, name = name)
+	ℒ = laurents_coeffs(K, el, û, x̂; sorder = sorder_polar, expansion = expansion, kernel_kwargs = kwargs_kernel, richardson_kwargs = kwargs_rich, name = name)
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
@@ -191,13 +196,13 @@ function guiggiani_singular_integral(
 			f₋₂, f₋₁ = ℒ(θ)
 			I_rho = quad_rho() do (rho_ref,)
 				ρ = ρ_max * rho_ref
-				if s == -3
+				if P == -3
 					return K_polar(ρ, θ) - f₋₂ / ρ^2 - f₋₁ / ρ
 				else
 					notimplemented()
 				end
 			end
-			if s == -3
+			if P == -3
 				return I_rho * ρ_max + f₋₁ * log(ρ_max) - f₋₂ / ρ_max
 			else
 				notimplemented()
