@@ -35,7 +35,7 @@ el = Inti.LagrangeSquare(nodes)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 # Compute Laurent coefficients for each method
@@ -58,8 +58,8 @@ N = 1000
 θs = range(0, 2π, length = N)
 
 fig1 = Figure(; size = (1200, 800))
-ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients", 
-           title = "Laplace Hypersingular Kernel Laurent Coefficients, Richardson maxeval = $(rich_params.maxeval)")
+ax1 = Axis(fig1[1, 1]; xlabel = "θ", ylabel = "Laurent Coefficients",
+	title = "Laplace Hypersingular Kernel Laurent Coefficients, Richardson maxeval = $(rich_params.maxeval)")
 
 # Get analytical reference
 ℒ_ana = D["Analytical"]
@@ -75,13 +75,13 @@ for (method_name, ℒ) in D
 		vals_test = [ℒ(θ) for θ in θs]
 		F₋₂_test = [v[1] for v in vals_test]
 		F₋₁_test = [v[2] for v in vals_test]
-		
+
 		# Compute errors
 		error_F₋₂ = norm(F₋₂_ref - F₋₂_test, p) / norm(F₋₂_ref, p)
 		@info "Relative error (order $p) F₋₂ ($method_name vs analytical): $(error_F₋₂)"
 		error_F₋₁ = norm(F₋₁_ref - F₋₁_test, p) / norm(F₋₁_ref, p)
 		@info "Relative error (order $p) F₋₁ ($method_name vs analytical): $(error_F₋₁)"
-		
+
 		lines!(ax1, θs, F₋₂_test; label = "F₋₂ $method_name (error = $(round(error_F₋₂, sigdigits=3)))", linewidth = 4)
 		lines!(ax1, θs, F₋₁_test; label = "F₋₁ $method_name (error = $(round(error_F₋₁, sigdigits=3)))", linewidth = 4, linestyle = :dash)
 	end
@@ -92,7 +92,7 @@ lines!(ax1, θs, F₋₂_ref; label = "F₋₂ Analytical", linewidth = 4)
 lines!(ax1, θs, F₋₁_ref; label = "F₋₁ Analytical", linewidth = 4, linestyle = :dash)
 
 axislegend(ax1; position = :rt)
-# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
+GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_all_methods.png", fig1)
 
 maxevals = 1:maxeval_in_loop
 
@@ -109,7 +109,7 @@ F₋₁_ref = [v[2] for v in vals_ref]
 
 for (i, maxeval_) in enumerate(maxevals)
 	@info "Testing maxeval = $maxeval_"
-	
+
 	# Create params with varying maxeval
 	params_var = GRD.RichardsonParams(
 		first_contract = rich_params.first_contract,
@@ -119,24 +119,24 @@ for (i, maxeval_) in enumerate(maxevals)
 		rtol = rich_params.rtol,
 		maxeval = maxeval_,
 	)
-	
+
 	# Test FullRichardson
 	ℒ_full = GRD.laurents_coeffs(K, el, û, x̂, GRD.FullRichardsonExpansion(params_var))
 	vals_full = [ℒ_full(θ) for θ in θs]
 	F₋₂_full = [v[1] for v in vals_full]
 	F₋₁_full = [v[2] for v in vals_full]
-	
+
 	error_F₋₂ = norm(F₋₂_ref - F₋₂_full, 2) / norm(F₋₂_ref, 2)
 	errors_F₋₂[i] = error_F₋₂
 	error_F₋₁ = norm(F₋₁_ref - F₋₁_full, 2) / norm(F₋₁_ref, 2)
 	errors_F₋₁[i] = error_F₋₁
-	
+
 	# Test SemiRichardson
 	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion(params_var))
 	vals_semi = [ℒ_semi(θ) for θ in θs]
 	G₋₂_semi = [v[1] for v in vals_semi]
 	G₋₁_semi = [v[2] for v in vals_semi]
-	
+
 	error_G₋₂ = norm(F₋₂_ref - G₋₂_semi, 2) / norm(F₋₂_ref, 2)
 	errors_G₋₂[i] = error_G₋₂
 	error_G₋₁ = norm(F₋₁_ref - G₋₁_semi, 2) / norm(F₋₁_ref, 2)
@@ -168,4 +168,4 @@ hlines!(ax2, [min_error_G₋₁]; label = "min F₋₁ semi_richardson = $(round
 
 axislegend(ax2; position = :rb)
 
-# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)
+GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_error_vs_maxeval_first_contract_$(first_contract).png", fig2)

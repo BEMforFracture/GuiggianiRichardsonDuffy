@@ -42,11 +42,11 @@ ref_domain = Inti.reference_domain(el)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.ElastostaticHypersingular(μ, λ)
+op = Inti.Elastostatic(; μ = μ, λ = λ, dim = 3)
+K_base = Inti.HyperSingularKernel(op)
 K = GRD.SplitKernel(K_base)
-Kprod = (qx, qy) -> prod(K_base(qx, qy))
 
-K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
+K_polar = GRD.polar_kernel_fun(K_base, el, û, x̂)
 
 quad_rho = Inti.GaussLegendre(n_rho)
 

@@ -34,7 +34,7 @@ el = Inti.LagrangeSquare(nodes)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 # Methods to test
@@ -66,28 +66,28 @@ N_θ = 1000
 for (i, ξ) in enumerate(ξ_range)
 	for (j, η) in enumerate(η_range)
 		x̂ = SVector(ξ, η)
-		
+
 		# Analytical reference
 		ℒ_ana = GRD.laurents_coeffs(K_base, el, û, x̂, GRD.AnalyticalExpansion())
 		vals_ana = [ℒ_ana(θ) for θ in θs]
 		F₋₂_ana = [v[1] for v in vals_ana]
 		F₋₁_ana = [v[2] for v in vals_ana]
-		
+
 		# Compute errors for each method
 		for (method_name, method, K_to_use) in methods
 			ℒ = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
 			vals_test = [ℒ(θ) for θ in θs]
 			F₋₂_test = [v[1] for v in vals_test]
 			F₋₁_test = [v[2] for v in vals_test]
-			
+
 			# Relative errors in norm 2
 			error_F₋₂ = norm(F₋₂_ana - F₋₂_test, 2) / norm(F₋₂_ana, 2)
 			error_F₋₁ = norm(F₋₁_ana - F₋₁_test, 2) / norm(F₋₁_ana, 2)
-			
+
 			errors[method_name].F₋₂[i, j] = error_F₋₂
 			errors[method_name].F₋₁[i, j] = error_F₋₁
 		end
-		
+
 		if (i - 1) * N + j % 10 == 0
 			@info "Progress: $((i-1)*N + j)/$(N^2) points computed"
 		end
@@ -120,9 +120,9 @@ for (col, (method_name, _, _)) in enumerate(methods)
 		title = "F₋₂: $method_name",
 		aspect = DataAspect(),
 	)
-	
+
 	errors_flat = vec(errors[method_name].F₋₂')
-	
+
 	hm = mesh!(ax,
 		Point2f.(x_flat, y_flat),
 		connectivity,
@@ -130,7 +130,7 @@ for (col, (method_name, _, _)) in enumerate(methods)
 		colormap = :turbo,
 		shading = NoShading,
 	)
-	
+
 	Colorbar(fig[1, col*2], hm; label = "log₁₀(Error)", width = 15)
 	lines!(ax, corners_x, corners_y; color = :black, linewidth = 2)
 end
@@ -143,9 +143,9 @@ for (col, (method_name, _, _)) in enumerate(methods)
 		title = "F₋₁: $method_name",
 		aspect = DataAspect(),
 	)
-	
+
 	errors_flat = vec(errors[method_name].F₋₁')
-	
+
 	hm = mesh!(ax,
 		Point2f.(x_flat, y_flat),
 		connectivity,
@@ -153,13 +153,13 @@ for (col, (method_name, _, _)) in enumerate(methods)
 		colormap = :turbo,
 		shading = NoShading,
 	)
-	
+
 	Colorbar(fig[2, col*2], hm; label = "log₁₀(Error)", width = 15)
 	lines!(ax, corners_x, corners_y; color = :black, linewidth = 2)
 end
 
 # Add title
-Label(fig[0, :], 
+Label(fig[0, :],
 	"Laplace Hypersingular Laurent Coefficients Error (maxeval = $(rich_params.maxeval))",
 	fontsize = 20, font = :bold)
 

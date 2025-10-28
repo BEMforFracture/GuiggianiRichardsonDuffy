@@ -40,7 +40,7 @@ el = Inti.LagrangeSquare(nodes)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 # Methods to test
@@ -68,15 +68,15 @@ errors = Dict(m[1] => zeros(N, N) for m in methods)
 for (point_idx, (i, j, x̂)) in enumerate(test_points)
 	x = el(x̂)
 	expected_I = GRD.hypersingular_laplace_integral_on_plane_element(x, el)
-	
+
 	for (method_name, method, K_to_use) in methods
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors[method_name][i, j] = error
 	end
-	
+
 	if point_idx % 100 == 0
 		@info "Progress: $point_idx/$(length(test_points)) points computed"
 	end
@@ -104,17 +104,17 @@ fig = Figure(; size = (1600, 1400))
 for (idx, (method_name, _, _)) in enumerate(methods)
 	row = div(idx - 1, 2) + 1
 	col = mod(idx - 1, 2) + 1
-	
+
 	ax = Axis(fig[row, col*2-1];
 		xlabel = "x",
 		ylabel = "y",
 		title = method_name,
 		aspect = DataAspect(),
 	)
-	
+
 	# Extract errors
 	errors_flat = [errors[method_name][p[1], p[2]] for p in test_points]
-	
+
 	# Create mesh plot
 	hm = mesh!(ax,
 		Point2f.(x_flat, y_flat),
@@ -123,14 +123,14 @@ for (idx, (method_name, _, _)) in enumerate(methods)
 		colormap = :turbo,
 		shading = NoShading,
 	)
-	
+
 	Colorbar(fig[row, col*2], hm; label = "log₁₀(Error)", width = 15)
-	
+
 	lines!(ax, corners_x, corners_y; color = :black, linewidth = 2)
 end
 
 # Add title
-Label(fig[0, :], 
+Label(fig[0, :],
 	"Laplace Hypersingular Integral Error (n_rho = $n_rho, n_theta = $n_theta, maxeval = $(rich_params.maxeval))",
 	fontsize = 20, font = :bold)
 

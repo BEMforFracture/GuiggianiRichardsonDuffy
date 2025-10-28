@@ -30,7 +30,7 @@ el = Inti.LagrangeSquare(nodes)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 Kprod = (qx, qy) -> prod(K(qx, qy))
 

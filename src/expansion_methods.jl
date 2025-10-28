@@ -1,24 +1,25 @@
-function compute_coefficients(
-	expander::LaurentExpander{FullRichardsonExpansion, Tk, T, N, Nd, D, Tu},
-	θ::Float64,
-) where {Tk, T, N, Nd, D, Tu}
-	params = expander.method.richardson_params
+# ==============================================================================
+# Direct implementations without LaurentExpander (lightweight, like main branch)
+# ==============================================================================
 
-	SK = expander.kernel isa SplitKernel ? expander.kernel : SplitKernel(expander.kernel)
-
-	Kprod = (qx, qy) -> prod(SK(qx, qy))
-
-	K_polar = polar_kernel_fun(Kprod, expander.reference_element, expander.û, expander.source_point)
-
-	ref_domain = Inti.reference_domain(expander.reference_element)
-	rho_max_fun = rho_fun(ref_domain, expander.source_point)
-	h = rho_max_fun(θ) * params.first_contract
-
-	f = ρ -> K_polar(ρ, θ)
-
-	s = Inti.singularity_order(expander.kernel)
+function _create_laurent_coeffs_function(
+	method::FullRichardsonExpansion,
+	K::Inti.AbstractKernel,
+	el::Inti.ReferenceInterpolant,
+	û,
+	x̂,
+)
+	params = method.richardson_params
+	s = Inti.singularity_order(K)
 	sorder = Val(s + 1)
-
+	
+	# Pre-compute once
+	SK = K isa SplitKernel ? K : SplitKernel(K)
+	Kprod = (qx, qy) -> prod(SK(qx, qy))
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	ref_domain = Inti.reference_domain(el)
+	rho_max_fun = rho_fun(ref_domain, x̂)
+	
 	kwargs_rich = (
 		contract = params.contract,
 		breaktol = params.breaktol,
@@ -26,8 +27,13 @@ function compute_coefficients(
 		rtol = params.rtol,
 		maxeval = params.maxeval,
 	)
-
-	return __laurents_coeff_full_richardson(f, h, sorder; kwargs_rich...)
+	
+	# Return lightweight closure
+	return function(θ)
+		h = rho_max_fun(θ) * params.first_contract
+		f = ρ -> K_polar(ρ, θ)
+		return __laurents_coeff_full_richardson(f, h, sorder; kwargs_rich...)
+	end
 end
 
 function __laurents_coeff_full_richardson(f, h, ::Val{-2}; kwargs...)
@@ -58,35 +64,31 @@ function __laurents_coeff_full_richardson(f, h, ::Val{N}; kwargs...) where {N}
 end
 
 function compute_coefficients(
-	expander::LaurentExpander{SemiRichardsonExpansion, Tk, T, N, Nd, D, Tu},
-	θ::Float64,
-) where {Tk, T, N, Nd, D, Tu}
+	expander::LaurentExpander{SemiRichardsonExpansion},
+	θ,
+)
 	params = expander.method.richardson_params
 
-	# Construire le SplitKernel
+	# Compute A function (still needs to be done per theta)
+	A = A_func(expander.reference_element, expander.source_point)
+	
+	# Create qx
+	qx = (coords = expander.x, normal = expander.nx)
+	
+	# Use pre-computed SplitKernel
 	SK = expander.kernel isa SplitKernel ? expander.kernel : SplitKernel(expander.kernel)
 
-	# Calculer les quantités géométriques
-	ref_domain = Inti.reference_domain(expander.reference_element)
-	rho_max_fun = rho_fun(ref_domain, expander.source_point)
-	A = A_func(expander.reference_element, expander.source_point)
-
-	# Créer qx (point source)
-	qx = (coords = expander.x, normal = expander.nx)
-
-	Kprod = (qx, qy) -> prod(SK(qx, qy))
-	K_polar = polar_kernel_fun(Kprod, expander.reference_element, expander.û, expander.source_point)
-
-	Â = A(θ) / norm(A(θ))
-	_, K̂ = SK(qx, qx, Â)
+	Â = A(θ) / norm(A(θ))
+	_, K̂ = SK(qx, qx, Â)
 
 	s = Inti.singularity_order(expander.kernel)
 	sorder = Val(s + 1)
 
 	f_dom = K̂ * expander.μ * expander.û(expander.source_point) / norm(A(θ))^(-s)
 
-	h = rho_max_fun(θ) * params.first_contract
-	f = ρ -> K_polar(ρ, θ)
+	# Use pre-computed closures
+	h = expander.rho_max_fun(θ) * params.first_contract
+	f = ρ -> expander.K_polar(ρ, θ)
 
 	kwargs_rich = (
 		contract = params.contract,
@@ -120,7 +122,7 @@ end
 
 function compute_coefficients(
 	expander::LaurentExpander{AutoDiffExpansion, Tk, T, N, Nd, D, Tu},
-	θ::Float64,
+	θ,
 ) where {Tk, T, N, Nd, D, Tu}
 	qx = (coords = expander.x, normal = expander.nx)
 
@@ -174,7 +176,7 @@ end
 
 function compute_coefficients(
 	expander::LaurentExpander{AnalyticalExpansion, Tk, T, N, Nd, D, Tu},
-	θ::Float64,
+	θ,
 ) where {Tk, T, N, Nd, D, Tu}
 	return _laurents_coeffs_closed_forms(
 		expander.kernel,

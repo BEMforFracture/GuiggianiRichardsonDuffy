@@ -42,7 +42,7 @@ expected_I = GRD.hypersingular_laplace_integral_on_plane_element(x, el)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 # Methods to test
@@ -57,17 +57,17 @@ fig = Figure(; size = (1200, 800))
 
 for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 	@info "Testing method: $method_name"
-	
+
 	# Determine subplot position
 	row = div(plot_idx - 1, 2) + 1
 	col = mod(plot_idx - 1, 2) + 1
-	
+
 	title_str = if method isa Union{GRD.FullRichardsonExpansion, GRD.SemiRichardsonExpansion}
 		"$method_name (maxeval = $(rich_params.maxeval))"
 	else
 		method_name
 	end
-	
+
 	ax = Axis(
 		fig[row, col];
 		xlabel = row == 2 ? "Number of quadrature points" : "",
@@ -75,44 +75,44 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 		title = title_str,
 		yscale = log10,
 	)
-	
+
 	# Test varying n_rho (fixed n_theta)
 	n_theta = M_theta
 	n_rhos = 1:N_max_rho
 	errors_rho = zeros(length(n_rhos))
-	
+
 	for (i, n_rho) in enumerate(n_rhos)
 		quad_rho = Inti.GaussLegendre(n_rho)
 		quad_theta = Inti.GaussLegendre(n_theta)
-		
+
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_rho[i] = error
 	end
-	
+
 	# Test varying n_theta (fixed n_rho)
 	n_rho = M_rho
 	n_thetas = 1:N_max_theta
 	errors_theta = zeros(length(n_thetas))
-	
+
 	for (i, n_theta) in enumerate(n_thetas)
 		quad_rho = Inti.GaussLegendre(n_rho)
 		quad_theta = Inti.GaussLegendre(n_theta)
-		
+
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_theta[i] = error
 	end
-	
+
 	lines!(ax, n_rhos, errors_rho; label = "error vs n_rho (n_theta = $M_theta)", linewidth = 3)
 	lines!(ax, n_thetas, errors_theta; label = "error vs n_theta (n_rho = $M_rho)", linewidth = 3)
-	
+
 	axislegend(ax, position = :rt)
 end
 
 display(fig)
-# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_quadrature_convergence.png", fig)
+GLMakie.save("./dev/figures/laplace/laplace_hypersingular_quadrature_convergence.png", fig)

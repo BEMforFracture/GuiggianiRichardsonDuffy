@@ -127,11 +127,8 @@ function laurents_coeffs(
 	x̂,
 	method::AbstractMethod = FullRichardsonExpansion(),
 )
-	# Create the expander
-	expander = LaurentExpander(method, K, el, x̂, û)
-
-	# Return a memoized function
-	return Memoization.@memoize θ -> compute_coefficients(expander, θ)
+	# Dispatch directly to lightweight implementations (no LaurentExpander)
+	return _create_laurent_coeffs_function(method, K, el, û, x̂)
 end
 
 """

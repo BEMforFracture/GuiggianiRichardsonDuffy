@@ -43,7 +43,7 @@ end
 # Default constructor with default parameters
 FullRichardsonExpansion() = FullRichardsonExpansion(RichardsonParams())
 
-struct LaurentExpander{M <: AbstractMethod, Tk, T <: Real, N, Nd, D, Tu}
+struct LaurentExpander{M <: AbstractMethod, Tk, T <: Real, N, Nd, D, Tu, TKpolar, TRho}
 	method::M
 	kernel::Inti.AbstractKernel{Tk}
 
@@ -57,6 +57,10 @@ struct LaurentExpander{M <: AbstractMethod, Tk, T <: Real, N, Nd, D, Tu}
 	μ::T
 
 	û::Tu
+	
+	# Pre-computed closures (avoid recreation)
+	K_polar::TKpolar
+	rho_max_fun::TRho
 end
 
 function LaurentExpander(
@@ -73,6 +77,15 @@ function LaurentExpander(
 	D²τ = Inti.hessian(el, x̂)
 	μ = Inti._integration_measure(Dτ)
 	@assert Nd == Inti.geometric_dimension(el) "source_point dimension must match reference element dimension"
+	
+	# Pre-compute closures ONCE (major performance optimization)
+	SK = K isa SplitKernel ? K : SplitKernel(K)
+	Kprod = (qx, qy) -> prod(SK(qx, qy))
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	
+	ref_domain = Inti.reference_domain(el)
+	rho_max_fun = rho_fun(ref_domain, x̂)
+	
 	return LaurentExpander(
 		method,
 		K,
@@ -84,6 +97,8 @@ function LaurentExpander(
 		D²τ,
 		μ,
 		û,
+		K_polar,
+		rho_max_fun,
 	)
 end
 
