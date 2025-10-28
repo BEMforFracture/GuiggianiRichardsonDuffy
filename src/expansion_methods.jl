@@ -63,33 +63,32 @@ function __laurents_coeff_full_richardson(f, h, ::Val{N}; kwargs...) where {N}
 	end
 end
 
-function compute_coefficients(
-	expander::LaurentExpander{SemiRichardsonExpansion},
-	θ,
+function _create_laurent_coeffs_function(
+	method::SemiRichardsonExpansion,
+	K::Inti.AbstractKernel,
+	el::Inti.ReferenceInterpolant,
+	û,
+	x̂,
 )
-	params = expander.method.richardson_params
-
-	# Compute A function (still needs to be done per theta)
-	A = A_func(expander.reference_element, expander.source_point)
-	
-	# Create qx
-	qx = (coords = expander.x, normal = expander.nx)
-	
-	# Use pre-computed SplitKernel
-	SK = expander.kernel isa SplitKernel ? expander.kernel : SplitKernel(expander.kernel)
-
-	Â = A(θ) / norm(A(θ))
-	_, K̂ = SK(qx, qx, Â)
-
-	s = Inti.singularity_order(expander.kernel)
+	params = method.richardson_params
+	s = Inti.singularity_order(K)
 	sorder = Val(s + 1)
-
-	f_dom = K̂ * expander.μ * expander.û(expander.source_point) / norm(A(θ))^(-s)
-
-	# Use pre-computed closures
-	h = expander.rho_max_fun(θ) * params.first_contract
-	f = ρ -> expander.K_polar(ρ, θ)
-
+	
+	# Pre-compute once
+	SK = K isa SplitKernel ? K : SplitKernel(K)
+	Kprod = (qx, qy) -> prod(SK(qx, qy))
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	ref_domain = Inti.reference_domain(el)
+	rho_max_fun = rho_fun(ref_domain, x̂)
+	A = A_func(el, x̂)
+	
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	ori = 1
+	nx = Inti._normal(jac_x, ori)
+	μ = Inti._integration_measure(jac_x)
+	qx = (coords = x, normal = nx)
+	
 	kwargs_rich = (
 		contract = params.contract,
 		breaktol = params.breaktol,
@@ -97,8 +96,16 @@ function compute_coefficients(
 		rtol = params.rtol,
 		maxeval = params.maxeval,
 	)
-
-	return __laurents_coeff_semi_richardson(f, f_dom, h, sorder; kwargs_rich...)
+	
+	# Return lightweight closure
+	return function(θ)
+		Â = A(θ) / norm(A(θ))
+		_, K̂ = SK(qx, qx, Â)
+		f_dom = K̂ * μ * û(x̂) / norm(A(θ))^(-s)
+		h = rho_max_fun(θ) * params.first_contract
+		f = ρ -> K_polar(ρ, θ)
+		return __laurents_coeff_semi_richardson(f, f_dom, h, sorder; kwargs_rich...)
+	end
 end
 
 function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{-2}; kwargs...)
@@ -120,39 +127,48 @@ function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{N}; kwargs...) wher
 	end
 end
 
-function compute_coefficients(
-	expander::LaurentExpander{AutoDiffExpansion, Tk, T, N, Nd, D, Tu},
-	θ,
-) where {Tk, T, N, Nd, D, Tu}
-	qx = (coords = expander.x, normal = expander.nx)
-
-	s = Inti.singularity_order(expander.kernel)
+function _create_laurent_coeffs_function(
+	method::AutoDiffExpansion,
+	K::Inti.AbstractKernel,
+	el::Inti.ReferenceInterpolant,
+	û,
+	x̂,
+)
+	s = Inti.singularity_order(K)
 	S = s + 1
-
-	function ℱ(ρ)
-		uθ = u_func(θ)
-		ŷ = expander.source_point + ρ * uθ
-		jac_y = Inti.jacobian(expander.reference_element, ŷ)
-		ori = 1
-		ny = Inti._normal(jac_y, ori)
-		y = expander.reference_element(ŷ)
-		qy = (coords = y, normal = ny)
-		μ = Inti._integration_measure(jac_y)
-
-		# Calculer A (vecteur tangent)
-		δ = ntuple(i -> transpose(uθ) * expander.D²τ[i, :, :] * uθ, N) |> SVector
-		A = expander.Dτ * uθ + ρ / 2 * δ
-		Â = A / norm(A)
-
-		# Utiliser le split kernel
-		_, K̂ = expander.kernel(qx, qy, Â)
-
-		return K̂ * μ * expander.û(ŷ) / norm(A)^(-S + 1)
-	end
-
 	sorder = Val(S)
-
-	return __laurents_coeff_auto_diff(ℱ, sorder)
+	
+	# Pre-compute once
+	x = el(x̂)
+	Dτ = Inti.jacobian(el, x̂)
+	ori = 1
+	nx = Inti._normal(Dτ, ori)
+	D²τ = Inti.hessian(el, x̂)
+	qx = (coords = x, normal = nx)
+	N = length(x)
+	
+	# Return lightweight closure
+	return function(θ)
+		function ℱ(ρ)
+			uθ = u_func(θ)
+			ŷ = x̂ + ρ * uθ
+			jac_y = Inti.jacobian(el, ŷ)
+			ny = Inti._normal(jac_y, ori)
+			y = el(ŷ)
+			qy = (coords = y, normal = ny)
+			μ = Inti._integration_measure(jac_y)
+			
+			δ = ntuple(i -> transpose(uθ) * D²τ[i, :, :] * uθ, N) |> SVector
+			A = Dτ * uθ + ρ / 2 * δ
+			Â = A / norm(A)
+			
+			_, K̂ = K(qx, qy, Â)
+			
+			return K̂ * μ * û(ŷ) / norm(A)^(-S + 1)
+		end
+		
+		return __laurents_coeff_auto_diff(ℱ, sorder)
+	end
 end
 
 function __laurents_coeff_auto_diff(f, ::Val{-2})
@@ -174,15 +190,13 @@ function __laurents_coeff_auto_diff(f, ::Val{N}) where {N}
 	end
 end
 
-function compute_coefficients(
-	expander::LaurentExpander{AnalyticalExpansion, Tk, T, N, Nd, D, Tu},
-	θ,
-) where {Tk, T, N, Nd, D, Tu}
-	return _laurents_coeffs_closed_forms(
-		expander.kernel,
-		θ,
-		expander.source_point,
-		expander.reference_element,
-		expander.û,
-	)
+function _create_laurent_coeffs_function(
+	method::AnalyticalExpansion,
+	K::Inti.AbstractKernel,
+	el::Inti.ReferenceInterpolant,
+	û,
+	x̂,
+)
+	# Return lightweight closure - no pre-computation needed for analytical
+	return θ -> _laurents_coeffs_closed_forms(K, θ, x̂, el, û)
 end
