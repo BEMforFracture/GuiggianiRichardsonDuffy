@@ -10,30 +10,24 @@ using ForwardDiff
 
 x̂ = SVector(0.01, 0.01) # source point in reference coordinates
 
-method = :auto_diff # method for Laurent coefficients computation
-
-E = 210e9
-ν = 0.3
-
-# μ = E / (2 * (1 + ν))
-# λ = E * ν / ((1 + ν) * (1 - 2ν))
-
+# Material properties
 μ = 1.0
 λ = 1.0
 
-### Richardson extrapolation parameters
-maxeval = 8
-rtol = 0.0
-atol = 0.0
-contract = 0.5
-first_contract = 1e-2
-breaktol = Inf
+# Richardson parameters
+rich_params = GRD.RichardsonParams(
+	first_contract = 1e-2,
+	contract = 0.5,
+	breaktol = Inf,
+	atol = 0.0,
+	rtol = 0.0,
+	maxeval = 8,
+)
 
-### quadrature parameters
+# Quadrature parameters
 n_rho = 10
 
-# END INPUTS
-
+# Setup element
 δ = 0.5
 z = 0.0
 y¹ = SVector(-1.0, -1.0, z)
@@ -45,12 +39,12 @@ nodes = (y¹, y², y³, y⁴)
 el = Inti.LagrangeSquare(nodes)
 x = el(x̂)
 ref_domain = Inti.reference_domain(el)
-# p = 1
-# û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
-û = ξ -> 1.0
+û = ξ -> 1.0
 
-K = GRD.SplitElastostaticHypersingular
-Kprod = (qx, qy) -> prod(K(qx, qy; μ = μ, λ = λ))
+# Kernel setup
+K_base = Inti.ElastostaticHypersingular(μ, λ)
+K = GRD.SplitKernel(K_base)
+Kprod = (qx, qy) -> prod(K_base(qx, qy))
 
 K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
 
@@ -61,23 +55,7 @@ ref_domain = Inti.reference_domain(el)
 
 decompo = Inti.polar_decomposition(ref_domain, x̂)
 
-ℒ = GRD.laurents_coeffs(
-	K,
-	el,
-	û,
-	x̂;
-	expansion = method,
-	kernel_kwargs = (μ = μ, λ = λ),
-	richardson_kwargs = (
-		maxeval = maxeval,
-		rtol = rtol,
-		atol = atol,
-		contract = contract,
-		first_contract = first_contract,
-		breaktol = breaktol,
-	),
-	name = :ElastostaticHypersingular,
-)
+ℒ = GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
 
 function G₁(θ)
 	f₋₂, f₋₁ = ℒ(θ)

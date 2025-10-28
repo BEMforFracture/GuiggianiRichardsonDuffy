@@ -6,25 +6,17 @@ using LinearAlgebra
 using GLMakie
 using ForwardDiff
 
-# INPUTS
+# Configuration
+x̂ = SVector(0.01, 0.01)  # Source point in reference coordinates
 
-x̂ = SVector(0.01, 0.01) # source point in reference coordinates
+# Method for Laurent coefficients
+method = GRD.AnalyticalExpansion()
 
-method = :analytical # method for Laurent coefficients computation
-
-### Richardson extrapolation parameters
-maxeval = 8
-rtol = 0.0
-atol = 0.0
-contract = 0.5
-first_contract = 1e-2
-breaktol = Inf
-
-### quadrature parameters
+# Quadrature parameters
 n_rho = 10
+quad_rho = Inti.GaussLegendre(n_rho)
 
-# END INPUTS
-
+# Setup element
 δ = 0.5
 z = 0.0
 y¹ = SVector(-1.0, -1.0, z)
@@ -32,23 +24,23 @@ y² = SVector(1.0 + δ, -1.0, z)
 y³ = SVector(-1.0, 1.0, z)
 y⁴ = SVector(1.0 - δ, 1.0, z)
 nodes = (y¹, y², y³, y⁴)
-
 el = Inti.LagrangeSquare(nodes)
-x = el(x̂)
-ref_domain = Inti.reference_domain(el)
-# p = 1
-# û = ξ -> Inti.lagrange_basis(typeof(el))(ξ)[p]
-û = ξ -> 1.0
 
-K = GRD.SplitLaplaceHypersingular
+# Density function
+û = ξ -> 1.0
+
+# Kernel setup
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K = GRD.SplitKernel(K_base)
 Kprod = (qx, qy) -> prod(K(qx, qy))
 
-K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
-
-quad_rho = Inti.GaussLegendre(n_rho)
-
+# Polar coordinates setup
+K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
 ref_domain = Inti.reference_domain(el)
 ρ_max_fun = GRD.rho_fun(ref_domain, x̂)
+
+# Compute Laurent coefficients
+ℒ = GRD.laurents_coeffs(K_base, el, û, x̂, method)
 
 decompo = Inti.polar_decomposition(ref_domain, x̂)
 

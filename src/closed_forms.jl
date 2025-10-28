@@ -1,16 +1,28 @@
 #= Closed forme formulas for laurent's coefficients within Guiggiani algorithm =#
 
-function LaplaceAdjointDoubleLayerClosedFormCoeffs()
-	notimplemented()
+function LaurentCoeffsClosedForms(K::Inti.AbstractKernel, θ::Float64, η::SVector{D, T}, el::Inti.ReferenceInterpolant{D, SVector{N, T}}, û) where {T <: Real, N, D}
+	return _laurents_coeffs_closed_forms(K, θ, η, el, û)
 end
 
-@memoize function _laplace_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û; kwargs...)
+function _laurents_coeffs_closed_forms(K::Inti.SingleLayerKernel{T, <:Inti.Laplace{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
+end
+
+function _laurents_coeffs_closed_forms(K::Inti.DoubleLayerKernel{T, <:Inti.Laplace{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
+end
+
+function _laurents_coeffs_closed_forms(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Laplace{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
+end
+
+@memoize function _laurents_coeffs_closed_forms(K::Inti.HyperSingularKernel{T, <:Inti.Laplace{N}}, θ, η, el::Inti.LagrangeElement, û) where {T, N}
 	A = A_func(el, η)
 	B = B_func(el, η)
 
 	Jn = Jn_func(el, η)
 	DJn_η = DJn(el, η)
-	Dû_η = Dû(û, η)
+	Dû_η = Dû(û, η)
 
 	nx = Inti.normal(el, η)
 
@@ -21,8 +33,8 @@ end
 	b₀ = -Jn(η)
 	b₁ = 3g₁ - DJn_η * u_func(θ)
 
-	a₀ = b₀ * û(η)
-	a₁ = b₁ * û(η) + b₀ * (transpose(Dû_η) * u_func(θ))
+	a₀ = b₀ * û(η)
+	a₁ = b₁ * û(η) + b₀ * (transpose(Dû_η) * u_func(θ))
 
 	S₋₂ = -3 * (transpose(A(θ)) * B(θ)) / norm(A(θ))^5
 	S₋₃ = 1 / norm(A(θ))^3
@@ -32,31 +44,21 @@ end
 	return F₋₂, F₋₁
 end
 
-"""
-	LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
-
-Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
-"""
-function LaplaceHypersingularClosedFormF₋₁(args...; kwargs...)
-	_, f = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
-	return f
+function _laurents_coeffs_closed_forms(K::Inti.SingleLayerKernel{T, <:Inti.Elastostatic{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
 end
 
-"""
-	LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
-
-Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for Laplace hypersingular kernel.
-"""
-function LaplaceHypersingularClosedFormF₋₂(args...; kwargs...)
-	f, _ = _laplace_hypersingular_closed_form_coeffs(args...; kwargs...)
-	return f
+function _laurents_coeffs_closed_forms(K::Inti.DoubleLayerKernel{T, <:Inti.Elastostatic{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
 end
 
-function ElastostaticAdjointDoubleLayerClosedFormCoeffs()
-	notimplemented()
+function _laurents_coeffs_closed_forms(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Elastostatic{N}}, θ, η, el, û) where {T, N}
+	error("Closed form Laurent coefficients not implemented for $(typeof(K)). Available for: $(ANALYTICAL_EXPANSIONS)")
 end
 
-@memoize function _elastostatic_hypersingular_closed_form_coeffs(θ, η, el::Inti.LagrangeElement, û; λ, μ)
+@memoize function _laurents_coeffs_closed_forms(K::Inti.HyperSingularKernel{T, <:Inti.Elastostatic{N}}, θ, η, el::Inti.LagrangeElement, û) where {T, N}
+	λ = K.op.λ
+	μ = K.op.μ
 	ν = λ / (2 * (λ + μ))
 	β = 3
 	α = β - 1
@@ -67,7 +69,7 @@ end
 
 	Jn = Jn_func(el, η)
 	DJn_η = DJn(el, η)
-	Dû_η = Dû(û, η)
+	Dû_η = Dû(û, η)
 
 	nx = Inti.normal(el, η)
 
@@ -118,8 +120,8 @@ end
 		kᵢⱼₖ₁ = β * h₁ * ((α + 3) * gᵢⱼₖ₀ + (1 - 2 * ν) * δᵢⱼ * dₖ₀ - δᵢₖ * dⱼ₀ - δⱼₖ * dᵢ₀) +
 				(1 - 2 * ν) * (β * dₖ₁ * aᵢⱼ₀ + β * aᵢⱼ₁ * dₖ₀ + bᵢⱼₖ₁) - β * dᵢⱼₖ₁ + β * h₀ * ((α + 3) * gᵢⱼₖ₁ + (1 - 2 * ν) * δᵢⱼ * dₖ₁ - δᵢₖ * dⱼ₁ - δⱼₖ * dᵢ₁)
 
-		V₋₁ = -Λ * (S₋₂ * û(η) * kᵢⱼₖ₀ + S₋₃ * (Dû_η ⋅ u_func(θ) * kᵢⱼₖ₀ + û(η) * kᵢⱼₖ₁))
-		V₋₂ = -Λ * S₋₃ * û(η) * kᵢⱼₖ₀
+		V₋₁ = -Λ * (S₋₂ * û(η) * kᵢⱼₖ₀ + S₋₃ * (Dû_η ⋅ u_func(θ) * kᵢⱼₖ₀ + û(η) * kᵢⱼₖ₁))
+		V₋₂ = -Λ * S₋₃ * û(η) * kᵢⱼₖ₀
 		return V₋₁, V₋₂
 	end
 	function H_coeff_12(i, j)
@@ -140,26 +142,6 @@ end
 		F₋₂[i, j] += h₋₂
 	end
 	return F₋₂, F₋₁
-end
-
-"""
-	ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
-
-Compute only F₋₁ the old way (analytically with F₋₂) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
-"""
-function ElastostaticHypersingularClosedFormF₋₁(args...; kwargs...)
-	f, _ = _elastostatic_hypersingular_closed_form_coeffs(args...; kwargs...)
-	return f
-end
-
-"""
-	ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
-
-Compute only F₋₂ the old way (analytically with F₋₁) such that F(ρ, θ) := ρ × J × Nᵖ × Vᵢₖⱼ = F₋₁ / ρ + F₋₂ / ρ² + O(1), for the elastostatic hypersingular kernel.
-"""
-function ElastostaticHypersingularClosedFormF₋₂(args...; kwargs...)
-	_, f = _elastostatic_hypersingular_closed_form_coeffs(args...; kwargs...)
-	return f
 end
 
 function hypersingular_laplace_integral_on_plane_element(x, el)

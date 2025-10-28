@@ -5,29 +5,31 @@ using StaticArrays
 using BenchmarkTools
 using PrettyTables
 
-# INPUTS
+# Configuration
+x̂ = SVector(0.5, 0.5)  # Source point in reference coordinates
 
-x̂ = SVector(0.5, 0.5) # source point in reference coordinates
+# Richardson extrapolation parameters
+rich_params = GRD.RichardsonParams(
+	first_contract = 1e-2,
+	contract = 0.5,
+	breaktol = Inf,
+	atol = 0.0,
+	rtol = 0.0,
+	maxeval = 5,
+)
 
-### Richardson extrapolation parameters
-maxeval = 5
-rtol = 0.0
-atol = 0.0
-contract = 0.5
-first_contract = 1e-2
-breaktol = Inf
-
-# quadrature parameters
+# Quadrature parameters
 n_rho = 10
 n_theta = 40
+quad_rho = Inti.GaussLegendre(n_rho)
+quad_theta = Inti.GaussLegendre(n_theta)
 
-# benchmark parameters
+# Benchmark parameters
 n_sample = 1000
 seconds = 0.1
 evals = 10
 
-# END INPUTS
-
+# Setup element
 δ = 0.5
 z = 0.0
 y¹ = SVector(-1.0, -1.0, z)
@@ -35,60 +37,49 @@ y² = SVector(1.0 + δ, -1.0, z)
 y³ = SVector(-1.0, 1.0, z)
 y⁴ = SVector(1.0 - δ, 1.0, z)
 nodes = (y¹, y², y³, y⁴)
-
 el = Inti.LagrangeSquare(nodes)
+
+# Reference value
 x = el(x̂)
 expected_I = GRD.hypersingular_laplace_integral_on_plane_element(x, el)
-ref_domain = Inti.reference_domain(el)
-û = ξ -> 1.0
 
-K = GRD.SplitLaplaceHypersingular
+# Density function
+û = ξ -> 1.0
 
-b_dict_gui = Dict{Symbol, BenchmarkTools.Trial}()
+# Kernel setup
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K = GRD.SplitKernel(K_base)
 
-errors = Dict{Symbol, Float64}()
+# Methods to benchmark
+methods = [
+	("Analytical", GRD.AnalyticalExpansion()),
+	("AutoDiff", GRD.AutoDiffExpansion()),
+	("SemiRichardson", GRD.SemiRichardsonExpansion(rich_params)),
+	("FullRichardson", GRD.FullRichardsonExpansion(rich_params)),
+]
 
-for method in GRD.EXPANSION_METHODS
+b_dict_gui = Dict{String, BenchmarkTools.Trial}()
+errors = Dict{String, Float64}()
+
+for (method_name, method) in methods
+	@info "Benchmarking $method_name..."
+	
+	# Use appropriate kernel (base for analytical, split for others)
+	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
+	
 	# Calculate result for error computation
 	res = GRD.guiggiani_singular_integral(
-		K,
-		û,
-		x̂,
-		el,
-		n_rho,
-		n_theta;
-		sorder = Val(-2),
-		expansion = method,
-		rtol = rtol,
-		maxeval = maxeval,
-		first_contract = first_contract,
-		breaktol = breaktol,
-		contract = contract,
-		atol = atol,
+		K_to_use, û, x̂, el, quad_rho, quad_theta, method
 	)
 	error = abs(res - expected_I) / abs(expected_I)
-	errors[method] = error
+	errors[method_name] = error
 
 	# Benchmark
-	b = @benchmark begin
-		GRD.guiggiani_singular_integral(
-			$K,
-			$û,
-			$x̂,
-			$el,
-			$n_rho,
-			$n_theta;
-			sorder = Val(-2),
-			expansion = $method,
-			rtol = $rtol,
-			maxeval = $maxeval,
-			first_contract = $first_contract,
-			breaktol = $breaktol,
-			contract = $contract,
-			atol = $atol,
-		)
-	end samples = n_sample seconds = seconds evals = evals
-	b_dict_gui[method] = b
+	b = @benchmark GRD.guiggiani_singular_integral(
+		$K_to_use, $û, $x̂, $el, $quad_rho, $quad_theta, $method
+	) samples = n_sample seconds = seconds evals = evals
+	
+	b_dict_gui[method_name] = b
 end
 
 for (method, b) in b_dict_gui
@@ -97,25 +88,19 @@ for (method, b) in b_dict_gui
 	println()
 end
 
-b_dict_laurent = Dict{Symbol, BenchmarkTools.Trial}()
+b_dict_laurent = Dict{String, BenchmarkTools.Trial}()
 
-for method in GRD.EXPANSION_METHODS
-	b = @benchmark begin
-		ℒ = GRD.laurents_coeffs(
-			$K,
-			$el,
-			$û,
-			$x̂;
-			expansion = $method,
-			maxeval = $maxeval,
-			rtol = $rtol,
-			atol = $atol,
-			contract = $contract,
-			first_contract = $first_contract,
-			breaktol = $breaktol,
-		)
-	end samples = n_sample seconds = seconds evals = evals
-	b_dict_laurent[method] = b
+for (method_name, method) in methods
+	@info "Benchmarking Laurent coefficients for $method_name..."
+	
+	# Use appropriate kernel
+	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
+	
+	b = @benchmark GRD.laurents_coeffs(
+		$K_to_use, $el, $û, $x̂, $method
+	) samples = n_sample seconds = seconds evals = evals
+	
+	b_dict_laurent[method_name] = b
 end
 
 for (method, b) in b_dict_laurent
@@ -124,27 +109,23 @@ for (method, b) in b_dict_laurent
 	println()
 end
 
-b_dict_eval = Dict{Symbol, BenchmarkTools.Trial}()
+b_dict_eval = Dict{String, BenchmarkTools.Trial}()
 
-for method in GRD.EXPANSION_METHODS
-	ℒ = GRD.laurents_coeffs(
-		K,
-		el,
-		û,
-		x̂;
-		expansion = method,
-		maxeval = maxeval,
-		rtol = rtol,
-		atol = atol,
-		contract = contract,
-		first_contract = first_contract,
-		breaktol = breaktol,
-	)
+for (method_name, method) in methods
+	@info "Benchmarking Laurent evaluation for $method_name..."
+	
+	# Use appropriate kernel
+	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
+	
+	# Create Laurent expander
+	ℒ = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
+	
 	b = @benchmark begin
 		θ = rand() * 2π
 		f₋₂, f₋₁ = $ℒ(θ)
 	end samples = n_sample seconds = seconds evals = evals
-	b_dict_eval[method] = b
+	
+	b_dict_eval[method_name] = b
 end
 
 for (method, b) in b_dict_eval
@@ -153,30 +134,31 @@ for (method, b) in b_dict_eval
 	println()
 end
 
-methods_names = [string(m) for m in GRD.EXPANSION_METHODS]
+# Extract method names
+methods_names = [m[1] for m in methods]
 
-# execution times in microseconds
-t_integrals = [median(b_dict_gui[m].times) / 1e3 for m in GRD.EXPANSION_METHODS]
-t_laurents = [median(b_dict_laurent[m].times) / 1e3 for m in GRD.EXPANSION_METHODS]
-t_evals = [median(b_dict_eval[m].times) / 1e3 for m in GRD.EXPANSION_METHODS]
+# Execution times in microseconds
+t_integrals = [median(b_dict_gui[m].times) / 1e3 for m in methods_names]
+t_laurents = [median(b_dict_laurent[m].times) / 1e3 for m in methods_names]
+t_evals = [median(b_dict_eval[m].times) / 1e3 for m in methods_names]
 
-# allocations in number of allocations
-a_integrals = [median(b_dict_gui[m].allocs) for m in GRD.EXPANSION_METHODS]
-a_laurents = [median(b_dict_laurent[m].allocs) for m in GRD.EXPANSION_METHODS]
-a_evals = [median(b_dict_eval[m].allocs) for m in GRD.EXPANSION_METHODS]
+# Allocations
+a_integrals = [median(b_dict_gui[m].allocs) for m in methods_names]
+a_laurents = [median(b_dict_laurent[m].allocs) for m in methods_names]
+a_evals = [median(b_dict_eval[m].allocs) for m in methods_names]
 
-# garbage collect in bytes
-g_integrals = [median(b_dict_gui[m].gctimes) for m in GRD.EXPANSION_METHODS]
-g_laurents = [median(b_dict_laurent[m].gctimes) for m in GRD.EXPANSION_METHODS]
-g_evals = [median(b_dict_eval[m].gctimes) for m in GRD.EXPANSION_METHODS]
+# Garbage collection time
+g_integrals = [median(b_dict_gui[m].gctimes) for m in methods_names]
+g_laurents = [median(b_dict_laurent[m].gctimes) for m in methods_names]
+g_evals = [median(b_dict_eval[m].gctimes) for m in methods_names]
 
-# memory estimated in kilobytes
-m_integrals = [median(b_dict_gui[m].memory) / 1e3 for m in GRD.EXPANSION_METHODS]
-m_laurents = [median(b_dict_laurent[m].memory) / 1e3 for m in GRD.EXPANSION_METHODS]
-m_evals = [median(b_dict_eval[m].memory) / 1e3 for m in GRD.EXPANSION_METHODS]
+# Memory in kilobytes
+m_integrals = [median(b_dict_gui[m].memory) / 1e3 for m in methods_names]
+m_laurents = [median(b_dict_laurent[m].memory) / 1e3 for m in methods_names]
+m_evals = [median(b_dict_eval[m].memory) / 1e3 for m in methods_names]
 
-# relative errors
-errors_values = [errors[m] for m in GRD.EXPANSION_METHODS]
+# Relative errors
+errors_values = [errors[m] for m in methods_names]
 
 # make 4 tables, one for each metric
 
@@ -199,12 +181,12 @@ open("dev/results/laplace/benchmark_laplace_hypersingular.html", "w") do io
 	write(io, "</ul>\n")
 	write(io, "<h3>Richardson Extrapolation</h3>\n")
 	write(io, "<ul>\n")
-	write(io, "<li>maxeval = $maxeval</li>\n")
-	write(io, "<li>rtol = $rtol</li>\n")
-	write(io, "<li>atol = $atol</li>\n")
-	write(io, "<li>first_contract = $first_contract</li>\n")
-	write(io, "<li>contract = $contract</li>\n")
-	write(io, "<li>breaktol = $breaktol</li>\n")
+	write(io, "<li>maxeval = $(rich_params.maxeval)</li>\n")
+	write(io, "<li>rtol = $(rich_params.rtol)</li>\n")
+	write(io, "<li>atol = $(rich_params.atol)</li>\n")
+	write(io, "<li>first_contract = $(rich_params.first_contract)</li>\n")
+	write(io, "<li>contract = $(rich_params.contract)</li>\n")
+	write(io, "<li>breaktol = $(rich_params.breaktol)</li>\n")
 	write(io, "</ul>\n")
 	write(io, "<h3>Benchmark</h3>\n")
 	write(io, "<ul>\n")
