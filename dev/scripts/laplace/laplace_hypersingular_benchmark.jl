@@ -21,8 +21,6 @@ rich_params = GRD.RichardsonParams(
 # Quadrature parameters
 n_rho = 10
 n_theta = 40
-quad_rho = Inti.GaussLegendre(n_rho)
-quad_theta = Inti.GaussLegendre(n_theta)
 
 # Benchmark parameters
 n_sample = 1000
@@ -47,7 +45,7 @@ expected_I = GRD.hypersingular_laplace_integral_on_plane_element(x, el)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 # Methods to benchmark
@@ -63,22 +61,22 @@ errors = Dict{String, Float64}()
 
 for (method_name, method) in methods
 	@info "Benchmarking $method_name..."
-	
+
 	# Use appropriate kernel (base for analytical, split for others)
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
-	
+
 	# Calculate result for error computation
 	res = GRD.guiggiani_singular_integral(
-		K_to_use, û, x̂, el, quad_rho, quad_theta, method
+		K_to_use, û, x̂, el, n_rho, n_theta, method,
 	)
 	error = abs(res - expected_I) / abs(expected_I)
 	errors[method_name] = error
 
 	# Benchmark
 	b = @benchmark GRD.guiggiani_singular_integral(
-		$K_to_use, $û, $x̂, $el, $quad_rho, $quad_theta, $method
+		$K_to_use, $û, $x̂, $el, $n_rho, $n_theta, $method,
 	) samples = n_sample seconds = seconds evals = evals
-	
+
 	b_dict_gui[method_name] = b
 end
 
@@ -92,14 +90,14 @@ b_dict_laurent = Dict{String, BenchmarkTools.Trial}()
 
 for (method_name, method) in methods
 	@info "Benchmarking Laurent coefficients for $method_name..."
-	
+
 	# Use appropriate kernel
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
-	
+
 	b = @benchmark GRD.laurents_coeffs(
-		$K_to_use, $el, $û, $x̂, $method
+		$K_to_use, $el, $û, $x̂, $method,
 	) samples = n_sample seconds = seconds evals = evals
-	
+
 	b_dict_laurent[method_name] = b
 end
 
@@ -113,18 +111,18 @@ b_dict_eval = Dict{String, BenchmarkTools.Trial}()
 
 for (method_name, method) in methods
 	@info "Benchmarking Laurent evaluation for $method_name..."
-	
+
 	# Use appropriate kernel
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
-	
+
 	# Create Laurent expander
 	ℒ = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
-	
+
 	b = @benchmark begin
 		θ = rand() * 2π
 		f₋₂, f₋₁ = $ℒ(θ)
 	end samples = n_sample seconds = seconds evals = evals
-	
+
 	b_dict_eval[method_name] = b
 end
 

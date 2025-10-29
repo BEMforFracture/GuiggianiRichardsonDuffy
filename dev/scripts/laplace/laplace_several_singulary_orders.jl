@@ -36,10 +36,3 @@ ref_domain = Inti.reference_domain(el)
 
 û = ξ -> 1.0
 
-K³ = GRD.SplitLaplaceHypersingular
-K² = GRD.SplitLaplaceAdjointDoubleLayer
-K¹ = GRD.SplitLaplaceSingleLayer
-
-ℒ³ = GRD.laurents_coeffs(K³, el, û, x̂; expansion = :auto_diff, sorder = Val(-3))
-ℒ² = GRD.laurents_coeffs(K², el, û, x̂; expansion = :auto_diff, sorder = Val(-2))
-ℒ¹ = GRD.laurents_coeffs(K¹, el, û, x̂; expansion = :auto_diff, sorder = Val(-1))

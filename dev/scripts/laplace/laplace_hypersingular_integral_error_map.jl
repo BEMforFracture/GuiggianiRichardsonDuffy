@@ -71,7 +71,7 @@ for (point_idx, (i, j, x̂)) in enumerate(test_points)
 
 	for (method_name, method, K_to_use) in methods
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
+			K_to_use, û, x̂, el, n_rho, n_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors[method_name][i, j] = error
