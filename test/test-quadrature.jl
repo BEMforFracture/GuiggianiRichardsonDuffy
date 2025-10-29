@@ -38,17 +38,17 @@ el = Inti.LagrangeSquare(nodes)
 û = ξ -> 1.0
 
 # Kernel setup
-K_base = Inti.HyperSingularKernel(Inti.Laplace(dim=3))
+K_base = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 K = GRD.SplitKernel(K_base)
 
 @testset "Polar coordinates - Integrate ρ_max(θ) over square element" begin
 	# This test verifies that the polar decomposition and quadrature work correctly
 	# by integrating ρ over the reference element, which should equal 1.0
-	
+
 	ref_domain = Inti.reference_domain(el)
 	quad_rho = Inti.GaussLegendre(10)
 	quad_theta = Inti.GaussLegendre(40)
-	
+
 	# Test multiple source points
 	N_test = 10
 	ξ_min = 1 / N_test
@@ -58,28 +58,28 @@ K = GRD.SplitKernel(K_base)
 
 	for ξ in ξ_range, η in η_range
 		x̂ = SVector(ξ, η)
-		
+
 		# Integrate ρ in polar coordinates
 		F(ρ, θ) = ρ
 		acc = 0.0
-		
+
 		for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_domain, x̂)
 			Δθ = theta_max - theta_min
 			I_theta = quad_theta() do (theta_ref,)
 				θ = theta_min + theta_ref * Δθ
 				ρ_max = rho_func(θ)
-				
+
 				I_rho = quad_rho() do (rho_ref,)
 					ρ = ρ_max * rho_ref
 					return F(ρ, θ)
 				end
-				
+
 				return I_rho * ρ_max
 			end
-			
+
 			acc += I_theta * Δθ
 		end
-		
+
 		@test abs(acc - 1.0) < 1e-6
 	end
 end
@@ -87,21 +87,21 @@ end
 @testset "Laplace hypersingular - Singular integral accuracy" begin
 	# Compute expected values using analytical closed form
 	expected_values = [GRD.hypersingular_laplace_integral_on_plane_element(el(x̂), el) for x̂ in test_points]
-	
+
 	# Setup quadrature rules
 	quad_rho = Inti.GaussLegendre(n_rho)
 	quad_theta = Inti.GaussLegendre(n_theta)
-	
+
 	@testset "FullRichardson method" begin
 		method = GRD.FullRichardsonExpansion(rich_params)
-		
+
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method
+			K, û, x̂, el, n_rho, n_theta, method,
 		) for x̂ in test_points]
 
-		errors = [abs(res - expected) / abs(expected) 
-		          for (res, expected) in zip(results, expected_values) 
-		          if expected != 0.0]
+		errors = [abs(res - expected) / abs(expected)
+				  for (res, expected) in zip(results, expected_values)
+				  if expected != 0.0]
 
 		for error in errors
 			@test error < 1e-7
@@ -110,14 +110,14 @@ end
 
 	@testset "AutoDiff method" begin
 		method = GRD.AutoDiffExpansion()
-		
+
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method
+			K, û, x̂, el, n_rho, n_theta, method,
 		) for x̂ in test_points]
 
-		errors = [abs(res - expected) / abs(expected) 
-		          for (res, expected) in zip(results, expected_values) 
-		          if expected != 0.0]
+		errors = [abs(res - expected) / abs(expected)
+				  for (res, expected) in zip(results, expected_values)
+				  if expected != 0.0]
 
 		for error in errors
 			@test error < 1e-11
@@ -126,14 +126,14 @@ end
 
 	@testset "SemiRichardson method" begin
 		method = GRD.SemiRichardsonExpansion(rich_params)
-		
+
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method
+			K, û, x̂, el, n_rho, n_theta, method,
 		) for x̂ in test_points]
 
-		errors = [abs(res - expected) / abs(expected) 
-		          for (res, expected) in zip(results, expected_values) 
-		          if expected != 0.0]
+		errors = [abs(res - expected) / abs(expected)
+				  for (res, expected) in zip(results, expected_values)
+				  if expected != 0.0]
 
 		for error in errors
 			@test error < 1e-7
@@ -142,15 +142,15 @@ end
 
 	@testset "Analytical method" begin
 		method = GRD.AnalyticalExpansion()
-		
+
 		# Note: Need to use base kernel (not SplitKernel) for analytical
 		results = [GRD.guiggiani_singular_integral(
-			K_base, û, x̂, el, quad_rho, quad_theta, method
+			K_base, û, x̂, el, n_rho, n_theta, method,
 		) for x̂ in test_points]
 
-		errors = [abs(res - expected) / abs(expected) 
-		          for (res, expected) in zip(results, expected_values) 
-		          if expected != 0.0]
+		errors = [abs(res - expected) / abs(expected)
+				  for (res, expected) in zip(results, expected_values)
+				  if expected != 0.0]
 
 		for error in errors
 			@test error < 1e-11
