@@ -72,12 +72,12 @@ for (method_name, method, K_to_use) in methods
 	@info "Benchmarking integral: $method_name"
 
 	res = GRD.guiggiani_singular_integral(
-		K_to_use, û, x̂, el, n_rho, n_theta, method,
+		K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 	)
 
 	if method_name != "Analytical"
 		ref_value = GRD.guiggiani_singular_integral(
-			K_base, û, x̂, el, n_rho, n_theta, GRD.AnalyticalExpansion(),
+			K_base, û, x̂, el, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
 		)
 		errors[method_name] = norm(res - ref_value) / norm(ref_value)
 	else
@@ -85,7 +85,7 @@ for (method_name, method, K_to_use) in methods
 	end
 
 	b = @benchmark GRD.guiggiani_singular_integral(
-		$K_to_use, $û, $x̂, $el, $n_rho, $n_theta, $method,
+		$K_to_use, $û, $x̂, $el, $quad_rho, $quad_theta, $method,
 	) samples = n_sample seconds = seconds evals = evals
 
 	b_dict_gui[method_name] = b

@@ -194,12 +194,10 @@ function guiggiani_singular_integral(
 	û,
 	x̂,
 	el::Inti.ReferenceInterpolant,
-	n_rho,
-	n_theta,
+	quad_rho,
+	quad_theta,
 	method::AbstractMethod = FullRichardsonExpansion(),
 )
-	quad_rho = Inti.GaussLegendre(n_rho)
-	quad_theta = Inti.GaussLegendre(n_theta)
 	# Determine singularity order
 	s = Inti.singularity_order(K)
 	if isnothing(s)

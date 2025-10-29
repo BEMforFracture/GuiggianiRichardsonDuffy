@@ -329,8 +329,8 @@ end
 			quad_theta = Inti.GaussLegendre(10)
 
 			# Test avec méthode par défaut
-			@test_nowarn GRD.guiggiani_singular_integral(K, û, x̂, el, n_rho, n_theta)
-			I = GRD.guiggiani_singular_integral(K, û, x̂, el, n_rho, n_theta)
+			@test_nowarn GRD.guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta)
+			I = GRD.guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta)
 			@test I isa Real
 			@test isfinite(I)
 		end
@@ -341,10 +341,10 @@ end
 
 			# Analytical
 			@test_nowarn GRD.guiggiani_singular_integral(
-				K, û, x̂, el, n_rho, n_theta, GRD.AnalyticalExpansion(),
+				K, û, x̂, el, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
 			)
 			I_anal = GRD.guiggiani_singular_integral(
-				K, û, x̂, el, n_rho, n_theta, GRD.AnalyticalExpansion(),
+				K, û, x̂, el, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
 			)
 			@test I_anal isa Real
 			@test isfinite(I_anal)
@@ -352,10 +352,10 @@ end
 			# AutoDiff (avec SplitKernel)
 			SK = GRD.SplitKernel(K)
 			@test_nowarn GRD.guiggiani_singular_integral(
-				SK, û, x̂, el, n_rho, n_theta, GRD.AutoDiffExpansion(),
+				SK, û, x̂, el, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
 			)
 			I_ad = GRD.guiggiani_singular_integral(
-				SK, û, x̂, el, n_rho, n_theta, GRD.AutoDiffExpansion(),
+				SK, û, x̂, el, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
 			)
 			@test I_ad isa Real
 			@test isfinite(I_ad)
@@ -363,7 +363,7 @@ end
 			# FullRichardson avec paramètres personnalisés
 			params = GRD.RichardsonParams(atol = 1e-10, maxeval = 8)
 			@test_nowarn GRD.guiggiani_singular_integral(
-				K, û, x̂, el, n_rho, n_theta, GRD.FullRichardsonExpansion(params),
+				K, û, x̂, el, quad_rho, quad_theta, GRD.FullRichardsonExpansion(params),
 			)
 		end
 
@@ -404,8 +404,8 @@ end
 			quad_rho = Inti.GaussLegendre(5)
 			quad_theta = Inti.GaussLegendre(10)
 
-			@test_nowarn GRD.guiggiani_singular_integral(K_elast, û, x̂, el, n_rho, n_theta)
-			I_elast = GRD.guiggiani_singular_integral(K_elast, û, x̂, el, n_rho, n_theta)
+			@test_nowarn GRD.guiggiani_singular_integral(K_elast, û, x̂, el, quad_rho, quad_theta)
+			I_elast = GRD.guiggiani_singular_integral(K_elast, û, x̂, el, quad_rho, quad_theta)
 			@test I_elast isa AbstractMatrix
 			@test all(isfinite, I_elast)
 		end
