@@ -7,16 +7,19 @@ using Richardson
 using Memoization
 using ForwardDiff
 
+@info "Loading GuiggianiRichardsonDuffy.jl"
+
 include("utils.jl")
 include("kernels.jl")
 include("geometry_expansion.jl")
 include("closed_forms.jl")
 include("expansion_types.jl")
-include("expansion_cache.jl")
+# include("expansion_cache.jl")
 include("expansion_methods.jl")
+include("helpers.jl")
 include("api.jl")
 
-@info "Loading GuiggianiRichardsonDuffy.jl"
+@info "GuiggianiRichardsonDuffy.jl successfully loaded"
 
 """
 	const ANALYTICAL_EXPANSIONS = [:LaplaceHypersingular, :ElastostaticHypersingular]

@@ -57,7 +57,7 @@ end
 @testset "Smoke tests - SplitKernels evaluation" begin
 	@testset "Laplace" begin
 		@testset "Basic evaluation (non-singular)" begin
-			K = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
+			K = Inti.HyperSingularKernel(Inti.Laplace(; dim = 3))
 			SK = GRD.SplitKernel(K)
 
 			# Points de test
@@ -132,59 +132,6 @@ end
 		@test full_method.richardson_params === params
 	end
 
-	@testset "Smoke tests - LaurentExpander construction" begin
-		@testset "Basic construction" begin
-			K = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
-			method = GRD.AutoDiffExpansion()
-
-			# Créer un élément de référence simple (triangle)
-			δ = 0.5
-			z = 0.0
-			y¹ = SVector(-1.0, -1.0, z)
-			y² = SVector(1.0 + δ, -1.0, z)
-			y³ = SVector(-1.0, 1.0, z)
-			y⁴ = SVector(1.0 - δ, 1.0, z)
-			nodes = (y¹, y², y³, y⁴)
-
-			el = Inti.LagrangeSquare(nodes)
-			x̂ = SVector(0.5, 0.5)
-			û = η -> 1.0  # Densité constante
-
-			@test_nowarn GRD.LaurentExpander(method, K, el, x̂, û)
-
-			expander = GRD.LaurentExpander(method, K, el, x̂, û)
-			@test expander.method === method
-			@test expander.kernel === K
-			@test expander.source_point == x̂
-		end
-
-		@testset "All expansion methods" begin
-			K = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
-			δ = 0.5
-			z = 0.0
-			y¹ = SVector(-1.0, -1.0, z)
-			y² = SVector(1.0 + δ, -1.0, z)
-			y³ = SVector(-1.0, 1.0, z)
-			y⁴ = SVector(1.0 - δ, 1.0, z)
-			nodes = (y¹, y², y³, y⁴)
-
-			el = Inti.LagrangeSquare(nodes)
-			x̂ = SVector(0.5, 0.5)
-			û = η -> 1.0
-
-			# Analytical
-			@test_nowarn GRD.LaurentExpander(GRD.AnalyticalExpansion(), K, el, x̂, û)
-
-			# AutoDiff
-			@test_nowarn GRD.LaurentExpander(GRD.AutoDiffExpansion(), K, el, x̂, û)
-
-			# Richardson methods
-			params = GRD.RichardsonParams()
-			@test_nowarn GRD.LaurentExpander(GRD.FullRichardsonExpansion(params), K, el, x̂, û)
-			@test_nowarn GRD.LaurentExpander(GRD.SemiRichardsonExpansion(params), K, el, x̂, û)
-		end
-	end
-
 	@testset "Smoke tests - compute_coefficients" begin
 		K = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
 		δ = 0.5
@@ -202,10 +149,10 @@ end
 
 		@testset "AnalyticalExpansion" begin
 			method = GRD.AnalyticalExpansion()
-			expander = GRD.LaurentExpander(method, K, el, x̂, û)
 
-			@test_nowarn GRD.compute_coefficients(expander, θ)
-			f₋₂, f₋₁ = GRD.compute_coefficients(expander, θ)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			f₋₂ = ℒ(θ)[1]
+			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 		end
@@ -213,10 +160,10 @@ end
 		@testset "AutoDiffExpansion" begin
 			method = GRD.AutoDiffExpansion()
 			SK = GRD.SplitKernel(K)
-			expander = GRD.LaurentExpander(method, SK, el, x̂, û)
 
-			@test_nowarn GRD.compute_coefficients(expander, θ)
-			f₋₂, f₋₁ = GRD.compute_coefficients(expander, θ)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			f₋₂ = ℒ(θ)[1]
+			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 		end
@@ -224,10 +171,10 @@ end
 		@testset "FullRichardsonExpansion" begin
 			method = GRD.FullRichardsonExpansion(GRD.RichardsonParams())
 			SK = GRD.SplitKernel(K)
-			expander = GRD.LaurentExpander(method, SK, el, x̂, û)
 
-			@test_nowarn GRD.compute_coefficients(expander, θ)
-			f₋₂, f₋₁ = GRD.compute_coefficients(expander, θ)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			f₋₂ = ℒ(θ)[1]
+			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 		end
@@ -235,52 +182,13 @@ end
 		@testset "SemiRichardsonExpansion" begin
 			method = GRD.SemiRichardsonExpansion(GRD.RichardsonParams())
 			SK = GRD.SplitKernel(K)
-			expander = GRD.LaurentExpander(method, SK, el, x̂, û)
 
-			@test_nowarn GRD.compute_coefficients(expander, θ)
-			f₋₂, f₋₁ = GRD.compute_coefficients(expander, θ)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			f₋₂ = ℒ(θ)[1]
+			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 		end
-	end
-
-	@testset "Smoke tests - LaurentCache" begin
-		@test_nowarn GRD.LaurentCache{Float64}(10)
-
-		cache = GRD.LaurentCache{Float64}(10)
-		@test cache.n_theta == 10
-		@test length(cache.coeffs_minus2) == 10
-		@test length(cache.coeffs_minus1) == 10
-		@test length(cache.computed) == 10
-		@test all(.!cache.computed)
-
-		# Test get_or_compute!
-		K = Inti.HyperSingularKernel(Inti.Laplace(dim = 3))
-		δ = 0.5
-		z = 0.0
-		y¹ = SVector(-1.0, -1.0, z)
-		y² = SVector(1.0 + δ, -1.0, z)
-		y³ = SVector(-1.0, 1.0, z)
-		y⁴ = SVector(1.0 - δ, 1.0, z)
-		nodes = (y¹, y², y³, y⁴)
-
-		el = Inti.LagrangeSquare(nodes)
-		x̂ = SVector(0.5, 0.5)
-		û = η -> 1.0
-		method = GRD.AnalyticalExpansion()
-		expander = GRD.LaurentExpander(method, K, el, x̂, û)
-
-		θ = π / 4
-		idx = 1
-
-		@test_nowarn GRD.get_or_compute!(cache, expander, idx, θ)
-		@test cache.computed[idx]
-
-		# Deuxième appel devrait utiliser le cache
-		f₋₂_1, f₋₁_1 = GRD.get_or_compute!(cache, expander, idx, θ)
-		f₋₂_2, f₋₁_2 = GRD.get_or_compute!(cache, expander, idx, θ)
-		@test f₋₂_1 == f₋₂_2
-		@test f₋₁_1 == f₋₁_2
 	end
 
 	@testset "Smoke tests - Closed forms" begin
@@ -396,16 +304,15 @@ end
 			@test f₋₁ isa Real
 
 			# AutoDiff (nécessite SplitKernel)
-			SK = GRD.SplitKernel(K)
-			@test_nowarn GRD.laurents_coeffs(SK, el, û, x̂, GRD.AutoDiffExpansion())
-			ℒ_ad = GRD.laurents_coeffs(SK, el, û, x̂, GRD.AutoDiffExpansion())
+			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
+			ℒ_ad = GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
 			f₋₂, f₋₁ = ℒ_ad(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 
 			# SemiRichardson
-			@test_nowarn GRD.laurents_coeffs(SK, el, û, x̂, GRD.SemiRichardsonExpansion())
-			ℒ_semi = GRD.laurents_coeffs(SK, el, û, x̂, GRD.SemiRichardsonExpansion())
+			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion())
+			ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion())
 			f₋₂, f₋₁ = ℒ_semi(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real

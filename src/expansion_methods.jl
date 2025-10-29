@@ -12,14 +12,14 @@ function _create_laurent_coeffs_function(
 	params = method.richardson_params
 	s = Inti.singularity_order(K)
 	sorder = Val(s + 1)
-	
+
 	# Pre-compute once
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
 	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
-	
+
 	kwargs_rich = (
 		contract = params.contract,
 		breaktol = params.breaktol,
@@ -27,9 +27,9 @@ function _create_laurent_coeffs_function(
 		rtol = params.rtol,
 		maxeval = params.maxeval,
 	)
-	
+
 	# Return lightweight closure
-	return function(θ)
+	return function (θ)
 		h = rho_max_fun(θ) * params.first_contract
 		f = ρ -> K_polar(ρ, θ)
 		return __laurents_coeff_full_richardson(f, h, sorder; kwargs_rich...)
@@ -73,7 +73,7 @@ function _create_laurent_coeffs_function(
 	params = method.richardson_params
 	s = Inti.singularity_order(K)
 	sorder = Val(s + 1)
-	
+
 	# Pre-compute once
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
@@ -81,14 +81,14 @@ function _create_laurent_coeffs_function(
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)
-	
+
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	ori = 1
 	nx = Inti._normal(jac_x, ori)
 	μ = Inti._integration_measure(jac_x)
 	qx = (coords = x, normal = nx)
-	
+
 	kwargs_rich = (
 		contract = params.contract,
 		breaktol = params.breaktol,
@@ -96,9 +96,9 @@ function _create_laurent_coeffs_function(
 		rtol = params.rtol,
 		maxeval = params.maxeval,
 	)
-	
+
 	# Return lightweight closure
-	return function(θ)
+	return function (θ)
 		Â = A(θ) / norm(A(θ))
 		_, K̂ = SK(qx, qx, Â)
 		f_dom = K̂ * μ * û(x̂) / norm(A(θ))^(-s)
@@ -134,10 +134,11 @@ function _create_laurent_coeffs_function(
 	û,
 	x̂,
 )
+	SK = K isa SplitKernel ? K : SplitKernel(K)
 	s = Inti.singularity_order(K)
 	S = s + 1
 	sorder = Val(S)
-	
+
 	# Pre-compute once
 	x = el(x̂)
 	Dτ = Inti.jacobian(el, x̂)
@@ -146,9 +147,9 @@ function _create_laurent_coeffs_function(
 	D²τ = Inti.hessian(el, x̂)
 	qx = (coords = x, normal = nx)
 	N = length(x)
-	
+
 	# Return lightweight closure
-	return function(θ)
+	return function (θ)
 		function ℱ(ρ)
 			uθ = u_func(θ)
 			ŷ = x̂ + ρ * uθ
@@ -157,16 +158,16 @@ function _create_laurent_coeffs_function(
 			y = el(ŷ)
 			qy = (coords = y, normal = ny)
 			μ = Inti._integration_measure(jac_y)
-			
+
 			δ = ntuple(i -> transpose(uθ) * D²τ[i, :, :] * uθ, N) |> SVector
 			A = Dτ * uθ + ρ / 2 * δ
 			Â = A / norm(A)
-			
-			_, K̂ = K(qx, qy, Â)
-			
+
+			_, K̂ = SK(qx, qy, Â)
+
 			return K̂ * μ * û(ŷ) / norm(A)^(-S + 1)
 		end
-		
+
 		return __laurents_coeff_auto_diff(ℱ, sorder)
 	end
 end
