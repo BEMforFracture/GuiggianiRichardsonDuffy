@@ -7,6 +7,7 @@ using GLMakie
 
 # Configuration
 x̂ = SVector(0.5, 0.5)
+ori = 1  # element orientation
 
 # Material properties
 μ = 1.0
@@ -48,10 +49,10 @@ K = GRD.SplitKernel(K_base)
 # Compute Laurent coefficients for each method
 D = Dict{String, Function}()
 
-D["Analytical"] = GRD.laurents_coeffs(K_base, el, û, x̂, GRD.AnalyticalExpansion())
-D["AutoDiff"] = GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
-D["SemiRichardson"] = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion(rich_params_display))
-D["FullRichardson"] = GRD.laurents_coeffs(K, el, û, x̂, GRD.FullRichardsonExpansion(rich_params_display))
+D["Analytical"] = GRD.laurents_coeffs(K_base, el, ori, û, x̂, GRD.AnalyticalExpansion())
+D["AutoDiff"] = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AutoDiffExpansion())
+D["SemiRichardson"] = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.SemiRichardsonExpansion(rich_params_display))
+D["FullRichardson"] = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.FullRichardsonExpansion(rich_params_display))
 
 # Angular samples
 N = 1000
@@ -133,7 +134,7 @@ for (i, maxeval_) in enumerate(maxevals)
 	)
 
 	# Full Richardson
-	ℒ_full = GRD.laurents_coeffs(K, el, û, x̂, GRD.FullRichardsonExpansion(rich_params_test))
+	ℒ_full = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.FullRichardsonExpansion(rich_params_test))
 	vals_full = [ℒ_full(θ) for θ in θs]
 	F₋₂_full = [norm(v[1]) for v in vals_full]
 	F₋₁_full = [norm(v[2]) for v in vals_full]
@@ -144,7 +145,7 @@ for (i, maxeval_) in enumerate(maxevals)
 	errors_F₋₁[i] = error_F₋₁
 
 	# Semi Richardson
-	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion(rich_params_test))
+	ℒ_semi = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.SemiRichardsonExpansion(rich_params_test))
 	vals_semi = [ℒ_semi(θ) for θ in θs]
 	G₋₂_semi = [norm(v[1]) for v in vals_semi]
 	G₋₁_semi = [norm(v[2]) for v in vals_semi]

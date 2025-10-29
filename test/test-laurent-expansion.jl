@@ -54,12 +54,12 @@ el = Inti.LagrangeSquare(nodes)
 					û = fun
 
 					# Compute analytical reference
-					ℒ_ana = GRD.laurents_coeffs(K, el, û, x̂, GRD.AnalyticalExpansion())
+					ℒ_ana = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AnalyticalExpansion())
 
 					for (method_name, method) in methods_to_test
 						@testset "$method_name" begin
 							# Use SplitKernel for these methods
-							ℒ_test = GRD.laurents_coeffs(SK, el, û, x̂, method)
+							ℒ_test = GRD.laurents_coeffs(SK, el, ori, û, x̂, method)
 
 							# Sample angular points
 							N_θ = 100

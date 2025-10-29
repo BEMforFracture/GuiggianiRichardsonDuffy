@@ -61,7 +61,7 @@ rich_params = GRD.RichardsonParams(
 method = GRD.FullRichardsonExpansion(rich_params)
 
 b_yours = @benchmark GRD.guiggiani_singular_integral(
-	$K, $û_scalar, $x̂, $el, $quad_rho, $quad_theta, $method,
+	$K, $û_scalar, $x̂, $el, $ori, $quad_rho, $quad_theta, $method,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b_yours.times) / 1000) μs")
@@ -73,7 +73,7 @@ println("\n[3] GRD.guiggiani_singular_integral (SemiRichardson)")
 method_semi = GRD.SemiRichardsonExpansion(rich_params)
 
 b_yours_semi = @benchmark GRD.guiggiani_singular_integral(
-	$K, $û_scalar, $x̂, $el, $quad_rho, $quad_theta, $method_semi,
+	$K, $û_scalar, $x̂, $el, $ori, $quad_rho, $quad_theta, $method_semi,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b_yours_semi.times) / 1000) μs")
@@ -85,7 +85,7 @@ println("\n[4] GRD.guiggiani_singular_integral (AutoDiff)")
 method_auto = GRD.AutoDiffExpansion()
 
 b_yours_auto = @benchmark GRD.guiggiani_singular_integral(
-	$K, $û_scalar, $x̂, $el, $quad_rho, $quad_theta, $method_auto,
+	$K, $û_scalar, $x̂, $el, $ori, $quad_rho, $quad_theta, $method_auto,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b_yours_auto.times) / 1000) μs")
@@ -97,7 +97,7 @@ println("\n[5] GRD.guiggiani_singular_integral (Analytical)")
 method_analytical = GRD.AnalyticalExpansion()
 
 b_yours_analytical = @benchmark GRD.guiggiani_singular_integral(
-	$K, $û_scalar, $x̂, $el, $quad_rho, $quad_theta, $method_analytical,
+	$K, $û_scalar, $x̂, $el, $ori, $quad_rho, $quad_theta, $method_analytical,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b_yours_analytical.times) / 1000) μs")

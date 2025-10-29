@@ -4,6 +4,7 @@ using Inti
 using StaticArrays
 
 n_rho, n_theta = 10, 30
+ori = 1
 
 @testset "Smoke tests - SplitKernel construction" begin
 	@testset "Laplace kernels" begin
@@ -152,7 +153,7 @@ end
 		@testset "AnalyticalExpansion" begin
 			method = GRD.AnalyticalExpansion()
 
-			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂, ori)
 			f₋₂ = ℒ(θ)[1]
 			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
@@ -163,7 +164,7 @@ end
 			method = GRD.AutoDiffExpansion()
 			SK = GRD.SplitKernel(K)
 
-			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂, ori)
 			f₋₂ = ℒ(θ)[1]
 			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
@@ -174,7 +175,7 @@ end
 			method = GRD.FullRichardsonExpansion(GRD.RichardsonParams())
 			SK = GRD.SplitKernel(K)
 
-			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂, ori)
 			f₋₂ = ℒ(θ)[1]
 			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
@@ -185,7 +186,7 @@ end
 			method = GRD.SemiRichardsonExpansion(GRD.RichardsonParams())
 			SK = GRD.SplitKernel(K)
 
-			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂)
+			ℒ = @test_nowarn GRD._create_laurent_coeffs_function(method, K, el, û, x̂, ori)
 			f₋₂ = ℒ(θ)[1]
 			f₋₁ = ℒ(θ)[2]
 			@test f₋₂ isa Real
@@ -246,8 +247,8 @@ end
 
 		@testset "polar_kernel_fun" begin
 			# Test avec kernel normal
-			@test_nowarn GRD.polar_kernel_fun(K, el, û, x̂)
-			K_polar = GRD.polar_kernel_fun(K, el, û, x̂)
+			@test_nowarn GRD.polar_kernel_fun(K, el, û, x̂, ori)
+			K_polar = GRD.polar_kernel_fun(K, el, û, x̂, ori)
 
 			# Test que c'est une fonction
 			@test K_polar isa Function
@@ -260,7 +261,7 @@ end
 			# Test avec SplitKernel
 			SK = GRD.SplitKernel(K)
 			Kprod = (qx, qy) -> prod(SK(qx, qy))
-			@test_nowarn GRD.polar_kernel_fun(Kprod, el, û, x̂)
+			@test_nowarn GRD.polar_kernel_fun(Kprod, el, û, x̂, ori)
 		end
 
 		@testset "rho_fun" begin
@@ -291,37 +292,37 @@ end
 
 		@testset "laurents_coeffs - different methods" begin
 			# FullRichardson (par défaut)
-			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂)
-			ℒ = GRD.laurents_coeffs(K, el, û, x̂)
+			@test_nowarn GRD.laurents_coeffs(K, el, ori, û, x̂)
+			ℒ = GRD.laurents_coeffs(K, el, ori, û, x̂)
 			@test ℒ isa Function
 			f₋₂, f₋₁ = ℒ(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 
 			# Analytical
-			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.AnalyticalExpansion())
-			ℒ_anal = GRD.laurents_coeffs(K, el, û, x̂, GRD.AnalyticalExpansion())
+			@test_nowarn GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AnalyticalExpansion())
+			ℒ_anal = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AnalyticalExpansion())
 			f₋₂, f₋₁ = ℒ_anal(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 
 			# AutoDiff (nécessite SplitKernel)
-			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
-			ℒ_ad = GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
+			@test_nowarn GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AutoDiffExpansion())
+			ℒ_ad = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AutoDiffExpansion())
 			f₋₂, f₋₁ = ℒ_ad(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 
 			# SemiRichardson
-			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion())
-			ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion())
+			@test_nowarn GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.SemiRichardsonExpansion())
+			ℒ_semi = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.SemiRichardsonExpansion())
 			f₋₂, f₋₁ = ℒ_semi(π / 4)
 			@test f₋₂ isa Real
 			@test f₋₁ isa Real
 
 			# Avec paramètres personnalisés
 			params = GRD.RichardsonParams(atol = 1e-10, rtol = 1e-8, maxeval = 8)
-			@test_nowarn GRD.laurents_coeffs(K, el, û, x̂, GRD.FullRichardsonExpansion(params))
+			@test_nowarn GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.FullRichardsonExpansion(params))
 		end
 
 		@testset "guiggiani_singular_integral - basic" begin
@@ -329,8 +330,8 @@ end
 			quad_theta = Inti.GaussLegendre(10)
 
 			# Test avec méthode par défaut
-			@test_nowarn GRD.guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta)
-			I = GRD.guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta)
+			@test_nowarn GRD.guiggiani_singular_integral(K, û, x̂, el, ori, quad_rho, quad_theta)
+			I = GRD.guiggiani_singular_integral(K, û, x̂, el, ori, quad_rho, quad_theta)
 			@test I isa Real
 			@test isfinite(I)
 		end
@@ -341,10 +342,10 @@ end
 
 			# Analytical
 			@test_nowarn GRD.guiggiani_singular_integral(
-				K, û, x̂, el, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
+				K, û, x̂, el, ori, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
 			)
 			I_anal = GRD.guiggiani_singular_integral(
-				K, û, x̂, el, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
+				K, û, x̂, el, ori, quad_rho, quad_theta, GRD.AnalyticalExpansion(),
 			)
 			@test I_anal isa Real
 			@test isfinite(I_anal)
@@ -352,10 +353,10 @@ end
 			# AutoDiff (avec SplitKernel)
 			SK = GRD.SplitKernel(K)
 			@test_nowarn GRD.guiggiani_singular_integral(
-				SK, û, x̂, el, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
+				SK, û, x̂, el, ori, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
 			)
 			I_ad = GRD.guiggiani_singular_integral(
-				SK, û, x̂, el, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
+				SK, û, x̂, el, ori, quad_rho, quad_theta, GRD.AutoDiffExpansion(),
 			)
 			@test I_ad isa Real
 			@test isfinite(I_ad)
@@ -363,7 +364,7 @@ end
 			# FullRichardson avec paramètres personnalisés
 			params = GRD.RichardsonParams(atol = 1e-10, maxeval = 8)
 			@test_nowarn GRD.guiggiani_singular_integral(
-				K, û, x̂, el, quad_rho, quad_theta, GRD.FullRichardsonExpansion(params),
+				K, û, x̂, el, ori, quad_rho, quad_theta, GRD.FullRichardsonExpansion(params),
 			)
 		end
 
@@ -371,7 +372,7 @@ end
 			# Test des fonctions helpers
 			SK = GRD.SplitKernel(K)
 			Kprod = (qx, qy) -> prod(SK(qx, qy))
-			K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
+			K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂, ori)
 
 			ρ = 0.1
 			θ = π / 4
@@ -404,8 +405,8 @@ end
 			quad_rho = Inti.GaussLegendre(5)
 			quad_theta = Inti.GaussLegendre(10)
 
-			@test_nowarn GRD.guiggiani_singular_integral(K_elast, û, x̂, el, quad_rho, quad_theta)
-			I_elast = GRD.guiggiani_singular_integral(K_elast, û, x̂, el, quad_rho, quad_theta)
+			@test_nowarn GRD.guiggiani_singular_integral(K_elast, û, x̂, el, ori, quad_rho, quad_theta)
+			I_elast = GRD.guiggiani_singular_integral(K_elast, û, x̂, el, ori, quad_rho, quad_theta)
 			@test I_elast isa AbstractMatrix
 			@test all(isfinite, I_elast)
 		end

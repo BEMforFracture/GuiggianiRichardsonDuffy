@@ -26,6 +26,8 @@ y⁴ = SVector(1.0 - δ, 1.0, z)
 nodes = (y¹, y², y³, y⁴)
 el = Inti.LagrangeSquare(nodes)
 
+ori = 1
+
 # Density function
 û = ξ -> 1.0
 
@@ -35,12 +37,12 @@ K = GRD.SplitKernel(K_base)
 Kprod = (qx, qy) -> prod(K(qx, qy))
 
 # Polar coordinates setup
-K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂)
+K_polar = GRD.polar_kernel_fun(Kprod, el, û, x̂, ori)
 ref_domain = Inti.reference_domain(el)
 ρ_max_fun = GRD.rho_fun(ref_domain, x̂)
 
 # Compute Laurent coefficients
-ℒ = GRD.laurents_coeffs(K_base, el, û, x̂, method)
+ℒ = GRD.laurents_coeffs(K_base, el, ori, û, x̂, method)
 
 decompo = Inti.polar_decomposition(ref_domain, x̂)
 

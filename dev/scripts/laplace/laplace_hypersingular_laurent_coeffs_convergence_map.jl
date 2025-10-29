@@ -68,14 +68,14 @@ for (i, ξ) in enumerate(ξ_range)
 		x̂ = SVector(ξ, η)
 
 		# Analytical reference
-		ℒ_ana = GRD.laurents_coeffs(K_base, el, û, x̂, GRD.AnalyticalExpansion())
+		ℒ_ana = GRD.laurents_coeffs(K_base, el, ori, û, x̂, GRD.AnalyticalExpansion())
 		vals_ana = [ℒ_ana(θ) for θ in θs]
 		F₋₂_ana = [v[1] for v in vals_ana]
 		F₋₁_ana = [v[2] for v in vals_ana]
 
 		# Compute errors for each method
 		for (method_name, method, K_to_use) in methods
-			ℒ = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
+			ℒ = GRD.laurents_coeffs(K_base, el, ori, û, x̂, method)
 			vals_test = [ℒ(θ) for θ in θs]
 			F₋₂_test = [v[1] for v in vals_test]
 			F₋₁_test = [v[2] for v in vals_test]

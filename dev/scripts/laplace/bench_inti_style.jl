@@ -5,6 +5,7 @@ using BenchmarkTools
 
 # Configuration
 x̂ = SVector(0.5, 0.5)
+ori = 1  # element orientation
 
 rich_params = GRD.RichardsonParams(
 	first_contract = 1e-2,
@@ -44,7 +45,7 @@ println("\n[FullRichardson - Inti-style]")
 
 # Benchmark
 b = @benchmark GRD.guiggiani_singular_integral(
-	$K_base, $û, $x̂, $el, $quad_rho, $quad_theta, $method,
+	$K_base, $û, $x̂, $el, $ori, $quad_rho, $quad_theta, $method,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b.times) / 1000) μs")

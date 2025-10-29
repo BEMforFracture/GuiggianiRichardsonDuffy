@@ -85,7 +85,7 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 	for (i, n_rho) in enumerate(n_rhos)
 		quad_rho = Inti.GaussLegendre(n_rho)
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
+			K_base, û, x̂, el, ori, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_rho[i] = error
@@ -100,7 +100,7 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 	for (i, n_theta) in enumerate(n_thetas)
 		quad_theta = Inti.GaussLegendre(n_theta)
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
+			K_base, û, x̂, el, ori, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_theta[i] = error

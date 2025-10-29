@@ -51,7 +51,7 @@ D = Dict{String, Function}()
 for (method_name, method) in methods
 	# Use appropriate kernel
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
-	D[method_name] = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
+	D[method_name] = GRD.laurents_coeffs(K_base, el, ori, û, x̂, method)
 end
 
 N = 1000
@@ -121,7 +121,7 @@ for (i, maxeval_) in enumerate(maxevals)
 	)
 
 	# Test FullRichardson
-	ℒ_full = GRD.laurents_coeffs(K, el, û, x̂, GRD.FullRichardsonExpansion(params_var))
+	ℒ_full = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.FullRichardsonExpansion(params_var))
 	vals_full = [ℒ_full(θ) for θ in θs]
 	F₋₂_full = [v[1] for v in vals_full]
 	F₋₁_full = [v[2] for v in vals_full]
@@ -132,7 +132,7 @@ for (i, maxeval_) in enumerate(maxevals)
 	errors_F₋₁[i] = error_F₋₁
 
 	# Test SemiRichardson
-	ℒ_semi = GRD.laurents_coeffs(K, el, û, x̂, GRD.SemiRichardsonExpansion(params_var))
+	ℒ_semi = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.SemiRichardsonExpansion(params_var))
 	vals_semi = [ℒ_semi(θ) for θ in θs]
 	G₋₂_semi = [v[1] for v in vals_semi]
 	G₋₁_semi = [v[2] for v in vals_semi]

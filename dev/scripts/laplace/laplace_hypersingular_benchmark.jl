@@ -7,6 +7,7 @@ using PrettyTables
 
 # Configuration
 x̂ = SVector(0.5, 0.5)  # Source point in reference coordinates
+ori = 1  # Orientation
 
 # Richardson extrapolation parameters
 rich_params = GRD.RichardsonParams(
@@ -70,14 +71,14 @@ for (method_name, method) in methods
 
 	# Calculate result for error computation
 	res = GRD.guiggiani_singular_integral(
-		K_to_use, û, x̂, el, quad_rho, quad_theta, method,
+		K_base, û, x̂, el, ori, quad_rho, quad_theta, method,
 	)
 	error = abs(res - expected_I) / abs(expected_I)
 	errors[method_name] = error
 
 	# Benchmark
 	b = @benchmark GRD.guiggiani_singular_integral(
-		$K_to_use, $û, $x̂, $el, $quad_rho, $quad_theta, $method,
+		$K_base, $û, $x̂, $el, $ori, $quad_rho, $quad_theta, $method,
 	) samples = n_sample seconds = seconds evals = evals
 
 	b_dict_gui[method_name] = b
@@ -98,7 +99,7 @@ for (method_name, method) in methods
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
 
 	b = @benchmark GRD.laurents_coeffs(
-		$K_to_use, $el, $û, $x̂, $method,
+		$K_base, $el, $ori, $û, $x̂, $method,
 	) samples = n_sample seconds = seconds evals = evals
 
 	b_dict_laurent[method_name] = b
@@ -119,7 +120,7 @@ for (method_name, method) in methods
 	K_to_use = (method isa GRD.AnalyticalExpansion) ? K_base : K
 
 	# Create Laurent expander
-	ℒ = GRD.laurents_coeffs(K_to_use, el, û, x̂, method)
+	ℒ = GRD.laurents_coeffs(K_base, el, ori, û, x̂, method)
 
 	b = @benchmark begin
 		θ = rand() * 2π

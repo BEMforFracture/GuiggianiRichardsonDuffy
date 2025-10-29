@@ -105,25 +105,26 @@ Compute Laurent coefficients `(f₋₂, f₋₁)` for the kernel `K` in polar co
 # Examples
 ```julia
 # Using default method (FullRichardson)
-ℒ = laurents_coeffs(K, el, û, x̂)
+ℒ = laurents_coeffs(K, el, ori, û, x̂)
 f₋₂, f₋₁ = ℒ(0.5)  # Evaluate at θ = 0.5
 
 # Using AutoDiff method
-ℒ = laurents_coeffs(K, el, û, x̂, AutoDiffExpansion())
+ℒ = laurents_coeffs(K, el, ori, û, x̂, AutoDiffExpansion())
 
 # Using explicit method with custom parameters
 params = RichardsonParams(atol=1e-10, rtol=1e-8, maxeval=10)
-ℒ = laurents_coeffs(K, el, û, x̂, FullRichardsonExpansion(params))
+ℒ = laurents_coeffs(K, el, ori, û, x̂, FullRichardsonExpansion(params))
 ```
 """
 function laurents_coeffs(
 	K::Inti.AbstractKernel,
 	el::Inti.ReferenceInterpolant,
+	ori,
 	û,
 	x̂,
 	method::AbstractMethod = FullRichardsonExpansion(),
 )
-	return _create_laurent_coeffs_function(method, K, el, û, x̂)
+	return _create_laurent_coeffs_function(method, K, el, û, x̂, ori)
 end
 
 """
@@ -193,6 +194,7 @@ function guiggiani_singular_integral(
 	û,
 	x̂,
 	el::Inti.ReferenceInterpolant,
+	ori,
 	quad_rho,
 	quad_theta,
 	method::AbstractMethod = FullRichardsonExpansion(),
@@ -214,10 +216,10 @@ function guiggiani_singular_integral(
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
 
 	# Create polar kernel function
-	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂, ori)
 
 	# Compute Laurent coefficients
-	ℒ = laurents_coeffs(K, el, û, x̂, method)
+	ℒ = laurents_coeffs(K, el, ori, û, x̂, method)
 
 	# Initialize accumulator
 	T = Inti.return_type(K_polar, Float64, Float64)

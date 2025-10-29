@@ -96,7 +96,7 @@ end
 		method = GRD.FullRichardsonExpansion(rich_params)
 
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method,
+			K, û, x̂, el, ori, quad_rho, quad_theta, method,
 		) for x̂ in test_points]
 
 		errors = [abs(res - expected) / abs(expected)
@@ -112,7 +112,7 @@ end
 		method = GRD.AutoDiffExpansion()
 
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method,
+			K, û, x̂, el, ori, quad_rho, quad_theta, method,
 		) for x̂ in test_points]
 
 		errors = [abs(res - expected) / abs(expected)
@@ -128,7 +128,7 @@ end
 		method = GRD.SemiRichardsonExpansion(rich_params)
 
 		results = [GRD.guiggiani_singular_integral(
-			K, û, x̂, el, quad_rho, quad_theta, method,
+			K, û, x̂, el, ori, quad_rho, quad_theta, method,
 		) for x̂ in test_points]
 
 		errors = [abs(res - expected) / abs(expected)
@@ -145,7 +145,7 @@ end
 
 		# Note: Need to use base kernel (not SplitKernel) for analytical
 		results = [GRD.guiggiani_singular_integral(
-			K_base, û, x̂, el, quad_rho, quad_theta, method,
+			K_base, û, x̂, el, ori, quad_rho, quad_theta, method,
 		) for x̂ in test_points]
 
 		errors = [abs(res - expected) / abs(expected)

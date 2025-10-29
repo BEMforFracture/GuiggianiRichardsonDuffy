@@ -9,6 +9,7 @@ using ForwardDiff
 # INPUTS
 
 x̂ = SVector(0.01, 0.01) # source point in reference coordinates
+ori = 1  # element orientation
 
 # Material properties
 μ = 1.0
@@ -46,7 +47,7 @@ op = Inti.Elastostatic(; μ = μ, λ = λ, dim = 3)
 K_base = Inti.HyperSingularKernel(op)
 K = GRD.SplitKernel(K_base)
 
-K_polar = GRD.polar_kernel_fun(K_base, el, û, x̂)
+K_polar = GRD.polar_kernel_fun(K_base, el, û, x̂, ori)
 
 quad_rho = Inti.GaussLegendre(n_rho)
 
@@ -55,7 +56,7 @@ ref_domain = Inti.reference_domain(el)
 
 decompo = Inti.polar_decomposition(ref_domain, x̂)
 
-ℒ = GRD.laurents_coeffs(K, el, û, x̂, GRD.AutoDiffExpansion())
+ℒ = GRD.laurents_coeffs(K, el, ori, û, x̂, GRD.AutoDiffExpansion())
 
 function G₁(θ)
 	f₋₂, f₋₁ = ℒ(θ)
@@ -151,4 +152,4 @@ vlines!(ax32, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, lab
 
 # display(fig)
 
-GLMakie.save("./dev/figures/navier/navier_hypersingular_angular_function.png", fig)
+# GLMakie.save("./dev/figures/navier/navier_hypersingular_angular_function.png", fig)
