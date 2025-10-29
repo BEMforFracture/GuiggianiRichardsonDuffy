@@ -71,7 +71,7 @@ for (point_idx, (i, j, x̂)) in enumerate(test_points)
 
 	for (method_name, method, K_to_use) in methods
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, n_rho, n_theta, method,
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors[method_name][i, j] = error
@@ -142,5 +142,5 @@ for (method_name, _, _) in methods
 	@info "  Mean error: $(sum(errors[method_name]) / length(errors[method_name]))"
 end
 
-display(fig)
+# display(fig)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_integral_error_map.png", fig)

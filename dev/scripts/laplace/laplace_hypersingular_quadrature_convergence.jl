@@ -78,12 +78,14 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 
 	# Test varying n_rho (fixed n_theta)
 	n_theta = M_theta
+	quad_theta = Inti.GaussLegendre(n_theta)
 	n_rhos = 1:N_max_rho
 	errors_rho = zeros(length(n_rhos))
 
 	for (i, n_rho) in enumerate(n_rhos)
+		quad_rho = Inti.GaussLegendre(n_rho)
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, n_rho, n_theta, method,
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_rho[i] = error
@@ -91,12 +93,14 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 
 	# Test varying n_theta (fixed n_rho)
 	n_rho = M_rho
+	quad_rho = Inti.GaussLegendre(n_rho)
 	n_thetas = 1:N_max_theta
 	errors_theta = zeros(length(n_thetas))
 
 	for (i, n_theta) in enumerate(n_thetas)
+		quad_theta = Inti.GaussLegendre(n_theta)
 		I = GRD.guiggiani_singular_integral(
-			K_to_use, û, x̂, el, n_rho, n_theta, method,
+			K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 		)
 		error = abs(I - expected_I) / abs(expected_I)
 		errors_theta[i] = error
@@ -108,5 +112,5 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 	axislegend(ax, position = :rt)
 end
 
-display(fig)
+# display(fig)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_quadrature_convergence.png", fig)

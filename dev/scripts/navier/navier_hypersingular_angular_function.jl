@@ -149,6 +149,6 @@ ax32 = Axis(fig[3, 2]; xlabel = "θ", ylabel = "ρ'(θ)")
 lines!(ax32, θs, dρ_max.(θs), label = "ρ'(θ)")
 vlines!(ax32, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, label = "Sector boundaries")
 
-display(fig)
+# display(fig)
 
 GLMakie.save("./dev/figures/navier/navier_hypersingular_angular_function.png", fig)

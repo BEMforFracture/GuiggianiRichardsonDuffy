@@ -22,6 +22,9 @@ rich_params = GRD.RichardsonParams(
 n_rho = 10
 n_theta = 40
 
+quad_rho = Inti.GaussLegendre(n_rho)
+quad_theta = Inti.GaussLegendre(n_theta)
+
 # Benchmark parameters
 n_sample = 1000
 seconds = 0.1
@@ -67,14 +70,14 @@ for (method_name, method) in methods
 
 	# Calculate result for error computation
 	res = GRD.guiggiani_singular_integral(
-		K_to_use, û, x̂, el, n_rho, n_theta, method,
+		K_to_use, û, x̂, el, quad_rho, quad_theta, method,
 	)
 	error = abs(res - expected_I) / abs(expected_I)
 	errors[method_name] = error
 
 	# Benchmark
 	b = @benchmark GRD.guiggiani_singular_integral(
-		$K_to_use, $û, $x̂, $el, $n_rho, $n_theta, $method,
+		$K_to_use, $û, $x̂, $el, $quad_rho, $quad_theta, $method,
 	) samples = n_sample seconds = seconds evals = evals
 
 	b_dict_gui[method_name] = b

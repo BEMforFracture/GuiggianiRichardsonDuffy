@@ -18,6 +18,9 @@ rich_params = GRD.RichardsonParams(
 n_rho = 10
 n_theta = 40
 
+quad_rho = Inti.GaussLegendre(n_rho)
+quad_theta = Inti.GaussLegendre(n_theta)
+
 # Setup element
 δ = 0.5
 z = 0.0
@@ -41,7 +44,7 @@ println("\n[FullRichardson - Inti-style]")
 
 # Benchmark
 b = @benchmark GRD.guiggiani_singular_integral(
-	$K_base, $û, $x̂, $el, $n_rho, $n_theta, $method,
+	$K_base, $û, $x̂, $el, $quad_rho, $quad_theta, $method,
 ) samples = 100 seconds = 5
 
 println("  Time (median):   $(median(b.times) / 1000) μs")
