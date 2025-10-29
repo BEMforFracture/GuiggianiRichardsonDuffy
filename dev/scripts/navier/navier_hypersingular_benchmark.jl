@@ -27,6 +27,10 @@ rich_params = GRD.RichardsonParams(
 n_rho = 10
 n_theta = 40
 
+# Define quadrature rules
+quad_rho = Inti.GaussLegendre(n_rho)
+quad_theta = Inti.GaussLegendre(n_theta)
+
 # Benchmark parameters
 n_sample = 1000
 seconds = 0.1

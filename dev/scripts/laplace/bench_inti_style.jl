@@ -18,6 +18,9 @@ rich_params = GRD.RichardsonParams(
 n_rho = 10
 n_theta = 40
 
+quad_rho = Inti.GaussLegendre(n_rho)
+quad_theta = Inti.GaussLegendre(n_theta)
+
 # Setup element
 δ = 0.5
 z = 0.0
