@@ -8,7 +8,7 @@ using DelaunayTriangulation
 using GeometryBasics
 
 # Configuration
-N = 60  # Number of points in each direction (total N² points)
+N = 10  # Number of points in each direction (total N² points)
 
 # Quadrature parameters
 n_rho = 10

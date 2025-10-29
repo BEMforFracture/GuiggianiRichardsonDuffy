@@ -194,10 +194,12 @@ function guiggiani_singular_integral(
 	û,
 	x̂,
 	el::Inti.ReferenceInterpolant,
-	quad_rho,
-	quad_theta,
+	n_rho,
+	n_theta,
 	method::AbstractMethod = FullRichardsonExpansion(),
 )
+	quad_rho = Inti.GaussLegendre(n_rho)
+	quad_theta = Inti.GaussLegendre(n_theta)
 	# Determine singularity order
 	s = Inti.singularity_order(K)
 	if isnothing(s)
@@ -221,7 +223,12 @@ function guiggiani_singular_integral(
 	ℒ = laurents_coeffs(K, el, û, x̂, method)
 
 	# Initialize accumulator
-	acc = zero(Inti.return_type(K_polar, Float64, Float64))
+	T = Inti.return_type(K_polar, Float64, Float64)
+	if isconcretetype(T)
+		acc = zero(Inti.return_type(K_polar, Float64, Float64))
+	else
+		acc = zero(K_polar(1.0, 0.0))
+	end
 
 	# Integrate over each angular sector
 	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)

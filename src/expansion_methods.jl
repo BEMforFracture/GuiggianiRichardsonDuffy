@@ -1,7 +1,3 @@
-# ==============================================================================
-# Direct implementations without LaurentExpander (lightweight, like main branch)
-# ==============================================================================
-
 function _create_laurent_coeffs_function(
 	method::FullRichardsonExpansion,
 	K::Inti.AbstractKernel,
@@ -36,8 +32,19 @@ function _create_laurent_coeffs_function(
 	end
 end
 
+function _richardson_guard(h0; kwargs...)
+	kwargs = Dict(kwargs)
+	if (haskey(kwargs, :contract) && haskey(kwargs, :maxeval))
+		x_cr = h0 * kwargs[:contract]^(kwargs[:maxeval])
+		if x_cr < eps(Float64)
+			@warn "Richardson extrapolation may be inaccurate or produces errors: final step size $x_cr is below machine epsilon."
+		end
+	end
+end
+
 function __laurents_coeff_full_richardson(f, h, ::Val{-2}; kwargs...)
-	g = ρ -> ρ^2 * f(ρ)
+	_richardson_guard(h; kwargs...)
+	g = x -> x^2 * f(x)
 	f₋₂, e₋₂ = extrapolate(h; kwargs...) do x
 		return g(x)
 	end
@@ -48,6 +55,7 @@ function __laurents_coeff_full_richardson(f, h, ::Val{-2}; kwargs...)
 end
 
 function __laurents_coeff_full_richardson(f, h, ::Val{-1}; kwargs...)
+	_richardson_guard(h; kwargs...)
 	g = ρ -> ρ * f(ρ)
 	f₋₁, e₋₁ = extrapolate(h; kwargs...) do x
 		return g(x)
@@ -56,6 +64,7 @@ function __laurents_coeff_full_richardson(f, h, ::Val{-1}; kwargs...)
 end
 
 function __laurents_coeff_full_richardson(f, h, ::Val{N}; kwargs...) where {N}
+	_richardson_guard(h; kwargs...)
 	if N > 0
 		return 0.0, 0.0
 	else

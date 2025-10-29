@@ -24,7 +24,7 @@ rich_params_display = GRD.RichardsonParams(
 )
 
 # Richardson parameters for convergence test
-maxeval_in_loop = 100
+maxeval_in_loop = 40
 
 # Setup element
 δ = 0.5

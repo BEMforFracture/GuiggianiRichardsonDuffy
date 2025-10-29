@@ -88,7 +88,7 @@ for (i, ξ) in enumerate(ξ_range)
 			errors[method_name].F₋₁[i, j] = error_F₋₁
 		end
 
-		if (i - 1) * N + j % 10 == 0
+		if (i - 1) * N + j % 100 == 0
 			@info "Progress: $((i-1)*N + j)/$(N^2) points computed"
 		end
 	end

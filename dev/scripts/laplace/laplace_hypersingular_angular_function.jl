@@ -115,4 +115,4 @@ vlines!(ax32, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, lab
 
 display(fig)
 
-GLMakie.save("./dev/figures/laplace/laplace_hypersingular_angular_function.png", fig)
+# GLMakie.save("./dev/figures/laplace/laplace_hypersingular_angular_function.png", fig)
