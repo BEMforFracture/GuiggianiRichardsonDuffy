@@ -4,6 +4,7 @@ function _create_laurent_coeffs_function(
 	el::Inti.ReferenceInterpolant,
 	û,
 	x̂,
+	ori,
 )
 	params = method.richardson_params
 	s = Inti.singularity_order(K)
@@ -12,7 +13,7 @@ function _create_laurent_coeffs_function(
 	# Pre-compute once
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
-	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂, ori)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 
@@ -78,6 +79,7 @@ function _create_laurent_coeffs_function(
 	el::Inti.ReferenceInterpolant,
 	û,
 	x̂,
+	ori,
 )
 	params = method.richardson_params
 	s = Inti.singularity_order(K)
@@ -86,14 +88,13 @@ function _create_laurent_coeffs_function(
 	# Pre-compute once
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
-	K_polar = polar_kernel_fun(Kprod, el, û, x̂)
+	K_polar = polar_kernel_fun(Kprod, el, û, x̂, ori)
 	ref_domain = Inti.reference_domain(el)
 	rho_max_fun = rho_fun(ref_domain, x̂)
 	A = A_func(el, x̂)
 
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
-	ori = 1
 	nx = Inti._normal(jac_x, ori)
 	μ = Inti._integration_measure(jac_x)
 	qx = (coords = x, normal = nx)
@@ -142,6 +143,7 @@ function _create_laurent_coeffs_function(
 	el::Inti.ReferenceInterpolant,
 	û,
 	x̂,
+	ori,
 )
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	s = Inti.singularity_order(K)
@@ -151,7 +153,6 @@ function _create_laurent_coeffs_function(
 	# Pre-compute once
 	x = el(x̂)
 	Dτ = Inti.jacobian(el, x̂)
-	ori = 1
 	nx = Inti._normal(Dτ, ori)
 	D²τ = Inti.hessian(el, x̂)
 	qx = (coords = x, normal = nx)
@@ -206,6 +207,7 @@ function _create_laurent_coeffs_function(
 	el::Inti.ReferenceInterpolant,
 	û,
 	x̂,
+	ori,
 )
 	# Return lightweight closure - no pre-computation needed for analytical
 	return θ -> _laurents_coeffs_closed_forms(K, θ, x̂, el, û)

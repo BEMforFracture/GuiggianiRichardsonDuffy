@@ -29,9 +29,8 @@ The kernel `K` is called as `K(qx, qy)` where `qx` and `qy` are named tuples wit
 # Returns
 - `F(ρ, θ)`: A function that evaluates the kernel in polar coordinates
 """
-function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂, ori)
 	x = el(x̂)
-	ori = 1
 	jac_x = Inti.jacobian(el, x̂)
 	nx = Inti._normal(jac_x, ori)
 	qx = (coords = x, normal = nx)
