@@ -108,5 +108,5 @@ for (plot_idx, (method_name, method, K_to_use)) in enumerate(methods)
 	axislegend(ax, position = :rt)
 end
 
-display(fig)
+# display(fig)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_quadrature_convergence.png", fig)

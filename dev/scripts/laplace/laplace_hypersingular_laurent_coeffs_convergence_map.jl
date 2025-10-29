@@ -172,5 +172,5 @@ for (method_name, _, _) in methods
 	@info "  Max error F₋₁: $(maximum(errors[method_name].F₋₁))"
 end
 
-display(fig)
+# display(fig)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_laurent_coeffs_convergence_map.png", fig)

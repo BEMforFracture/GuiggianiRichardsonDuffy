@@ -142,5 +142,5 @@ for (method_name, _, _) in methods
 	@info "  Mean error: $(sum(errors[method_name]) / length(errors[method_name]))"
 end
 
-display(fig)
+# display(fig)
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_integral_error_map.png", fig)
