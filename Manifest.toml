@@ -118,7 +118,9 @@ weakdeps = ["ForwardDiff"]
 
 [[deps.Inti]]
 deps = ["Bessels", "DataStructures", "ElementaryPDESolutions", "ForwardDiff", "HAdaptiveIntegration", "LinearAlgebra", "LinearMaps", "NearestNeighbors", "Pkg", "Printf", "QuadGK", "Richardson", "Scratch", "SparseArrays", "SpecialFunctions", "StaticArrays", "TOML"]
-git-tree-sha1 = "6c1520fb3b63717121e197df418925df9d837c28"
+git-tree-sha1 = "f29532f96cb9ca7c9d66d93057b98de72e4317e0"
+repo-rev = "main"
+repo-url = "https://github.com/Aguelord/Inti.jl"
 uuid = "fb74042b-437e-4c5b-88cf-d4e2beb394d5"
 version = "0.2.0"
 
