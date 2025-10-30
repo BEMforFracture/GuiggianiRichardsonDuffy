@@ -30,6 +30,13 @@ const ANALYTICAL_EXPANSIONS = [
 	Inti.HyperSingularKernel{T, <:Inti.Elastostatic{N}} where {T, N},
 ]
 
+export RichardsonParams
+
+export FullRichardsonExpansion
+export AutoDiffExpansion
+export AnalyticalExpansion
+export SemiRichardsonExpansion
+
 export guiggiani_singular_integral
 
 end # module GuiggianiRichardsonDuffy
