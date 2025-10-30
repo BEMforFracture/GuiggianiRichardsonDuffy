@@ -30,6 +30,7 @@ const ANALYTICAL_EXPANSIONS = [
 	Inti.HyperSingularKernel{T, <:Inti.Elastostatic{N}} where {T, N},
 ]
 
+export AbstractMethod
 export RichardsonParams
 
 export FullRichardsonExpansion
