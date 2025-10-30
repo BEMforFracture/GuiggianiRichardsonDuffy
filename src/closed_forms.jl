@@ -149,7 +149,7 @@ function hypersingular_laplace_integral_on_plane_element(x, el)
 	res = 0.0
 	_Y = el.vals
 	n = length(_Y)
-	# renumbering to use cyclic indexing
+	# renumbering to use cyclic indexing - only for Inti v0.2.0
 	if n == 4
 		_Y = [_Y[1], _Y[2], _Y[4], _Y[3]]
 	end
