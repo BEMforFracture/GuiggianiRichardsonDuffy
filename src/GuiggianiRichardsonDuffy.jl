@@ -40,6 +40,6 @@ export AutoDiffExpansion
 export AnalyticalExpansion
 export SemiRichardsonExpansion
 
-export guiggiani_singular_integral
+export adaptive_correction
 
 end # module GuiggianiRichardsonDuffy
