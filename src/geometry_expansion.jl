@@ -44,10 +44,13 @@ function DJn(τ::Inti.ReferenceInterpolant, η)
 	return DJn
 end
 
-function Dû(û::Function, η)
-	Dû = ForwardDiff.gradient(û, η)
-	return Dû
+function Dû(û::Function, η::SVector{N}) where {N}
+	result = û(η)
+	return _Dû_dispatch(û, η, result)
 end
+
+_Dû_dispatch(û, η, ::Number) = ForwardDiff.gradient(û, η)
+_Dû_dispatch(û, η, ::SVector) = ForwardDiff.jacobian(û, η)
 
 function β_func(τ::Inti.ReferenceInterpolant, η)::Function
 	A = A_func(τ, η)

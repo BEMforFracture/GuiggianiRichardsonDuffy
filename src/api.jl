@@ -29,7 +29,28 @@ The kernel `K` is called as `K(qx, qy)` where `qx` and `qy` are named tuples wit
 # Returns
 - `F(ρ, θ)`: A function that evaluates the kernel in polar coordinates
 """
-function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂, ori)
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant{Inti.ReferenceLine}, û, x̂, ori)
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	nx = Inti._normal(jac_x, ori)
+	qx = (coords = x, normal = nx)
+	# function to integrate in 1D "polar" coordinates. We use `s ∈ {-1,1}` to denote the
+	# angles `π` and `0`.
+	function F(ρ, s)
+		ŷ = x̂ + SVector(ρ * s)
+		y = el(ŷ)
+		jac = jacobian(el, ŷ)
+		ny = _normal(jac, ori)
+		μ = _integration_measure(jac)
+		qy = (coords = y, normal = ny)
+		M = K(qx, qy)
+		v = û(ŷ)
+		return map(v -> M * v, v) * μ
+	end
+	return F
+end
+
+function polar_kernel_fun(K, el::Inti.ReferenceInterpolant{<:Union{Inti.ReferenceTriangle, Inti.ReferenceSquare}}, û, x̂, ori)
 	x = el(x̂)
 	jac_x = Inti.jacobian(el, x̂)
 	nx = Inti._normal(jac_x, ori)
@@ -40,9 +61,11 @@ function polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂, ori)
 		y = el(ŷ)
 		jac_y = Inti.jacobian(el, ŷ)
 		ny = Inti._normal(jac_y, ori)
-		μ = Inti._integration_measure(jac_y)
 		qy = (coords = y, normal = ny)
-		return K(qx, qy) * μ * ρ * û(ŷ)
+		μ = Inti._integration_measure(jac_y)
+		M = K(qx, qy)
+		v = û(ŷ)
+		return ρ * map(v -> M * v, v) * μ
 	end
 	return F
 end

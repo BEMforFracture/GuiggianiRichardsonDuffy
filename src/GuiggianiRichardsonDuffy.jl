@@ -6,6 +6,7 @@ using Inti
 using Richardson
 using Memoization
 using ForwardDiff
+using SparseArrays
 
 @info "Loading GuiggianiRichardsonDuffy.jl"
 
@@ -17,6 +18,7 @@ include("expansion_types.jl")
 include("expansion_methods.jl")
 include("helpers.jl")
 include("api.jl")
+include("inti_integration.jl")
 
 @info "GuiggianiRichardsonDuffy.jl successfully loaded"
 

@@ -111,7 +111,8 @@ function _create_laurent_coeffs_function(
 	return function (θ)
 		Â = A(θ) / norm(A(θ))
 		_, K̂ = SK(qx, qx, Â)
-		f_dom = K̂ * μ * û(x̂) / norm(A(θ))^(-s)
+		v = û(x̂)
+		f_dom = map(v -> K̂ * v, v) * μ / norm(A(θ))^(-s)
 		h = rho_max_fun(θ) * params.first_contract
 		f = ρ -> K_polar(ρ, θ)
 		return __laurents_coeff_semi_richardson(f, f_dom, h, sorder; kwargs_rich...)
@@ -175,7 +176,8 @@ function _create_laurent_coeffs_function(
 
 			_, K̂ = SK(qx, qy, Â)
 
-			return K̂ * μ * û(ŷ) / norm(A)^(-S + 1)
+			v = û(ŷ)
+			return map(v -> K̂ * v, v) * μ / norm(A)^(-S + 1)
 		end
 
 		return __laurents_coeff_auto_diff(ℱ, sorder)
