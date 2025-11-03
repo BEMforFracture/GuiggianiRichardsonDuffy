@@ -37,3 +37,13 @@ function is_plane(el::Inti.LagrangeElement)
 	end
 	return true
 end
+
+macro suppress_output(expr)
+	quote
+		redirect_stdout(devnull) do
+			redirect_stderr(devnull) do
+				$(esc(expr))
+			end
+		end
+	end
+end

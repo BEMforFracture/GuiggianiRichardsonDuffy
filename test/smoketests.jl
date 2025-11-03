@@ -423,7 +423,7 @@ end
 	testdir = @__DIR__  # Répertoire du fichier de test
 	projectdir = dirname(testdir)  # Répertoire racine du projet
 	mesh_path = joinpath(projectdir, "assets", "meshes_template", "disks", "disk_infinite_media.msh")
-	msh = Inti.import_mesh(mesh_path; dim = 3)
+	msh = GRD.@suppress_output Inti.import_mesh(mesh_path; dim = 3)
 	Γ_msh = view(msh, Inti.Domain(e -> "C" in Inti.labels(e), msh))
 	Q = Inti.Quadrature(Γ_msh; qorder = 2)
 
