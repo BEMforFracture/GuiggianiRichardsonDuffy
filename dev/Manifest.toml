@@ -2,7 +2,7 @@
 
 julia_version = "1.11.5"
 manifest_format = "2.0"
-project_hash = "cf78b067ed42d89ff594b54249578de4ba9feffc"
+project_hash = "a7f1f96b891064a041b76626ad863cfc738a9dcb"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -646,7 +646,7 @@ uuid = "42e2da0e-8278-4e71-bc24-59509adca0fe"
 version = "1.0.2"
 
 [[deps.GuiggianiRichardsonDuffy]]
-deps = ["ForwardDiff", "Inti", "LinearAlgebra", "Memoization", "Richardson", "StaticArrays"]
+deps = ["ForwardDiff", "Gmsh", "Inti", "LinearAlgebra", "Memoization", "Richardson", "SparseArrays", "StaticArrays"]
 path = ".."
 uuid = "aec3023f-1de0-439c-a184-b65ea860326a"
 version = "0.1.0"

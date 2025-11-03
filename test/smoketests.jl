@@ -3,6 +3,7 @@ import GuiggianiRichardsonDuffy as GRD
 using Inti
 using Gmsh
 using StaticArrays
+using SparseArrays
 
 n_rho, n_theta = 10, 30
 ori = 1
@@ -419,7 +420,10 @@ end
 		Inti.Laplace(dim = 3),
 		Inti.Elastostatic(; dim = 3, μ = 1.0, λ = 1.0),
 	)
-	msh = Inti.import_mesh("./assets/meshes_template/disks/disk_infinite_media.msh"; dim = 3)
+	testdir = @__DIR__  # Répertoire du fichier de test
+	projectdir = dirname(testdir)  # Répertoire racine du projet
+	mesh_path = joinpath(projectdir, "assets", "meshes_template", "disks", "disk_infinite_media.msh")
+	msh = Inti.import_mesh(mesh_path; dim = 3)
 	Γ_msh = view(msh, Inti.Domain(e -> "C" in Inti.labels(e), msh))
 	Q = Inti.Quadrature(Γ_msh; qorder = 2)
 
