@@ -10,3 +10,7 @@ end
 		include(file)
 	end
 end
+
+@testset "Integration tests" begin
+	include("integration.jl")
+end
