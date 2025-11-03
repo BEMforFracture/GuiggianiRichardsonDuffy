@@ -171,3 +171,11 @@ function _extract_split_parts(K::Inti.HyperSingularKernel{T, <:Inti.Elastostatic
 
 	return (1 / d^3, K̂)
 end
+
+################################################################################
+################################ GENERIC ERROR #################################
+################################################################################
+
+function _extract_split_parts(K::Inti.AbstractKernel, target, source, r̂, d, s; kwargs...)
+	throw(ErrorException("No split kernel implementation for kernel type $(typeof(K))"))
+end
