@@ -23,7 +23,8 @@ function adaptive_correction(
 		ref_domain = Inti.reference_domain(E)
 		quads = (
 			nearfield_quad = Inti.adaptive_quadrature(ref_domain; rtol, atol, kwargs...),
-			radial_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
+			# radial_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
+			radial_quad = Inti.GaussLegendre(5), # fixed radial quad
 			angular_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
 		)
 		quads_dict[E] = quads
