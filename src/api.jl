@@ -213,7 +213,7 @@ I = guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta, FullRichar
 ```
 """
 function guiggiani_singular_integral(
-	K::Inti.AbstractKernel,
+	K,
 	û,
 	x̂,
 	el::Inti.ReferenceInterpolant,

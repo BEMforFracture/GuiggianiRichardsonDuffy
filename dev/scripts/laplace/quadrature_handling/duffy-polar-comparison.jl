@@ -90,8 +90,8 @@ function duffy_guiggiani_singular_integral(SK, û, x̂, el, ori, quad_a, quad_b)
 			μ = Inti._integration_measure(jac_y)
 			AB = A + a / 2 * B
 			Â = AB / norm(AB)
-			_, K̂ = SK(qx, qy, Â)
-			v = û(ŷ)
+			_, K̂ = SK(qx, qy, Â) <
+					v = û(ŷ)
 			map(v -> K̂ * v, v) * surface * μ / norm(AB)^3
 		end
 		I_ab = quad_b() do (b,)
