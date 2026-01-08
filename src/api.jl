@@ -39,9 +39,9 @@ function polar_kernel_fun(K, el::Inti.ReferenceInterpolant{Inti.ReferenceLine}, 
 	function F(ρ, s)
 		ŷ = x̂ + SVector(ρ * s)
 		y = el(ŷ)
-		jac = jacobian(el, ŷ)
-		ny = _normal(jac, ori)
-		μ = _integration_measure(jac)
+		jac = Inti.jacobian(el, ŷ)
+		ny = Inti._normal(jac, ori)
+		μ = Inti._integration_measure(jac)
 		qy = (coords = y, normal = ny)
 		M = K(qx, qy)
 		v = û(ŷ)
@@ -216,7 +216,7 @@ function guiggiani_singular_integral(
 	K,
 	û,
 	x̂,
-	el::Inti.ReferenceInterpolant,
+	el::Inti.ReferenceInterpolant{<:Union{Inti.ReferenceTriangle, Inti.ReferenceSquare}},
 	ori,
 	quad_rho,
 	quad_theta,
@@ -274,5 +274,86 @@ function guiggiani_singular_integral(
 		acc += I_theta
 	end
 
+	return acc
+end
+
+function guiggiani_singular_integral(
+	K,
+	û,
+	x̂,
+	el::Inti.ReferenceInterpolant{Inti.ReferenceLine},
+	ori,
+	quad_rho,
+	quad_theta,
+	method::AbstractMethod = FullRichardsonExpansion(),
+)
+	if !(method isa FullRichardsonExpansion)
+		GuiggianiRichardsonDuffy.notimplemented()
+		return
+	end
+	sing = Inti.singularity_order(K)
+	if isnothing(sing)
+		@warn "Kernel does not have a defined singularity_order. Assuming -2."
+		sing = -2
+	end
+	# In polar coordinates, the order is adjusted by +1 due to the Jacobian ρ
+	sorder = Val(sing)
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	nx = Inti._normal(jac_x, ori)
+	qx = (coords = x, normal = nx)
+	# function to integrate in 1D "polar" coordinates. We use `s ∈ {-1,1}` to denote the
+	# angles `π` and `0`.
+	F = (ρ, s) -> begin
+		ŷ = x̂ + SVector(ρ * s)
+		y = el(ŷ)
+		jac = Inti.jacobian(el, ŷ)
+		ny = Inti._normal(jac, ori)
+		μ = Inti._integration_measure(jac)
+		qy = (coords = y, normal = ny)
+		M = K(qx, qy)
+		v = û(ŷ)
+		map(v -> M * v, v) * μ
+	end
+	T = Inti.return_type(F, Float64, Float64)
+	if isconcretetype(T)
+		acc = zero(T)
+	else
+		msg = """
+		type instability likely leading to serious performance issues detected. Further
+		warnings of this type will be silenced.
+		"""
+		@warn msg maxlog = 1
+		zero(F(1.0e-8, 1))
+	end
+	for (s, rho_max) in ((-1, x̂[1]), (1, 1 - x̂[1]))
+		F₋₂, F₋₁, F₀ =
+			F₋₂, F₋₁, F₀ = Inti.laurent_coefficients(
+				rho -> F(rho, s),
+				rho_max / 2,
+				sorder;
+				atol = 1.0e-10,
+				contract = 1 / 2,
+			)
+		I_rho = quad_rho() do (rho_ref,)
+			rho = rho_ref * rho_max
+			if sing == -2
+				rho < cbrt(eps()) && (return F₀)
+				return F(rho, s) - F₋₂ / rho^2 - F₋₁ / rho
+			elseif sing == -1
+				rho < sqrt(eps()) && (return F₀)
+				return F(rho, s) - F₋₁ / rho
+			else
+				return F(rho, s)
+			end
+		end
+		if sing == -2
+			acc += (F₋₁ * log(rho_max) - F₋₂ / rho_max) + I_rho * rho_max
+		elseif sing == -1
+			acc += F₋₁ * log(rho_max) + I_rho * rho_max
+		else
+			acc += I_rho * rho_max
+		end
+	end
 	return acc
 end

@@ -48,12 +48,14 @@ end
 function _extract_split_parts(K::Inti.SingleLayerKernel{T, <:Inti.Laplace{N}},
 	target, source, r̂, d, s; kwargs...) where {T, N}
 	if N == 3
-		K̂ = 1 / (4π) * LinearAlgebra.I
-	else
+		K̂ = 1 / (4π)
+		return (1 / d, K̂)
+	elseif N == 2
+		K̂ = -1 / (2π)
+		return (log(d) / (2π), K̂)
+	else 
 		notimplemented()
 	end
-	return (1 / d, K̂)
-
 end
 
 function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Laplace{N}},
@@ -62,11 +64,13 @@ function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Laplace{N}},
 
 	if N == 3
 		K̂ = -1 / (4π) * dot(r̂, ny)
-	else
+		return (1 / d^2, K̂)
+	elseif N == 2
+		K̂ = -1 / (2π) * dot(r̂, ny)
+		return (1 / d, K̂)
+	else 
 		notimplemented()
 	end
-
-	return (1 / d^2, K̂)
 end
 
 function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Laplace{N}},
@@ -74,12 +78,14 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Laplace
 	nx = Inti.normal(target)
 
 	if N == 3
-		K̂ = 1 / (4π) * dot(r̂, nx)
-	else
+		K̂ = -1 / (4π) * dot(r̂, nx)
+		return (1 / d^2, K̂)
+	elseif N == 2
+		K̂ = -1 / (2π) * dot(r̂, nx)
+		return (1 / d, K̂)
+	else 
 		notimplemented()
 	end
-
-	return (-1 / d^2, K̂)
 end
 
 function _extract_split_parts(K::Inti.HyperSingularKernel{T, <:Inti.Laplace{N}},
@@ -89,11 +95,13 @@ function _extract_split_parts(K::Inti.HyperSingularKernel{T, <:Inti.Laplace{N}},
 
 	if N == 3
 		K̂ = 1 / (4π) * transpose(nx) * ((I - 3 * r̂ * transpose(r̂)) * ny)
-	else
+		return (1 / d^3, K̂)
+	elseif N == 2
+		K̂ = 1 / (2π) * transpose(nx) * ((I - 2 * r̂ * transpose(r̂)) * ny)
+		return (1 / d^2, K̂)
+	else 
 		notimplemented()
 	end
-
-	return (1 / d^3, K̂)
 end
 
 ################################################################################
@@ -107,11 +115,10 @@ function _extract_split_parts(K::Inti.SingleLayerKernel{T, <:Inti.Elastostatic{N
 
 	if N == 3
 		K̂ = 1 / (8π * μ * (1 - ν)) * ((3 - 4 * ν) * LinearAlgebra.I + r̂ * transpose(r̂))
+		return (1 / d, K̂)
 	else
 		notimplemented()
 	end
-
-	return (1 / d, K̂)
 end
 
 function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Elastostatic{N}},
@@ -122,11 +129,10 @@ function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Elastostatic{N
 
 	if N == 3
 		K̂ = -1 / (4π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(ny) - ny * transpose(r̂)))
+		return (1 / d^2, K̂)
 	else
 		notimplemented()
 	end
-
-	return (1 / d^2, K̂)
 end
 
 function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Elastostatic{N}},
@@ -137,11 +143,10 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Elastos
 
 	if N == 3
 		K̂ = 1 / (4π * (1 - ν)) * (dot(r̂, nx) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(nx) - nx * transpose(r̂)))
+		return (-1 / d^2, K̂)
 	else
 		notimplemented()
 	end
-
-	return (-1 / d^2, K̂)
 end
 
 function _extract_split_parts(K::Inti.HyperSingularKernel{T, <:Inti.Elastostatic{N}},
@@ -165,11 +170,10 @@ function _extract_split_parts(K::Inti.HyperSingularKernel{T, <:Inti.Elastostatic
 					ny * transpose(nx)
 				) - (1 - 4ν) * nx * transpose(ny)
 			)
+			return (1 / d^3, K̂)
 	else
 		notimplemented()
 	end
-
-	return (1 / d^3, K̂)
 end
 
 ################################################################################
