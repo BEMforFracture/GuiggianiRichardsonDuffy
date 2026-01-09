@@ -52,7 +52,7 @@ function _extract_split_parts(K::Inti.SingleLayerKernel{T, <:Inti.Laplace{N}},
 		return (1 / d, K̂)
 	elseif N == 2
 		K̂ = -1 / (2π)
-		return (log(d) / (2π), K̂)
+		return (log(d), K̂)
 	else 
 		notimplemented()
 	end
