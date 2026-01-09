@@ -78,10 +78,10 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Laplace
 	nx = Inti.normal(target)
 
 	if N == 3
-		K̂ = -1 / (4π) * dot(r̂, nx)
+		K̂ = 1 / (4π) * dot(r̂, nx)
 		return (1 / d^2, K̂)
 	elseif N == 2
-		K̂ = -1 / (2π) * dot(r̂, nx)
+		K̂ = 1 / (2π) * dot(r̂, nx)
 		return (1 / d, K̂)
 	else 
 		notimplemented()
