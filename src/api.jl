@@ -288,7 +288,7 @@ function guiggiani_singular_integral(
 	method::AbstractMethod = FullRichardsonExpansion(),
 )
 	if !(method isa FullRichardsonExpansion)
-		GuiggianiRichardsonDuffy.notimplemented()
+		notimplemented()
 		return
 	end
 	sing = Inti.singularity_order(K)
