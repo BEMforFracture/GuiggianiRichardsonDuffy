@@ -131,7 +131,7 @@ function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{-1}; kwargs...)
 end
 
 function __laurents_coeff_semi_richardson(f, f_dom, h, ::Val{N}; kwargs...) where {N}
-	if N > 0
+	if N >= 0
 		return 0.0, 0.0
 	else
 		throw(ArgumentError("order must be >= -2"))
@@ -196,7 +196,7 @@ function __laurents_coeff_auto_diff(f, ::Val{-1})
 end
 
 function __laurents_coeff_auto_diff(f, ::Val{N}) where {N}
-	if N > 0
+	if N >= 0
 		return 0.0, 0.0
 	else
 		throw(ArgumentError("order must be >= -2"))
