@@ -106,8 +106,8 @@ end
 		el = el_iter[n]
 		ori = orientation[n]
 		jglob = view(el2qtags, :, n)
-		# inear = union(nearlist[n], jglob) # make sure to include nearfield nodes AND the element nodes
-		inear = nearlist[n]
+		inear = union(nearlist[n], jglob) # make sure to include nearfield nodes AND the element nodes
+		# inear = nearlist[n]
 		for i in inear
 			xnode = Xqnodes[i]
 			# closest quadrature node
@@ -117,31 +117,31 @@ end
 			)
 			x̂nearest = x̂[j]
 			dmin > nearfield_distance && continue
-			# If singular, use Guiggiani's method. Otherwise use an oversampled quadrature
-			if iszero(dmin)
-				W = guiggiani_singular_integral(
-					K,
-					L,
-					x̂nearest,
-					el,
-					ori,
-					quads.radial_quad,
-					quads.angular_quad,
-					method,
-				)
-			else
-				integrand = (ŷ) -> begin
-					y = el(ŷ)
-					jac = Inti.jacobian(el, ŷ)
-					ν = Inti._normal(jac, ori)
-					τ′ = Inti._integration_measure(jac)
-					M = K(xnode, (coords = y, normal = ν))
-					v = L(ŷ)
-					map(v -> M * v, v) * τ′
-				end
-				W = quads.nearfield_quad(integrand)
+		# If singular, use Guiggiani's method. Otherwise use an oversampled quadrature
+		if iszero(dmin)
+			W = guiggiani_singular_integral(
+				K,
+				L,
+				x̂nearest,
+				el,
+				ori,
+				quads.radial_quad,
+				quads.angular_quad,
+				method,
+			)
+		else
+			integrand = (ŷ) -> begin
+				y = el(ŷ)
+				jac = Inti.jacobian(el, ŷ)
+				ν = Inti._normal(jac, ori)
+				τ′ = Inti._integration_measure(jac)
+				M = K(xnode, (coords = y, normal = ν))
+				v = L(ŷ)
+				map(v -> M * v, v) * τ′
 			end
-			@lock lck for (k, j) in enumerate(jglob)
+			W = quads.nearfield_quad(integrand)
+		end
+		@lock lck for (k, j) in enumerate(jglob)
 				qx, qy = Xqnodes[i], Yqnodes[j]
 				push!(correction.I, i)
 				push!(correction.J, j)
