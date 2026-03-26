@@ -212,6 +212,7 @@ params = RichardsonParams(atol=1e-12, maxeval=10)
 I = guiggiani_singular_integral(K, û, x̂, el, quad_rho, quad_theta, FullRichardsonExpansion(params))
 ```
 """
+# FullRichardson and Analytical: NO SplitKernel
 function guiggiani_singular_integral(
 	K,
 	û,
@@ -220,7 +221,7 @@ function guiggiani_singular_integral(
 	ori,
 	quad_rho,
 	quad_theta,
-	method::AbstractMethod = FullRichardsonExpansion(),
+	method::Union{FullRichardsonExpansion, AnalyticalExpansion},
 )
 	# Determine singularity order
 	s = Inti.singularity_order(K)
@@ -229,16 +230,104 @@ function guiggiani_singular_integral(
 		s = -3
 	end
 	# In polar coordinates, the order is adjusted by +1 due to the Jacobian ρ
-	sorder_polar = Val(s + 1)
+	sorder_polar_int = s + 1
 
 	# Get reference shape for polar decomposition
 	ref_shape = Inti.reference_domain(el)
 
-	# Wrap kernel to handle SplitKernel if needed
+	# NO SplitKernel overhead - direct kernel call like Inti
+	x = el(x̂)
+	jac_x = Inti.jacobian(el, x̂)
+	nx = Inti._normal(jac_x, ori)
+	qx = (coords = x, normal = nx)
+	
+	K_polar = function (ρ, θ)
+		s_theta, c_theta = sincos(θ)
+		ŷ = x̂ + ρ * SVector(c_theta, s_theta)
+		y = el(ŷ)
+		jac_y = Inti.jacobian(el, ŷ)
+		ny = Inti._normal(jac_y, ori)
+		qy = (coords = y, normal = ny)
+		μ = Inti._integration_measure(jac_y)
+		M = K(qx, qy)  # Direct kernel call
+		v = û(ŷ)
+		return ρ * map(v -> M * v, v) * μ
+	end
+
+	# Compute Laurent coefficients
+	ℒ = laurents_coeffs(K, el, ori, û, x̂, method)
+
+	# Initialize accumulator
+	T = Inti.return_type(K_polar, Float64, Float64)
+	if isconcretetype(T)
+		acc = zero(Inti.return_type(K_polar, Float64, Float64))
+	else
+		acc = zero(K_polar(1.0, 0.0))
+	end
+
+	# Integrate over each angular sector
+	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
+		Δθ = theta_max - theta_min
+		I_theta = quad_theta() do (theta_ref,)
+			θ = theta_min + theta_ref * Δθ
+			ρ_max = rho_func(θ)
+			f₋₂, f₋₁ = ℒ(θ)
+
+			# Integrate regularized integrand in radial direction
+			I_rho = quad_rho() do (rho_ref,)
+				ρ = ρ_max * rho_ref
+				if sorder_polar_int == -2
+					ρ < cbrt(eps()) && (return zero(f₋₂))
+					return K_polar(ρ, θ) - f₋₂ / ρ^2 - f₋₁ / ρ
+				elseif sorder_polar_int == -1
+					ρ < sqrt(eps()) && (return zero(f₋₁))
+					return K_polar(ρ, θ) - f₋₁ / ρ
+				else
+					return K_polar(ρ, θ)
+				end
+			end
+
+			if sorder_polar_int == -2
+				return I_rho * ρ_max + f₋₁ * log(ρ_max) - f₋₂ / ρ_max
+			elseif sorder_polar_int == -1
+				return I_rho * ρ_max + f₋₁ * log(ρ_max)
+			else
+				return I_rho * ρ_max
+			end
+		end
+		I_theta *= Δθ
+		acc += I_theta
+	end
+
+	return acc
+end
+
+# AutoDiff and SemiRichardson: WITH SplitKernel
+function guiggiani_singular_integral(
+	K,
+	û,
+	x̂,
+	el::Inti.ReferenceInterpolant{<:Union{Inti.ReferenceTriangle, Inti.ReferenceSquare}},
+	ori,
+	quad_rho,
+	quad_theta,
+	method::Union{AutoDiffExpansion, SemiRichardsonExpansion},
+)
+	# Determine singularity order
+	s = Inti.singularity_order(K)
+	if isnothing(s)
+		@warn "Kernel does not have a defined singularity_order. Assuming -3."
+		s = -3
+	end
+	# In polar coordinates, the order is adjusted by +1 due to the Jacobian ρ
+	sorder_polar_int = s + 1
+
+	# Get reference shape for polar decomposition
+	ref_shape = Inti.reference_domain(el)
+
+	# WITH SplitKernel for AutoDiff and SemiRichardson
 	SK = K isa SplitKernel ? K : SplitKernel(K)
 	Kprod = (qx, qy) -> prod(SK(qx, qy))
-
-	# Create polar kernel function
 	K_polar = polar_kernel_fun(Kprod, el, û, x̂, ori)
 
 	# Compute Laurent coefficients
@@ -263,18 +352,43 @@ function guiggiani_singular_integral(
 			# Integrate regularized integrand in radial direction
 			I_rho = quad_rho() do (rho_ref,)
 				ρ = ρ_max * rho_ref
-				# Subtract singular terms to regularize
-				return _regularized_integrand(K_polar, ρ, θ, f₋₂, f₋₁, sorder_polar)
+				if sorder_polar_int == -2
+					ρ < cbrt(eps()) && (return zero(f₋₂))
+					return K_polar(ρ, θ) - f₋₂ / ρ^2 - f₋₁ / ρ
+				elseif sorder_polar_int == -1
+					ρ < sqrt(eps()) && (return zero(f₋₁))
+					return K_polar(ρ, θ) - f₋₁ / ρ
+				else
+					return K_polar(ρ, θ)
+				end
 			end
 
-			# Add back analytical integrals of singular terms
-			return _analytical_singular_contribution(I_rho, ρ_max, f₋₂, f₋₁, sorder_polar)
+			if sorder_polar_int == -2
+				return I_rho * ρ_max + f₋₁ * log(ρ_max) - f₋₂ / ρ_max
+			elseif sorder_polar_int == -1
+				return I_rho * ρ_max + f₋₁ * log(ρ_max)
+			else
+				return I_rho * ρ_max
+			end
 		end
 		I_theta *= Δθ
 		acc += I_theta
 	end
 
 	return acc
+end
+
+# Default method dispatcher: use FullRichardsonExpansion when no method specified
+function guiggiani_singular_integral(
+	K,
+	û,
+	x̂,
+	el::Inti.ReferenceInterpolant{<:Union{Inti.ReferenceTriangle, Inti.ReferenceSquare}},
+	ori,
+	quad_rho,
+	quad_theta,
+)
+	return guiggiani_singular_integral(K, û, x̂, el, ori, quad_rho, quad_theta, FullRichardsonExpansion())
 end
 
 function guiggiani_singular_integral(

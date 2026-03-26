@@ -40,5 +40,14 @@ struct FullRichardsonExpansion <: AbstractMethod
 	richardson_params::RichardsonParams
 end
 
-# Default constructor with default parameters
-FullRichardsonExpansion() = FullRichardsonExpansion(RichardsonParams())
+# Default constructor with Inti-like parameters for optimal performance
+FullRichardsonExpansion() = FullRichardsonExpansion(
+	RichardsonParams(
+		first_contract = 1/2,
+		contract = 1/2,
+		breaktol = Inf,
+		atol = 1e-10,
+		rtol = 1e-8,
+		maxeval = 20,  # Higher than default for better accuracy
+	)
+)
