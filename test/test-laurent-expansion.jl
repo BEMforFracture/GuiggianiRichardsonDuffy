@@ -58,8 +58,9 @@ el = Inti.LagrangeSquare(nodes)
 
 					for (method_name, method) in methods_to_test
 						@testset "$method_name" begin
-							# Use SplitKernel for these methods
-							ℒ_test = GRD.laurents_coeffs(SK, el, ori, û, x̂, method)
+							# Use SK for AutoDiff/SemiRichardson, K for FullRichardson
+							K_test = (method isa GRD.FullRichardsonExpansion) ? K : SK
+							ℒ_test = GRD.laurents_coeffs(K_test, el, ori, û, x̂, method)
 
 							# Sample angular points
 							N_θ = 100
