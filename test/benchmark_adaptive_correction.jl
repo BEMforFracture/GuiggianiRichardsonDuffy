@@ -7,6 +7,7 @@ using Inti
 using LinearAlgebra
 using Statistics
 using SparseArrays
+using Gmsh
 
 import GuiggianiRichardsonDuffy as GRD
 

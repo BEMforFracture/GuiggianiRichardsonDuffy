@@ -4,7 +4,7 @@ function adaptive_correction(
 	maxdist = nothing,
 	rtol = nothing,
 	atol = nothing,
-	threads = true,
+	threads = false,
 	kwargs...,
 )
 	# check if we need to compute a tolerance and/or a maxdist
@@ -25,7 +25,8 @@ function adaptive_correction(
 			nearfield_quad = Inti.adaptive_quadrature(ref_domain; rtol, atol, kwargs...),
 			# radial_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
 			radial_quad = Inti.GaussLegendre(5), # fixed radial quad
-			angular_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
+			# angular_quad = Inti.adaptive_quadrature(Inti.ReferenceLine(); rtol, atol, kwargs...),
+			angular_quad = Inti.GaussLegendre(20),
 		)
 		quads_dict[E] = quads
 	end
@@ -102,12 +103,18 @@ end
 	nel = length(el_iter)
 	lck = Threads.SpinLock()
 	# lck = ReentrantLock()
+	function near_indices(X, Y, n, jglob)
+		if X == Y
+			return union(nearlist[n], jglob) # make sure to include nearfield nodes AND the element nodes
+		else
+			return nearlist[n]
+		end
+	end
 	Inti.@maybe_threads threads for n in 1:nel
 		el = el_iter[n]
 		ori = orientation[n]
 		jglob = view(el2qtags, :, n)
-		inear = union(nearlist[n], jglob) # make sure to include nearfield nodes AND the element nodes
-		# inear = nearlist[n]
+		inear = near_indices(X, Y, n, jglob)
 		for i in inear
 			xnode = Xqnodes[i]
 			# closest quadrature node

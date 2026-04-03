@@ -42,8 +42,8 @@ H = Inti.HyperSingularKernel(op)
 ℋ = Inti.IntegralOperator(H, Q_crack, Q_crack)
 
 GC.gc()
-δK = @timed adaptive_correction(ℋ; method = AutoDiffExpansion(), maxdist = 0)
+δK = @timed adaptive_correction(ℋ; method = AutoDiffExpansion(), maxdist = meshsize)
 @info "Adaptive correction time: $(δK.time) seconds"
 GC.gc()
-δK_inti = @timed Inti.adaptive_correction(ℋ; maxdist = 0)
+δK_inti = @timed Inti.adaptive_correction(ℋ; maxdist = meshsize)
 @info "Adaptive correction time (Inti): $(δK_inti.time) seconds"

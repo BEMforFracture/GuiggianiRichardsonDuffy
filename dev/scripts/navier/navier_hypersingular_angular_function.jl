@@ -8,7 +8,7 @@ using ForwardDiff
 
 # INPUTS
 
-x̂ = SVector(0.01, 0.01) # source point in reference coordinates
+x̂ = SVector(0.3, 0.3) # source point in reference coordinates
 ori = 1  # element orientation
 
 # Material properties

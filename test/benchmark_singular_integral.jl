@@ -77,7 +77,7 @@ _ = Inti.guiggiani_singular_integral(K, û, x̂, el, ori, quad_rho, quad_theta, 
 println("Warmup complete.\n")
 
 # Benchmark
-N_runs = 100
+N_runs = 10
 times_full = Float64[]
 times_semi = Float64[]
 times_autodiff = Float64[]
