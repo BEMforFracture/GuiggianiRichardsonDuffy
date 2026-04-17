@@ -1,7 +1,7 @@
 name = "GuiggianiRichardsonDuffy"
 uuid = "aec3023f-1de0-439c-a184-b65ea860326a"
-authors = ["Marc BONNET <marc.bonnet@ensta-paris.fr>", "Luiz FARIA <luiz.faria@ensta-paris.fr>", "Adrien VET <adrien.vet@ensta-paris.fr>"]
 version = "0.1.0"
+authors = ["Marc BONNET <marc.bonnet@ensta-paris.fr>", "Luiz FARIA <luiz.faria@ensta-paris.fr>", "Adrien VET <adrien.vet@ensta-paris.fr>"]
 
 [deps]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
