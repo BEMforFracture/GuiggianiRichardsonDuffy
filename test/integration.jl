@@ -37,8 +37,8 @@ methods = (
 				@testset "Method: $(typeof(method))" begin
 					K = Inti.HyperSingularKernel(op)
 					iop = Inti.IntegralOperator(K, Q)
-					δK = GRD.adaptive_correction(iop; method = method)
-					δK_ref = Inti.adaptive_correction(iop)
+					δK = GRD.adaptive_correction(iop; method = method, maxdist = 0.0)
+					δK_ref = Inti.adaptive_correction(iop; maxdist = 0.0)
 					ϵ = norm(δK - δK_ref) / norm(δK_ref)
 					@test ϵ < 1e-8
 				end

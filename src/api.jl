@@ -313,6 +313,12 @@ function guiggiani_singular_integral(
 	quad_theta,
 	method::Union{AutoDiffExpansion, SemiRichardsonExpansion},
 )
+	# new_feature : quad_theta can be an iterable of quadrature rules for each sub_triangle in the polar decomposition. If it's a single quadrature rule, it will be used for all sub_triangles.
+	quads_theta = if quad_theta |> length == 1
+		fill(quad_theta, 4)
+	else
+		quad_theta
+	end
 	# Determine singularity order
 	s = Inti.singularity_order(K)
 	if isnothing(s)
@@ -342,7 +348,7 @@ function guiggiani_singular_integral(
 	end
 
 	# Integrate over each angular sector
-	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
+	for ((theta_min, theta_max, rho_func), quad_theta) in zip(Inti.polar_decomposition(ref_shape, x̂), quads_theta)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
 			θ = theta_min + theta_ref * Δθ
