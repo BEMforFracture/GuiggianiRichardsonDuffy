@@ -6,7 +6,7 @@ using LinearAlgebra
 using ForwardDiff
 
 # Configuration (MWE)
-target_rel_error = 1e-11
+target_rel_error = 1e-9
 max_points = 200
 
 # Fixes demandes
@@ -110,7 +110,7 @@ end
 
 rel_error(I_num, I_ref) = norm(I_num - I_ref) / norm(I_ref)
 
-function min_n_thetapZOO_for_target(K, û, x̂, el, ori, quad_rho, method, I_ref, ϵ; max_n = 200)
+function min_n_theta_for_target(K, û, x̂, el, ori, quad_rho, method, I_ref, ϵ; max_n = 200)
 	for nθ in 1:max_n
 		quad_θ = Inti.GaussLegendre(nθ)
 		I_num = GRD.guiggiani_singular_integral(K, û, x̂, el, ori, quad_rho, quad_θ, method)

@@ -7,7 +7,7 @@ using GLMakie
 using ForwardDiff
 
 # Configuration
-x̂ = SVector(0.01, 0.01)  # Source point in reference coordinates
+x̂ = SVector(0.3, 0.3)  # Source point in reference coordinates
 
 # Method for Laurent coefficients
 method = GRD.AnalyticalExpansion()
@@ -15,6 +15,9 @@ method = GRD.AnalyticalExpansion()
 # Quadrature parameters
 n_rho = 10
 quad_rho = Inti.GaussLegendre(n_rho)
+target_rel_tol = 1e-8
+nmin_quad = 2
+nmax_quad = 120
 
 # Setup element
 δ = 0.5
@@ -82,6 +85,29 @@ function dρ_max(θ)
 	return ForwardDiff.derivative(ρ_max_fun, θ)
 end
 
+function integrate_gauss_interval(f, a, b, n)
+	quad = Inti.GaussLegendre(n)
+	mid = (a + b) / 2
+	half = (b - a) / 2
+	return quad() do (t,)
+		half * f(mid + half * t)
+	end
+end
+
+function min_quad_points_successive(f, a, b; tol = 1e-8, nmin = 2, nmax = 120)
+	I_prev = integrate_gauss_interval(f, a, b, nmin)
+	last_rel = Inf
+	for n in (nmin + 1):nmax
+		I_curr = integrate_gauss_interval(f, a, b, n)
+		last_rel = abs(I_curr - I_prev) / max(abs(I_curr), eps())
+		if last_rel < tol
+			return n, last_rel
+		end
+		I_prev = I_curr
+	end
+	return nmax, last_rel
+end
+
 N = 10000
 θs = range(0, stop = 2π, length = N)
 fig = Figure(; size = (800, 600))
@@ -93,11 +119,61 @@ lines!(ax11, θs, G₁.(θs), label = "G₁(θ)")
 θ₃ = decompo[3][1]
 θ₄ = decompo[4][1]
 
+θ_bounds = [θ₁, θ₂, θ₃, θ₄, θ₁ + 2π]
+nθ_G1 = Int[]
+nθ_G2 = Int[]
+for T in 1:4
+	θa = θ_bounds[T]
+	θb = θ_bounds[T + 1]
+	n1, rel1 = min_quad_points_successive(
+		θ -> G₁(mod2pi(θ)),
+		θa,
+		θb;
+		tol = target_rel_tol,
+		nmin = nmin_quad,
+		nmax = nmax_quad,
+	)
+	n2, rel2 = min_quad_points_successive(
+		θ -> G₂(mod2pi(θ)),
+		θa,
+		θb;
+		tol = target_rel_tol,
+		nmin = nmin_quad,
+		nmax = nmax_quad,
+	)
+	push!(nθ_G1, n1)
+	push!(nθ_G2, n2)
+	println("Secteur T=$T | tol=$target_rel_tol | G1: n_theta=$n1 (rel=$rel1) | G2: n_theta=$n2 (rel=$rel2)")
+end
+
+G1_vals = G₁.(θs)
+G2_vals = G₂.(θs)
+G1_ymin, G1_ymax = extrema(G1_vals)
+G2_ymin, G2_ymax = extrema(G2_vals)
+G1_ylabel = G1_ymax - 0.08 * (G1_ymax - G1_ymin)
+G2_ylabel = G2_ymax - 0.08 * (G2_ymax - G2_ymin)
+
+ax11.title = "G₁(θ) | tol=$(target_rel_tol)"
+
 vlines!(ax11, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, label = "Sector boundaries")
 
+for T in 1:4
+	θa = θ_bounds[T]
+	θb = θ_bounds[T + 1]
+	θlabel = θa + 0.04 * (θb - θa)
+	text!(ax11, θlabel, G1_ylabel; text = "T=$T: nθ=$(nθ_G1[T])", align = (:left, :top), fontsize = 12, color = :black)
+end
+
 ax21 = Axis(fig[2, 1]; xlabel = "θ", ylabel = "G₂(θ)")
-lines!(ax21, θs, G₂.(θs), label = "G₂(θ)")
+lines!(ax21, θs, G2_vals, label = "G₂(θ)")
 vlines!(ax21, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, label = "Sector boundaries")
+
+for T in 1:4
+	θa = θ_bounds[T]
+	θb = θ_bounds[T + 1]
+	θlabel = θa + 0.04 * (θb - θa)
+	text!(ax21, θlabel, G2_ylabel; text = "T=$T: nθ=$(nθ_G2[T])", align = (:left, :top), fontsize = 12, color = :black)
+end
 
 ax31 = Axis(fig[3, 1]; xlabel = "θ", ylabel = "ρ(θ)")
 lines!(ax31, θs, ρ_max_fun.(θs), label = "ρ(θ)")
@@ -115,6 +191,6 @@ ax32 = Axis(fig[3, 2]; xlabel = "θ", ylabel = "ρ'(θ)")
 lines!(ax32, θs, dρ_max.(θs), label = "ρ'(θ)")
 vlines!(ax32, [θ₁, θ₂, θ₃, θ₄]; color = :red, linestyle = :dash, label = "Sector boundaries")
 
-# display(fig)
+window = display(GLMakie.Screen(), fig)
 
 # GLMakie.save("./dev/figures/laplace/laplace_hypersingular_angular_function.png", fig)
