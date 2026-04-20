@@ -353,7 +353,7 @@ function guiggiani_singular_integral(
 	if isconcretetype(T)
 		acc = zero(Inti.return_type(K_polar, Float64, Float64))
 	else
-		acc = zero(K_polar(1.0, 0.0))
+		acc = zero(K_polar(0.0001, 0.0))
 	end
 
 	# Integrate over each angular sector
