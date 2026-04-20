@@ -223,6 +223,15 @@ function guiggiani_singular_integral(
 	quad_theta,
 	method::Union{FullRichardsonExpansion, AnalyticalExpansion},
 )
+	ref_shape = Inti.reference_domain(el)
+	decompo = Inti.polar_decomposition(ref_shape, x̂)
+	# new_feature : quad_theta can be an iterable of quadrature rules for each sub_triangle in the polar decomposition. If it's a single quadrature rule, it will be used for all sub_triangles.
+	ntuple_length = length(decompo)
+	quads_theta =
+		quad_theta isa Tuple ? quad_theta :
+		quad_theta isa AbstractVector ? Tuple(quad_theta) :
+		ntuple(_ -> quad_theta, ntuple_length)
+
 	# Determine singularity order
 	s = Inti.singularity_order(K)
 	if isnothing(s)
@@ -266,7 +275,7 @@ function guiggiani_singular_integral(
 	end
 
 	# Integrate over each angular sector
-	for (theta_min, theta_max, rho_func) in Inti.polar_decomposition(ref_shape, x̂)
+	for ((theta_min, theta_max, rho_func), quad_theta) in zip(decompo, quads_theta)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
 			θ = theta_min + theta_ref * Δθ
@@ -313,12 +322,15 @@ function guiggiani_singular_integral(
 	quad_theta,
 	method::Union{AutoDiffExpansion, SemiRichardsonExpansion},
 )
+	ref_shape = Inti.reference_domain(el)
+	decompo = Inti.polar_decomposition(ref_shape, x̂)
 	# new_feature : quad_theta can be an iterable of quadrature rules for each sub_triangle in the polar decomposition. If it's a single quadrature rule, it will be used for all sub_triangles.
-	quads_theta = if quad_theta |> length == 1
-		fill(quad_theta, 4)
-	else
-		quad_theta
-	end
+	ntuple_length = length(decompo)
+	quads_theta =
+		quad_theta isa Tuple ? quad_theta :
+		quad_theta isa AbstractVector ? Tuple(quad_theta) :
+		ntuple(_ -> quad_theta, ntuple_length)
+
 	# Determine singularity order
 	s = Inti.singularity_order(K)
 	if isnothing(s)
@@ -327,9 +339,6 @@ function guiggiani_singular_integral(
 	end
 	# In polar coordinates, the order is adjusted by +1 due to the Jacobian ρ
 	sorder_polar_int = s + 1
-
-	# Get reference shape for polar decomposition
-	ref_shape = Inti.reference_domain(el)
 
 	# WITH SplitKernel for AutoDiff and SemiRichardson
 	SK = K isa SplitKernel ? K : SplitKernel(K)
@@ -348,7 +357,7 @@ function guiggiani_singular_integral(
 	end
 
 	# Integrate over each angular sector
-	for ((theta_min, theta_max, rho_func), quad_theta) in zip(Inti.polar_decomposition(ref_shape, x̂), quads_theta)
+	for ((theta_min, theta_max, rho_func), quad_theta) in zip(decompo, quads_theta)
 		Δθ = theta_max - theta_min
 		I_theta = quad_theta() do (theta_ref,)
 			θ = theta_min + theta_ref * Δθ
