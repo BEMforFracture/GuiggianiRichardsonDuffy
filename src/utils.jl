@@ -47,3 +47,20 @@ macro suppress_output(expr)
 		end
 	end
 end
+
+"""
+@nameof(x)
+
+A macro that returns the name of a variable as a string. This is useful for debugging and logging purposes, allowing you to easily identify variables in output messages.
+
+Examples
+≡≡≡≡≡≡≡≡
+
+```julia
+x = 42
+println(@nameof(x))  # Output: "x"
+```
+"""
+macro nameof(x)
+	return string(x)
+end
