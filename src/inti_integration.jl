@@ -6,7 +6,8 @@ function adaptive_correction(
 	atol = nothing,
 	threads = false,
 	kwargs...,
-)
+)	
+	kernel = Inti.kernel(iop)
 	# check if we need to compute a tolerance and/or a maxdist
 	hastol = ((rtol !== nothing) || (atol !== nothing))
 	if isnothing(maxdist) || !hastol
@@ -16,6 +17,7 @@ function adaptive_correction(
 	maxdist = isnothing(maxdist) ? maxdist_ : maxdist
 	rtol = isnothing(rtol) ? (hastol ? 0.0 : rtol_) : rtol
 	atol = isnothing(atol) ? (hastol ? 0.0 : atol_) : atol
+	@info "using maxdist = $maxdist, rtol = $rtol, atol = $atol for kernel $(typeof(kernel))"
 	# go on and compute the correction
 	msh = Inti.mesh(Inti.source(iop))
 	quads_dict = Dict()
