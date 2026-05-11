@@ -66,7 +66,7 @@ end
 
 function __laurents_coeff_full_richardson(f, h, ::Val{N}; kwargs...) where {N}
 	_richardson_guard(h; kwargs...)
-	if N > 0
+	if N >= 0
 		return 0.0, 0.0
 	else
 		throw(ArgumentError("order must be >= -2"))
