@@ -26,8 +26,7 @@ function _push_jacobian_ratio_point!(groups::Dict{Float64, Vector{NTuple{2, Floa
     push!(groups[d], (jacobian_ratio, nmax))
 end
 
-function _collect_quad_groups_jacobian_ratio(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    quads, quad_params = generate_random_quadrangles(nb_elements, seed = seed)
+function _collect_quad_groups_jacobian_ratio(op, quads, quad_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(quads)
@@ -49,8 +48,7 @@ function _collect_quad_groups_jacobian_ratio(op, seed::Int, nb_elements::Int, ep
     return groups
 end
 
-function _collect_tri_groups_jacobian_ratio(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    tris, tri_params = generate_random_triangles(nb_elements, seed = seed)
+function _collect_tri_groups_jacobian_ratio(op, tris, tri_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(tris)
@@ -98,17 +96,17 @@ function _plot_groups_jacobian_ratio(groups::Dict{Float64, Vector{NTuple{2, Floa
     return fig
 end
 
-function plot_nmax_vs_jacobian_ratio_by_distance(op, seed::Int, nb_elements::Int; epsilon_target::Float64 = 1e-10)
-    quad_groups = _collect_quad_groups_jacobian_ratio(op, seed, nb_elements, epsilon_target)
-    tri_groups = _collect_tri_groups_jacobian_ratio(op, seed, nb_elements, epsilon_target)
+function plot_nmax_vs_jacobian_ratio_by_distance(op, quads, quad_params, tris, tri_params; epsilon_target::Float64 = 1e-10)
+    quad_groups = _collect_quad_groups_jacobian_ratio(op, quads, quad_params, epsilon_target)
+    tri_groups = _collect_tri_groups_jacobian_ratio(op, tris, tri_params, epsilon_target)
 
     fig_quad = _plot_groups_jacobian_ratio(
         quad_groups,
-        "Quadrangles - nmax vs jacobian_ratio by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Quadrangles - nmax vs jacobian_ratio by distance class (epsilon=$(epsilon_target), $(length(quads)) elements)",
     )
     fig_tri = _plot_groups_jacobian_ratio(
         tri_groups,
-        "Triangles - nmax vs jacobian_ratio by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Triangles - nmax vs jacobian_ratio by distance class (epsilon=$(epsilon_target), $(length(tris)) elements)",
     )
 
     return fig_quad, fig_tri

@@ -26,8 +26,7 @@ function _push_min_angle_point!(groups::Dict{Float64, Vector{NTuple{2, Float64}}
     push!(groups[d], (min_angle, nmax))
 end
 
-function _collect_quad_groups_min_angle(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    quads, quad_params = generate_random_quadrangles(nb_elements, seed = seed)
+function _collect_quad_groups_min_angle(op, quads, quad_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(quads)
@@ -49,8 +48,7 @@ function _collect_quad_groups_min_angle(op, seed::Int, nb_elements::Int, epsilon
     return groups
 end
 
-function _collect_tri_groups_min_angle(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    tris, tri_params = generate_random_triangles(nb_elements, seed = seed)
+function _collect_tri_groups_min_angle(op, tris, tri_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(tris)
@@ -98,17 +96,17 @@ function _plot_groups_min_angle(groups::Dict{Float64, Vector{NTuple{2, Float64}}
     return fig
 end
 
-function plot_nmax_vs_min_angle_by_distance(op, seed::Int, nb_elements::Int; epsilon_target::Float64 = 1e-10)
-    quad_groups = _collect_quad_groups_min_angle(op, seed, nb_elements, epsilon_target)
-    tri_groups = _collect_tri_groups_min_angle(op, seed, nb_elements, epsilon_target)
+function plot_nmax_vs_min_angle_by_distance(op, quads, quad_params, tris, tri_params; epsilon_target::Float64 = 1e-10)
+    quad_groups = _collect_quad_groups_min_angle(op, quads, quad_params, epsilon_target)
+    tri_groups = _collect_tri_groups_min_angle(op, tris, tri_params, epsilon_target)
 
     fig_quad = _plot_groups_min_angle(
         quad_groups,
-        "Quadrangles - nmax vs min_angle by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Quadrangles - nmax vs min_angle by distance class (epsilon=$(epsilon_target), $(length(quads)) elements)",
     )
     fig_tri = _plot_groups_min_angle(
         tri_groups,
-        "Triangles - nmax vs min_angle by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Triangles - nmax vs min_angle by distance class (epsilon=$(epsilon_target), $(length(tris)) elements)",
     )
 
     return fig_quad, fig_tri

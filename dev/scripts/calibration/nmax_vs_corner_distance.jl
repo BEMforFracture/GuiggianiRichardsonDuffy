@@ -25,8 +25,7 @@ function _push_corner_distance_point!(groups::Dict{Float64, Vector{NTuple{2, Flo
     push!(groups[d], (corner_dist, nmax))
 end
 
-function _collect_quad_groups_corner_distance(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    quads, quad_params = generate_random_quadrangles(nb_elements, seed = seed)
+function _collect_quad_groups_corner_distance(op, quads, quad_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(quads)
@@ -48,8 +47,7 @@ function _collect_quad_groups_corner_distance(op, seed::Int, nb_elements::Int, e
     return groups
 end
 
-function _collect_tri_groups_corner_distance(op, seed::Int, nb_elements::Int, epsilon_target::Float64)
-    tris, tri_params = generate_random_triangles(nb_elements, seed = seed)
+function _collect_tri_groups_corner_distance(op, tris, tri_params, epsilon_target::Float64)
     groups = Dict{Float64, Vector{NTuple{2, Float64}}}()
 
     for (i, el) in enumerate(tris)
@@ -97,17 +95,17 @@ function _plot_groups_corner_distance(groups::Dict{Float64, Vector{NTuple{2, Flo
     return fig
 end
 
-function plot_nmax_vs_corner_distance_by_distance(op, seed::Int, nb_elements::Int; epsilon_target::Float64 = 1e-10)
-    quad_groups = _collect_quad_groups_corner_distance(op, seed, nb_elements, epsilon_target)
-    tri_groups = _collect_tri_groups_corner_distance(op, seed, nb_elements, epsilon_target)
+function plot_nmax_vs_corner_distance_by_distance(op, quads, quad_params, tris, tri_params; epsilon_target::Float64 = 1e-10)
+    quad_groups = _collect_quad_groups_corner_distance(op, quads, quad_params, epsilon_target)
+    tri_groups = _collect_tri_groups_corner_distance(op, tris, tri_params, epsilon_target)
 
     fig_quad = _plot_groups_corner_distance(
         quad_groups,
-        "Quadrangles - nmax vs corner_dist by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Quadrangles - nmax vs corner_dist by distance class (epsilon=$(epsilon_target), $(length(quads)) elements)",
     )
     fig_tri = _plot_groups_corner_distance(
         tri_groups,
-        "Triangles - nmax vs corner_dist by distance class (epsilon=$(epsilon_target), $(nb_elements) elements)",
+        "Triangles - nmax vs corner_dist by distance class (epsilon=$(epsilon_target), $(length(tris)) elements)",
     )
 
     return fig_quad, fig_tri

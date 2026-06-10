@@ -137,15 +137,16 @@ function _extract_case_features(case::Case)
     """
     Extract compact shared features for both triangles and quadrangles.
 
-    Returns a 8-element vector:
+    Returns a 9-element vector:
     1. dist: minimum distance from source point to element boundary
     2. compactness: 4πA/P²
     3. min_angle: minimum interior angle (degrees)
     4. side_ratio: largest edge length / smallest edge length
     5. jacobian_ratio: max/min Jacobian integration measure ratio
-    6. corner_dist: distance to nearest reference corner
-    7. target_error: target accuracy epsilon
-    8. nmax: maximum number of theta quadrature points needed
+    6. jacobian_at_point: Jacobian integration measure at source point
+    7. corner_dist: distance to nearest reference corner
+    8. target_error: target accuracy epsilon
+    9. nmax: maximum number of theta quadrature points needed
     """
     el = case.el
     ref_el = Inti.reference_domain(el)
@@ -156,14 +157,15 @@ function _extract_case_features(case::Case)
     min_angle = get(qm, :min_angle, NaN)
     side_ratio = get(qm, :aspect_ratio_edges, NaN)
     jacobian_ratio = get(qm, :jacobian_ratio, NaN)
+    jacobian_at_point = Inti._integration_measure(Inti.jacobian(el, case.point))
     corner_dist = dist_to_nearest_corner(ref_el, case.point)
     target_error = case.epsilon
     nmax = maximum(case.n_thetas)
-    return [dist, compactness, min_angle, side_ratio, jacobian_ratio, corner_dist, target_error, nmax]
+    return [dist, compactness, min_angle, side_ratio, jacobian_ratio, jacobian_at_point, corner_dist, target_error, nmax]
 end
 
 function number_of_variables()
-    return 8  # [dist, compactness, min_angle, side_ratio, jacobian_ratio, corner_dist, target_error, nmax]
+    return 9  # [dist, compactness, min_angle, side_ratio, jacobian_ratio, jacobian_at_point, corner_dist, target_error, nmax]
 end
 
 function observation_matrix(cases::Vector{Case})

@@ -121,6 +121,144 @@ function _nmax_correlation_diagnostics(X, names; target_name = "nmax", control_n
     return rows, names_corr
 end
 
+function _nmax_parameter_collisions(X, names; target_name = "nmax", rounded_digits::Union{Nothing, Int} = nothing)
+    idx_nmax = findfirst(==(target_name), names)
+    isnothing(idx_nmax) && error("Target variable $(target_name) not found.")
+
+    feature_idx = [i for i in 1:length(names) if i != idx_nmax]
+    groups = Dict{Tuple, Vector{Float64}}()
+
+    for r in 1:size(X, 1)
+        raw_vals = X[r, feature_idx]
+        key_vals = if isnothing(rounded_digits)
+            raw_vals
+        else
+            round.(raw_vals; digits = rounded_digits)
+        end
+        key = Tuple(key_vals)
+        push!(get!(groups, key, Float64[]), X[r, idx_nmax])
+    end
+
+    collisions = NamedTuple[]
+    for (key, nmax_vals) in groups
+        length(nmax_vals) <= 1 && continue
+        uniq = sort(unique(nmax_vals))
+        if length(uniq) > 1
+            push!(collisions, (
+                group_size = length(nmax_vals),
+                nmax_values = uniq,
+                nmax_min = minimum(uniq),
+                nmax_max = maximum(uniq),
+                nmax_span = maximum(uniq) - minimum(uniq),
+                feature_key = key,
+            ))
+        end
+    end
+
+    sort!(collisions; by = c -> (c.nmax_span, c.group_size), rev = true)
+
+    total_groups = length(groups)
+    repeated_groups = count(v -> length(v) > 1, values(groups))
+    return (
+        n_samples = size(X, 1),
+        n_features = length(feature_idx),
+        total_groups = total_groups,
+        repeated_groups = repeated_groups,
+        collision_groups = length(collisions),
+        collisions = collisions,
+        feature_names = names[feature_idx],
+        rounded_digits = rounded_digits,
+    )
+end
+
+function _print_collision_report(label::String, report; max_show::Int = 5)
+    mode_txt = isnothing(report.rounded_digits) ? "exact" : "rounded($(report.rounded_digits) digits)"
+    println("\n=== $(label): identical-parameter collision check [$(mode_txt)] ===")
+    println("samples=", report.n_samples,
+        ", groups=", report.total_groups,
+        ", repeated_groups=", report.repeated_groups,
+        ", collision_groups=", report.collision_groups)
+
+    if isempty(report.collisions)
+        println("No collisions found: identical parameter sets do not produce different nmax.")
+        return
+    end
+
+    to_show = min(max_show, length(report.collisions))
+    println("Top ", to_show, " collisions (same parameters, different nmax):")
+    for (k, c) in enumerate(report.collisions[1:to_show])
+        println("  #", k,
+            " size=", c.group_size,
+            ", nmax_values=", c.nmax_values,
+            ", span=", c.nmax_span)
+    end
+end
+
+function nmax_parameter_collision_analysis(X_quad, X_tri, names_quad, names_tri; rounded_digits::Int = 8, max_show::Int = 5)
+    quad_exact = _nmax_parameter_collisions(X_quad, names_quad; rounded_digits = nothing)
+    tri_exact = _nmax_parameter_collisions(X_tri, names_tri; rounded_digits = nothing)
+    quad_rounded = _nmax_parameter_collisions(X_quad, names_quad; rounded_digits = rounded_digits)
+    tri_rounded = _nmax_parameter_collisions(X_tri, names_tri; rounded_digits = rounded_digits)
+
+    _print_collision_report("Quadrangles", quad_exact; max_show = max_show)
+    _print_collision_report("Triangles", tri_exact; max_show = max_show)
+    _print_collision_report("Quadrangles", quad_rounded; max_show = max_show)
+    _print_collision_report("Triangles", tri_rounded; max_show = max_show)
+
+    return (quad_exact = quad_exact, tri_exact = tri_exact, quad_rounded = quad_rounded, tri_rounded = tri_rounded)
+end
+
+function _nmax_parameter_collisions_by_epsilon(X, names; epsilon_name = "target_error", rounded_digits::Union{Nothing, Int} = nothing, max_show::Int = 5)
+    idx_eps = findfirst(==(epsilon_name), names)
+    isnothing(idx_eps) && error("Epsilon variable $(epsilon_name) not found.")
+
+    eps_values = sort(unique(X[:, idx_eps]))
+    reports = Dict{Float64, Any}()
+
+    for eps in eps_values
+        rows = findall(r -> r == eps, X[:, idx_eps])
+        X_eps = X[rows, :]
+        rep = _nmax_parameter_collisions(X_eps, names; rounded_digits = rounded_digits)
+        reports[eps] = rep
+    end
+
+    return reports
+end
+
+function _print_collision_report_by_epsilon(label::String, reports::Dict{Float64, Any}; max_show::Int = 5)
+    println("\n=== $(label): identical-parameter collision check [epsilon fixed] ===")
+    for eps in sort(collect(keys(reports)))
+        rep = reports[eps]
+        println("epsilon=", eps,
+            " | samples=", rep.n_samples,
+            ", groups=", rep.total_groups,
+            ", repeated_groups=", rep.repeated_groups,
+            ", collision_groups=", rep.collision_groups)
+
+        if isempty(rep.collisions)
+            continue
+        end
+
+        to_show = min(max_show, length(rep.collisions))
+        for (k, c) in enumerate(rep.collisions[1:to_show])
+            println("  #", k,
+                " size=", c.group_size,
+                ", nmax_values=", c.nmax_values,
+                ", span=", c.nmax_span)
+        end
+    end
+end
+
+function nmax_parameter_collision_analysis_by_epsilon(X_quad, X_tri, names_quad, names_tri; rounded_digits::Union{Nothing, Int} = nothing, max_show::Int = 5)
+    quad_reports = _nmax_parameter_collisions_by_epsilon(X_quad, names_quad; rounded_digits = rounded_digits, max_show = max_show)
+    tri_reports = _nmax_parameter_collisions_by_epsilon(X_tri, names_tri; rounded_digits = rounded_digits, max_show = max_show)
+
+    _print_collision_report_by_epsilon("Quadrangles", quad_reports; max_show = max_show)
+    _print_collision_report_by_epsilon("Triangles", tri_reports; max_show = max_show)
+
+    return (quad_by_epsilon = quad_reports, tri_by_epsilon = tri_reports, rounded_digits = rounded_digits)
+end
+
 function _nmax_partial_correlation_figure(rows, figtitle)
     filtered = [r for r in rows if !r.is_control]
     labels = [r.name for r in filtered]
@@ -338,18 +476,359 @@ function sampling(op, seed::Int, nb_elements::Int)
         end
     end
 
-    return cases_quad, cases_tri
+    return cases_quad, cases_tri, quads, quad_params, tris, tri_params
+end
+
+function _nmax_dictionary_from_cases(cases::Vector{Case})
+    nmax_by_element = Dict{Inti.LagrangeElement, Vector{Int}}()
+    for c in cases
+        push!(get!(nmax_by_element, c.el, Int[]), maximum(c.n_thetas))
+    end
+    return nmax_by_element
+end
+
+function _merge_nmax_dictionaries(dict_a::Dict{Inti.LagrangeElement, Vector{Int}}, dict_b::Dict{Inti.LagrangeElement, Vector{Int}})
+    merged = Dict{Inti.LagrangeElement, Vector{Int}}()
+    for (el, vals) in dict_a
+        merged[el] = copy(vals)
+    end
+    for (el, vals) in dict_b
+        if haskey(merged, el)
+            append!(merged[el], vals)
+        else
+            merged[el] = copy(vals)
+        end
+    end
+    return merged
+end
+
+function _element_polygon_xy(el::Inti.LagrangeElement)
+    nodes = el.vals
+    n = length(nodes)
+
+    order = if n == 4
+        [1, 2, 4, 3, 1]
+    elseif n == 3
+        [1, 2, 3, 1]
+    else
+        vcat(collect(1:n), 1)
+    end
+
+    x = [nodes[i][1] for i in order]
+    y = [nodes[i][2] for i in order]
+    return x, y
+end
+
+function _reference_point_to_physical(el::Inti.LagrangeSquare, ξ::SVector{2, Float64})
+    u, v = ξ
+    n1, n2, n3, n4 = el.vals
+    return (1 - u) * (1 - v) * n1 + u * (1 - v) * n2 + (1 - u) * v * n3 + u * v * n4
+end
+
+function _reference_point_to_physical(el::Inti.LagrangeTriangle, ξ::SVector{2, Float64})
+    u, v = ξ
+    n1, n2, n3 = el.vals
+    return n1 + u * (n2 - n1) + v * (n3 - n1)
+end
+
+function _get_polar_subtriangles_physical(el::Inti.LagrangeElement, ref_point::SVector{2, Float64})
+    ref_shape = Inti.reference_domain(el)
+    decompo = Inti.polar_decomposition(ref_shape, ref_point)
+
+    source_physical = _reference_point_to_physical(el, ref_point)
+    source_point = GLMakie.Point2f(source_physical[1], source_physical[2])
+
+    triangles = []
+    for (theta_min, theta_max, rho_func) in decompo
+        rho_at_min = rho_func(theta_min)
+        rho_at_max = rho_func(theta_max)
+
+        x1_ref = ref_point[1] + rho_at_min * cos(theta_min)
+        y1_ref = ref_point[2] + rho_at_min * sin(theta_min)
+        v1_ref = SVector(x1_ref, y1_ref)
+
+        x2_ref = ref_point[1] + rho_at_max * cos(theta_max)
+        y2_ref = ref_point[2] + rho_at_max * sin(theta_max)
+        v2_ref = SVector(x2_ref, y2_ref)
+
+        v1_physical = _reference_point_to_physical(el, v1_ref)
+        v2_physical = _reference_point_to_physical(el, v2_ref)
+
+        v1 = GLMakie.Point2f(v1_physical[1], v1_physical[2])
+        v2 = GLMakie.Point2f(v2_physical[1], v2_physical[2])
+
+        push!(triangles, (source_point, v1, v2))
+    end
+
+    return triangles
+end
+
+function case_browser(cases::AbstractVector{<:Case}; sort_by::Symbol = :error, reverse_order::Bool = true)
+    isempty(cases) && error("case_browser: empty case list")
+
+    case_metric(c::Case) = sort_by == :nmax ? maximum(c.n_thetas) : sort_by == :mean_error ? mean(c.errors) : maximum(c.errors)
+    entries = sort(copy(cases); by = case_metric, rev = reverse_order)
+
+    n = length(entries)
+    current_idx = GLMakie.Observable(1)
+
+    fig = GLMakie.Figure(size = (980, 860))
+    ax = GLMakie.Axis(
+        fig[1, 1],
+        xlabel = "x",
+        ylabel = "y",
+        title = "Case browser",
+    )
+    ax.aspect = GLMakie.DataAspect()
+
+    polygon_obs = GLMakie.Observable(GLMakie.Point2f[])
+    nodes_obs = GLMakie.Observable(GLMakie.Point2f[])
+    source_obs = GLMakie.Observable(GLMakie.Point2f[])
+    subtri_segments_obs = GLMakie.Observable(GLMakie.Point2f[])
+    subtri_label_pos_obs = GLMakie.Observable(GLMakie.Point2f[])
+    subtri_label_text_obs = GLMakie.Observable(String[])
+    info_obs = GLMakie.Observable("")
+
+    GLMakie.linesegments!(ax, subtri_segments_obs; color = (:seagreen, 0.55), linewidth = 2)
+    GLMakie.lines!(ax, polygon_obs; color = :steelblue, linewidth = 3)
+    GLMakie.scatter!(ax, nodes_obs; color = :darkorange, markersize = 12)
+    GLMakie.scatter!(ax, source_obs; color = :crimson, marker = :star5, markersize = 18)
+    GLMakie.text!(ax, subtri_label_pos_obs; text = subtri_label_text_obs, align = (:center, :center), fontsize = 14, color = :black)
+    GLMakie.Label(fig[2, 1], info_obs; tellwidth = false, justification = :left)
+
+    jump_grid = GLMakie.GridLayout(fig[3, 1])
+    GLMakie.Label(jump_grid[1, 1], "Go to case #")
+    jump_box = GLMakie.Textbox(jump_grid[1, 2], placeholder = "1..$(n)", stored_string = "1", width = 150)
+    jump_button = GLMakie.Button(jump_grid[1, 3], label = "Go", width = 90)
+    jump_feedback = GLMakie.Label(jump_grid[2, 1:3], "", tellwidth = false, justification = :left)
+
+    all_x_coords = Float64[]
+    all_y_coords = Float64[]
+    for c in entries
+        el = c.el
+        x, y = _element_polygon_xy(el)
+        append!(all_x_coords, x)
+        append!(all_y_coords, y)
+        source_physical = _reference_point_to_physical(el, c.point)
+        push!(all_x_coords, source_physical[1])
+        push!(all_y_coords, source_physical[2])
+    end
+
+    xmin_global = minimum(all_x_coords)
+    xmax_global = maximum(all_x_coords)
+    ymin_global = minimum(all_y_coords)
+    ymax_global = maximum(all_y_coords)
+
+    xpad = max(1e-8, 0.12 * max(xmax_global - xmin_global, 1.0))
+    ypad = max(1e-8, 0.12 * max(ymax_global - ymin_global, 1.0))
+
+    xmin_padded = xmin_global - xpad
+    xmax_padded = xmax_global + xpad
+    ymin_padded = ymin_global - ypad
+    ymax_padded = ymax_global + ypad
+
+    width_x = xmax_padded - xmin_padded
+    width_y = ymax_padded - ymin_padded
+
+    if width_x > width_y
+        center_y = (ymin_padded + ymax_padded) / 2
+        ymin_padded = center_y - width_x / 2
+        ymax_padded = center_y + width_x / 2
+    else
+        center_x = (xmin_padded + xmax_padded) / 2
+        xmin_padded = center_x - width_y / 2
+        xmax_padded = center_x + width_y / 2
+    end
+
+    GLMakie.xlims!(ax, xmin_padded, xmax_padded)
+    GLMakie.ylims!(ax, ymin_padded, ymax_padded)
+
+    function refresh!(idx::Int)
+        c = entries[idx]
+        el = c.el
+        x, y = _element_polygon_xy(el)
+
+        polygon_obs[] = [GLMakie.Point2f(xi, yi) for (xi, yi) in zip(x, y)]
+        vertex_points = [GLMakie.Point2f(xi, yi) for (xi, yi) in zip(x[1:end-1], y[1:end-1])]
+        nodes_obs[] = vertex_points
+
+        source_physical = _reference_point_to_physical(el, c.point)
+        source_point = GLMakie.Point2f(source_physical[1], source_physical[2])
+        source_obs[] = [source_point]
+
+        polar_tris = _get_polar_subtriangles_physical(el, c.point)
+
+        n_subtri = length(polar_tris)
+        seg_points = GLMakie.Point2f[]
+        label_pos = GLMakie.Point2f[]
+        label_txt = String[]
+        for i in 1:n_subtri
+            src, v1, v2 = polar_tris[i]
+
+            push!(seg_points, src, v1)
+            push!(seg_points, v1, v2)
+            push!(seg_points, v2, src)
+
+            ctri = (src + v1 + v2) / 3
+            push!(label_pos, ctri)
+            nθ = i <= length(c.n_thetas) ? c.n_thetas[i] : missing
+            push!(label_txt, i <= length(c.n_thetas) ? "nθ=$(nθ)" : "nθ=?")
+        end
+        subtri_segments_obs[] = seg_points
+        subtri_label_pos_obs[] = label_pos
+        subtri_label_text_obs[] = label_txt
+
+        nmax_case = maximum(c.n_thetas)
+        err_max = maximum(c.errors)
+        err_mean = round(mean(c.errors), digits = 3)
+        score = round(case_metric(c), digits = 3)
+        compactness = round(get(c.quality_metrics, :compactness, NaN), digits = 4)
+        kind = el isa Inti.LagrangeSquare ? "Quadrangle" : el isa Inti.LagrangeTriangle ? "Triangle" : string(typeof(el))
+
+        info_obs[] = string(
+            "Case ", idx, "/", n,
+            " | type=", kind,
+            " | epsilon=", c.epsilon,
+            " | compactness=", compactness,
+            " | nmax=", nmax_case,
+            " | error_max=", err_max,
+            " | error_mean=", err_mean,
+            " | score(", sort_by, ")=", score,
+            "\nSource point ref=", Tuple(round.(collect(c.point); digits = 4)),
+            " | source point phys=", Tuple(round.([source_physical[1], source_physical[2], source_physical[3]]; digits = 4)),
+            " | time=", round(c.time, digits = 4), " s",
+            "\nSubtriangles=", n_subtri, " | n_thetas=", c.n_thetas,
+            "\nControls: right arrow = next case, left arrow = previous case",
+        )
+    end
+
+    on(current_idx) do idx
+        refresh!(idx)
+        jump_box.stored_string[] = string(idx)
+        jump_feedback.text[] = ""
+    end
+
+    function jump_to_case!(input)
+        idx = tryparse(Int, strip(String(input)))
+        if isnothing(idx)
+            jump_feedback.text[] = "Invalid input. Please enter an integer in [1, $(n)]."
+            return
+        end
+        if idx < 1 || idx > n
+            jump_feedback.text[] = "Out of range. Valid range is [1, $(n)]."
+            return
+        end
+        current_idx[] = idx
+    end
+
+    on(jump_button.clicks) do _
+        jump_to_case!(jump_box.displayed_string[])
+    end
+
+    on(GLMakie.events(fig).keyboardbutton) do ev
+        if ev.action == GLMakie.Keyboard.press
+            if ev.key == GLMakie.Keyboard.right
+                current_idx[] = current_idx[] == n ? 1 : current_idx[] + 1
+            elseif ev.key == GLMakie.Keyboard.left
+                current_idx[] = current_idx[] == 1 ? n : current_idx[] - 1
+            end
+        end
+    end
+
+    refresh!(1)
+    screen = display(GLMakie.Screen(), fig)
+    return (screen = screen, figure = fig, index = current_idx, entries = entries, jump_box = jump_box)
+end
+
+function element_nmax_browser(nmax_by_element::Dict{Inti.LagrangeElement, Vector{Int}}; sort_by::Symbol = :max, reverse_order::Bool = true)
+    isempty(nmax_by_element) && error("element_nmax_browser: empty dictionary")
+
+    entries = collect(nmax_by_element)
+    metric(vals) = sort_by == :mean ? mean(vals) : sort_by == :min ? minimum(vals) : sort_by == :p95 ? quantile(vals, 0.95) : maximum(vals)
+    sort!(entries; by = kv -> metric(kv.second), rev = reverse_order)
+
+    n = length(entries)
+    current_idx = GLMakie.Observable(1)
+
+    fig = GLMakie.Figure(size = (980, 780))
+    ax = GLMakie.Axis(
+        fig[1, 1],
+        xlabel = "x",
+        ylabel = "y",
+        title = "Element browser",
+    )
+    ax.aspect = GLMakie.DataAspect()
+
+    polygon_obs = GLMakie.Observable(GLMakie.Point2f[])
+    nodes_obs = GLMakie.Observable(GLMakie.Point2f[])
+    info_obs = GLMakie.Observable("")
+
+    GLMakie.lines!(ax, polygon_obs; color = :steelblue, linewidth = 3)
+    GLMakie.scatter!(ax, nodes_obs; color = :darkorange, markersize = 12)
+    GLMakie.Label(fig[2, 1], info_obs; tellwidth = false, justification = :left)
+
+    function refresh!(idx::Int)
+        el, nmax_vals = entries[idx]
+        x, y = _element_polygon_xy(el)
+
+        polygon_obs[] = [GLMakie.Point2f(xi, yi) for (xi, yi) in zip(x, y)]
+        nodes_obs[] = [GLMakie.Point2f(xi, yi) for (xi, yi) in zip(x[1:end-1], y[1:end-1])]
+
+        xpad = max(1e-8, 0.1 * max(maximum(x) - minimum(x), 1.0))
+        ypad = max(1e-8, 0.1 * max(maximum(y) - minimum(y), 1.0))
+        GLMakie.xlims!(ax, minimum(x) - xpad, maximum(x) + xpad)
+        GLMakie.ylims!(ax, minimum(y) - ypad, maximum(y) + ypad)
+
+        m_min = minimum(nmax_vals)
+        m_max = maximum(nmax_vals)
+        m_mean = round(mean(nmax_vals), digits = 2)
+        m_score = round(metric(nmax_vals), digits = 2)
+
+        kind = el isa Inti.LagrangeSquare ? "Quadrangle" : el isa Inti.LagrangeTriangle ? "Triangle" : string(typeof(el))
+        info_obs[] = string(
+            "Element ", idx, "/", n,
+            " | type=", kind,
+            " | nmax count=", length(nmax_vals),
+            " | min=", m_min,
+            " | max=", m_max,
+            " | mean=", m_mean,
+            " | score(", sort_by, ")=", m_score,
+            "\nControls: right arrow = next element, left arrow = previous element",
+        )
+    end
+
+    on(current_idx) do idx
+        refresh!(idx)
+    end
+
+    on(GLMakie.events(fig).keyboardbutton) do ev
+        if ev.action == GLMakie.Keyboard.press
+            if ev.key == GLMakie.Keyboard.right
+                current_idx[] = current_idx[] == n ? 1 : current_idx[] + 1
+            elseif ev.key == GLMakie.Keyboard.left
+                current_idx[] = current_idx[] == 1 ? n : current_idx[] - 1
+            end
+        end
+    end
+
+    refresh!(1)
+    screen = display(GLMakie.Screen(), fig)
+    return (screen = screen, figure = fig, index = current_idx, entries = entries)
 end
 
 function correlation_matrices(op, seed::Int, nb_elements::Int)
-    cases_quad, cases_tri = sampling(op, seed, nb_elements)
+    cases_quad, cases_tri, quads, quad_params, tris, tri_params = sampling(op, seed, nb_elements)
     X_quad = observation_matrix(cases_quad)
     X_tri = observation_matrix(cases_tri)
+    nmax_quad = _nmax_dictionary_from_cases(cases_quad)
+    nmax_tri = _nmax_dictionary_from_cases(cases_tri)
+    nmax_by_element = _merge_nmax_dictionaries(nmax_quad, nmax_tri)
     
-    names_quad = ["dist", "compactness", "min_angle", "side_ratio", "jacobian_ratio", "corner_dist", "target_error", "nmax"]
-    names_tri = ["dist", "compactness", "min_angle", "side_ratio", "jacobian_ratio", "corner_dist", "target_error", "nmax"]
+    names_quad = ["dist", "compactness", "min_angle", "side_ratio", "jacobian_ratio", "jacobian_at_point", "corner_dist", "target_error", "nmax"]
+    names_tri = ["dist", "compactness", "min_angle", "side_ratio", "jacobian_ratio", "jacobian_at_point", "corner_dist", "target_error", "nmax"]
+    all_cases = vcat(cases_quad, cases_tri)
 
-    return X_quad, X_tri, names_quad, names_tri
+    return X_quad, X_tri, names_quad, names_tri, quads, quad_params, tris, tri_params, nmax_by_element, all_cases
 end
 
 function plot_correlations(X_quad, X_tri, names_quad, names_tri)
@@ -368,12 +847,12 @@ function plot_correlations(X_quad, X_tri, names_quad, names_tri)
 end
 
 function plot_correlations(op, seed::Int, nb_elements::Int)
-    X_quad, X_tri, names_quad, names_tri = correlation_matrices(op, seed, nb_elements)
+    X_quad, X_tri, names_quad, names_tri, _, _, _, _, _, _ = correlation_matrices(op, seed, nb_elements)
     return plot_correlations(X_quad, X_tri, names_quad, names_tri)
 end
 
 function plot_nmax_partial_correlations(op, seed::Int, nb_elements::Int)
-    X_quad, X_tri, names_quad, names_tri = correlation_matrices(op, seed, nb_elements)
+    X_quad, X_tri, names_quad, names_tri, _, _, _, _, _, _ = correlation_matrices(op, seed, nb_elements)
     return nmax_partial_correlation_analysis(X_quad, X_tri, names_quad, names_tri)
 end
 

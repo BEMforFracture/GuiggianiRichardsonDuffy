@@ -77,6 +77,42 @@ end
 RANDOM SAMPLING
 ===========================================================================================#
 
+function _sample_with_extreme_bias_quad(rng, dist::Uniform; extreme_prob::Float64 = 0.45, tail_fraction::Float64 = 0.2)
+    a = minimum(dist)
+    b = maximum(dist)
+    width = (b - a) * tail_fraction
+    width <= 0 && return rand(rng, dist)
+
+    if rand(rng) < extreme_prob
+        if rand(rng) < 0.5
+            return rand(rng, Uniform(a, a + width))
+        else
+            return rand(rng, Uniform(b - width, b))
+        end
+    end
+
+    return rand(rng, dist)
+end
+
+function _sample_with_extreme_bias_quad(rng, dist::LogUniform; extreme_prob::Float64 = 0.45, tail_fraction::Float64 = 0.2)
+    a = minimum(dist)
+    b = maximum(dist)
+    la = log(a)
+    lb = log(b)
+    width = (lb - la) * tail_fraction
+    width <= 0 && return rand(rng, dist)
+
+    if rand(rng) < extreme_prob
+        if rand(rng) < 0.5
+            return exp(rand(rng, Uniform(la, la + width)))
+        else
+            return exp(rand(rng, Uniform(lb - width, lb)))
+        end
+    end
+
+    return rand(rng, dist)
+end
+
 """
     generate_random_quadrangles(N::Int;
         aspect_ratio_range = (0.5, 2.0),
@@ -103,11 +139,14 @@ Returns:
 - `params`: Vector of NamedTuples with (aspect_ratio, shear, trapezoid)
 """
 function generate_random_quadrangles(N::Int;
-    aspect_ratio_range = (0.5, 2.0),
-    shear_range = (-0.5, 0.5),
-    trapezoid_range = (-0.3, 0.3),
+    aspect_ratio_range = (0.35, 2.8),
+    shear_range = (-0.75, 0.75),
+    trapezoid_range = (-0.55, 0.55),
     perturb = 0.0,
     log_uniform_aspect = true,
+    extreme_bias = true,
+    extreme_prob = 0.45,
+    tail_fraction = 0.2,
     seed = nothing
 )
     rng = isnothing(seed) ? Random.GLOBAL_RNG : MersenneTwister(seed)
@@ -125,9 +164,15 @@ function generate_random_quadrangles(N::Int;
     params = []
     
     for i in 1:N
-        a = rand(rng, aspect_dist)
-        s = rand(rng, shear_dist)
-        t = rand(rng, trap_dist)
+        if extreme_bias
+            a = _sample_with_extreme_bias_quad(rng, aspect_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+            s = _sample_with_extreme_bias_quad(rng, shear_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+            t = _sample_with_extreme_bias_quad(rng, trap_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+        else
+            a = rand(rng, aspect_dist)
+            s = rand(rng, shear_dist)
+            t = rand(rng, trap_dist)
+        end
         
         el = build_quadrangle(a, s, t; perturb=perturb, rng=rng)
         push!(elements, el)

@@ -79,6 +79,42 @@ end
 RANDOM SAMPLING
 ===========================================================================================#
 
+function _sample_with_extreme_bias_tri(rng, dist::Uniform; extreme_prob::Float64 = 0.45, tail_fraction::Float64 = 0.2)
+    a = minimum(dist)
+    b = maximum(dist)
+    width = (b - a) * tail_fraction
+    width <= 0 && return rand(rng, dist)
+
+    if rand(rng) < extreme_prob
+        if rand(rng) < 0.5
+            return rand(rng, Uniform(a, a + width))
+        else
+            return rand(rng, Uniform(b - width, b))
+        end
+    end
+
+    return rand(rng, dist)
+end
+
+function _sample_with_extreme_bias_tri(rng, dist::LogUniform; extreme_prob::Float64 = 0.45, tail_fraction::Float64 = 0.2)
+    a = minimum(dist)
+    b = maximum(dist)
+    la = log(a)
+    lb = log(b)
+    width = (lb - la) * tail_fraction
+    width <= 0 && return rand(rng, dist)
+
+    if rand(rng) < extreme_prob
+        if rand(rng) < 0.5
+            return exp(rand(rng, Uniform(la, la + width)))
+        else
+            return exp(rand(rng, Uniform(lb - width, lb)))
+        end
+    end
+
+    return rand(rng, dist)
+end
+
 """
     generate_random_triangles(N::Int;
         aspect_ratio_range = (0.5, 2.0),
@@ -105,11 +141,14 @@ Returns:
 - `params`: Vector of NamedTuples with (aspect_ratio, skewness, elongation)
 """
 function generate_random_triangles(N::Int;
-    aspect_ratio_range = (0.5, 2.0),
-    skewness_range = (-1.0, 1.0),
-    elongation_range = (0.5, 1.5),
+    aspect_ratio_range = (0.35, 2.8),
+    skewness_range = (-1.4, 1.4),
+    elongation_range = (0.3, 1.9),
     perturb = 0.0,
     log_uniform_aspect = true,
+    extreme_bias = true,
+    extreme_prob = 0.45,
+    tail_fraction = 0.2,
     seed = nothing
 )
     rng = isnothing(seed) ? Random.GLOBAL_RNG : MersenneTwister(seed)
@@ -127,9 +166,15 @@ function generate_random_triangles(N::Int;
     params = []
     
     for i in 1:N
-        a = rand(rng, aspect_dist)
-        s = rand(rng, skewness_dist)
-        e = rand(rng, elongation_dist)
+        if extreme_bias
+            a = _sample_with_extreme_bias_tri(rng, aspect_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+            s = _sample_with_extreme_bias_tri(rng, skewness_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+            e = _sample_with_extreme_bias_tri(rng, elongation_dist; extreme_prob = extreme_prob, tail_fraction = tail_fraction)
+        else
+            a = rand(rng, aspect_dist)
+            s = rand(rng, skewness_dist)
+            e = rand(rng, elongation_dist)
+        end
         
         el = build_triangle(a, s, e; perturb=perturb, rng=rng)
         push!(elements, el)
