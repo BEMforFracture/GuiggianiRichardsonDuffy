@@ -84,7 +84,7 @@ the direction `θ`.
 # Returns
 - `ρ(θ)`: Function that computes the distance to the boundary at angle `θ`
 """
-function rho_fun(ref_domain, x̂)
+function rho_fun(ref_domain::Inti.ReferenceSquare, x̂)
 	decompo = Inti.polar_decomposition(ref_domain, x̂)
 	function ρ(θ)
 		if decompo[1][1] ≤ θ < decompo[1][2]
@@ -100,10 +100,29 @@ function rho_fun(ref_domain, x̂)
 	return ρ
 end
 
+function rho_fun(ref_domain::Inti.ReferenceTriangle, x̂)
+	decompo = Inti.polar_decomposition(ref_domain, x̂)
+	function ρ(θ)
+		if decompo[1][1] ≤ θ < decompo[1][2]
+			return decompo[1][3](θ)
+		elseif decompo[2][1] ≤ θ < decompo[2][2]
+			return decompo[2][3](θ)
+		else
+			return decompo[3][3](θ)
+		end
+	end
+	return ρ
+end
+
+function rho_fun(ref_domain, x̂)
+	error("rho_fun not implemented for reference domain of type $(typeof(ref_domain)).")
+end
+
 """
 	laurents_coeffs(
 		K::Inti.AbstractKernel, 
 		el::Inti.ReferenceInterpolant, 
+		ori,
 		û, 
 		x̂,
 		method::AbstractMethod = FullRichardsonExpansion(),
@@ -114,6 +133,7 @@ Compute Laurent coefficients `(f₋₂, f₋₁)` for the kernel `K` in polar co
 # Arguments
 - `K::Inti.AbstractKernel`: The kernel to expand
 - `el::Inti.ReferenceInterpolant`: The reference element
+- `ori`: Orientation of the element (used for normal computation)
 - `û`: Function defined on the reference element (density function)
 - `x̂`: Point on the reference element (singularity location)
 - `method::AbstractMethod`: Expansion method to use. Can be:
@@ -123,7 +143,7 @@ Compute Laurent coefficients `(f₋₂, f₋₁)` for the kernel `K` in polar co
   - `FullRichardsonExpansion(params)`: Full Richardson extrapolation (slowest, always available)
 
 # Returns
-- `ℒ(θ)`: A memoized function that returns `(f₋₂, f₋₁)` for a given angle `θ`
+- `ℒ(θ)`: A function that returns `(f₋₂, f₋₁)` for a given angle `θ`
 
 # Examples
 ```julia
