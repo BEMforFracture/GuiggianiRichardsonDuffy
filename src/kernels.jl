@@ -128,8 +128,8 @@ function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Elastostatic{N
 	ny = Inti.normal(source)
 
 	if N == 3
-		K̂ = -1 / (4π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(ny) - ny * transpose(r̂)))
-		return (1 / d^2, K̂)
+		K̂ = 1 / (8π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(ny) - ny * transpose(r̂)))
+		return (-1 / d^2, K̂)
 	else
 		notimplemented()
 	end
@@ -142,7 +142,7 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Elastos
 	nx = Inti.normal(target)
 
 	if N == 3
-		K̂ = 1 / (4π * (1 - ν)) * (dot(r̂, nx) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(nx) - nx * transpose(r̂)))
+		K̂ = 1 / (8π * (1 - ν)) * (dot(r̂, nx) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(nx) - nx * transpose(r̂)))
 		return (-1 / d^2, K̂)
 	else
 		notimplemented()
