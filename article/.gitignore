@@ -1,0 +1,23 @@
+﻿# Dossier build
+build/
+
+# Fichiers auxiliaires LaTeX
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.vrb
+
+# Fichiers temporaires
+*~
+*.backup
+.DS_Store
