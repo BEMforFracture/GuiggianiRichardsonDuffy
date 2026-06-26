@@ -68,7 +68,6 @@ Data mining is a good way to find the relationship between raw data and predict 
 % keywords can be removed
 %\keywords{First keyword \and Second keyword \and More}
 
-
 \section{Introduction}
 Our project is a competition on Kaggle (Predict Future Sales). We are provided with daily historical sales data (including each products’ sale date, block ,shop price and amount). And we will use it to forecast the total amount of each product sold next month. Because of the list of shops and products slightly changes every month. We need to create a robust model that can handle such situations.
 
@@ -81,6 +80,82 @@ Let's consider an finite part integral of the form
 \begin{equation}
     I = \ddashint_{\hat{\tau}}f(\hat{\mathbf y})\mathrm d\hat{\mathbf y}, \qquad f(\hat{\mathbf y}) \underset{\hat{\mathbf y} \to \hat{\mathbf x}}{\sim} \frac{1}{|| \hat{\mathbf y} - \hat{\mathbf x}||^{d+1}}.
 \end{equation}
+
+\section{Injecting Richardson extrapolation into Guiggiani's final formula}
+\subsection{Richardson extrapolation}
+
+For any angle $\theta$, let's consider a finite sequence of $n$ radial points $\rho_i(\theta)$ such that
+
+\begin{equation}
+  0 < \rho_1(\theta) < \rho_2(\theta) < \cdots < \rho_n(\theta) < \hat{\rho}(\theta),
+\end{equation}
+
+\noindent \textbf{Recall}: we can express the two first terms of the Laurent expansion of the complete polar kernel $F(\rho, \theta) = \rho K(\chi(\hat{\mathbf x}), \chi(\hat{\mathbf y}(\rho, \theta)))J(\hat{\mathbf y}(\rho, \theta))\hat u(\hat{\mathbf y}(\rho, \theta))$ as the following limits
+
+\begin{equation}
+  F_{-2}(\theta) = \lim_{\rho \to 0} \rho^2 F(\rho, \theta), \qquad F_{-1}(\theta) = \lim_{\rho \to 0} \rho\left(F(\rho, \theta) - \frac{F_{-2}(\theta)}{\rho^2}\right).
+\end{equation}
+
+such that we can write the complete polar kernel as
+
+\begin{equation}
+  F(\rho, \theta) = \frac{F_{-2}(\theta)}{\rho^2} + \frac{F_{-1}(\theta)}{\rho} + \underset{\rho\to 1}{\mathcal O}(1)
+\end{equation}
+
+Let $c_{1, i}$ and $c_{2, i}$ be the coefficients used in the Richardson extrapolation of order $n$ to compute the previous limits, so that we can write
+
+\begin{equation}
+  \boxed{F_{-2}(\theta) = \sum_{i=1}^{n} c_{2, i} \rho_i^2(\theta) F(\rho_i(\theta), \theta)}, \qquad F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta)\left(F(\rho_i(\theta), \theta) - \frac{F_{-2}(\theta)}{\rho_i^2(\theta)}\right).
+\end{equation}
+
+By injecting the formula of $F_{-2}(\theta)$ into the formula of $F_{-1}(\theta)$, so that we can write $F_{-1}(\theta)$ only as a linear combination of the complete polar kernel evaluated at the radial points $\rho_i(\theta)$, we obtain
+
+\begin{equation*}
+  F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta) F(\rho_i(\theta), \theta) - \sum_{i=1}^{n} c_{1, i} \frac{1}{\rho_i(\theta)}\sum_{j=1}^{n} c_{2, j} \rho_j^2(\theta) F(\rho_j(\theta), \theta).
+\end{equation*}
+
+By letting $P_n(\theta) = \sum_{k=1}^{n}\frac{1}{\rho_k(\theta)}$ be a constant that is a polynomial in $\cos\theta$ and $\sin\theta$, we can write the previous formula as
+
+\begin{equation}
+  \boxed{F_{-1}(\theta) = \sum_{i=1}^{n} F(\rho_i(\theta), \theta)\rho_i(\theta)\Big(c_{1, i} - c_{2, i}P_n(\theta)\rho_i(\theta)\Big)}
+\end{equation}
+
+\subsection{Final quadrature rule}
+
+Let's then denote $I(\theta)$ the integral of the complete polar kernel over the radial direction, defined as:
+
+\begin{equation}
+  I(\theta) = \int_{0}^{\hat{\rho}(\theta)} \left\{F(\rho, \theta) - \frac{F_{-1}(\theta)}{\rho} - \frac{F_{-2}(\theta)}{\rho^2}\right\}\mathrm d\rho + F_{-1}(\theta)\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right| - F_{-2}(\theta)\left\{\frac{\gamma(\theta)}{\beta^2(\theta)}+\frac{1}{\hat\rho(\theta)}\right\}
+\end{equation}
+
+A final quadrature rule for it is the following:
+
+\begin{equation}
+  I(\theta) \approx \tilde I(\theta) = \sum_{i=1}^{n} \widetilde w_i(\theta) F(\rho_i(\theta), \theta)
+\end{equation}
+
+With the new weights $\tilde w_i(\theta)$ defined as
+
+\begin{align*}
+  \widetilde{w}_i(\theta) & = w_i(\theta) - c_{1,i}\rho_i(\theta)W_{-1} + c_{2,i}\rho_i^2(\theta)\left(P_n(\theta)W_{-1} - W_{-2}(\theta)\right) + \\
+  & \rho_i(\theta)\left\{\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right|\left(c_{1,i} - P_{n}(\theta)c_{2,i}\rho_i(\theta)\right) - \left(\frac{\gamma(\theta)}{\beta^2(\theta)} + \frac{1}{\hat\rho(\theta)}\right)c_{2,i}\rho_i(\theta)\right\}
+\end{align*}
+
+and the auxiliary constants : 
+
+\begin{itemize}
+  \item $w_i(\theta) = \frac{\hat\rho(\theta)}{2}w_i^{(\text{Ref})}$ are the weights of the reference quadrature over the segment $[-1, 1]$.
+  \item $W_{-1} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i(\theta)}$.
+  \item $W_{-2} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i^2(\theta)}$.
+\end{itemize}
+
+\textbf{Remark}: in the case of Gauss-Legendre quadrature, the constants $W_{-1}$ and $W_{-2}$ can be computed analytically as:
+
+\begin{equation}
+  W_{-1} = 2H_n, \qquad W_{-2}(\theta) = \frac{2}{\hat\rho(\theta)}n(n+1)
+\end{equation}
+
+With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number.
 
 % \bibliographystyle{unsrt}  
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
