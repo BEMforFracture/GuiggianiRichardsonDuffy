@@ -144,9 +144,9 @@ With the new weights $\tilde w_i(\theta)$ defined as
 and the auxiliary constants : 
 
 \begin{itemize}
-  \item $w_i(\theta) = \frac{\hat\rho(\theta)}{2}w_i^{(\text{Ref})}$ are the weights of the reference quadrature over the segment $[-1, 1]$.
-  \item $W_{-1} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i(\theta)}$.
-  \item $W_{-2} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i^2(\theta)}$.
+  \item $w_i(\theta) = \frac{\hat\rho(\theta)}{2}w_i^{\text{Ref}}$ are the weights of the reference quadrature over the segment $[-1, 1]$.
+  \item $W_{-1} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i(\theta)} = \sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{1+x_i^{\text{Ref}}}$.
+  \item $W_{-2}(\theta) = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i^2(\theta)} = \frac{2}{\hat\rho(\theta)}\sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{\left(1+x_i^{\text{Ref}}\right)^2}$.
 \end{itemize}
 
 \textbf{Remark}: in the case of Gauss-Legendre quadrature, the constants $W_{-1}$ and $W_{-2}$ can be computed analytically as:
