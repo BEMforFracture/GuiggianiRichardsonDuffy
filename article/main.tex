@@ -82,7 +82,7 @@ Let's consider an finite part integral of the form
 \end{equation}
 
 \section{Injecting Richardson extrapolation into Guiggiani's final formula}
-\subsection{Richardson extrapolation}
+\subsection{Richardson extrapolation - general idea}
 
 For any angle $\theta$, let's consider a finite sequence of $n$ radial points $\rho_i(\theta)$ such that
 
@@ -105,20 +105,60 @@ such that we can write the complete polar kernel as
 Let $c_{1, i}$ and $c_{2, i}$ be the coefficients used in the Richardson extrapolation of order $n$ to compute the previous limits, so that we can write
 
 \begin{equation}
-  \boxed{F_{-2}(\theta) = \sum_{i=1}^{n} c_{2, i} \rho_i^2(\theta) F(\rho_i(\theta), \theta)}, \qquad F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta)\left(F(\rho_i(\theta), \theta) - \frac{F_{-2}(\theta)}{\rho_i^2(\theta)}\right).
+  \boxed{F_{-2}(\theta) \approx \widetilde F_{-2}(\theta) = \sum_{i=1}^{n} c_{2, i} \rho_i^2(\theta) F(\rho_i(\theta), \theta)}, \qquad F_{-1}(\theta) \approx \widetilde F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta)\left(F(\rho_i(\theta), \theta) - \frac{\widetilde F_{-2}(\theta)}{\rho_i^2(\theta)}\right).
 \end{equation}
 
-By injecting the formula of $F_{-2}(\theta)$ into the formula of $F_{-1}(\theta)$, so that we can write $F_{-1}(\theta)$ only as a linear combination of the complete polar kernel evaluated at the radial points $\rho_i(\theta)$, we obtain
+By injecting the formula of $\widetilde F_{-2}(\theta)$ into the formula of $\widetilde F_{-1}(\theta)$, so that we can write $\widetilde F_{-1}(\theta)$ only as a linear combination of the complete polar kernel evaluated at the radial points $\rho_i(\theta)$, we obtain
 
 \begin{equation*}
-  F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta) F(\rho_i(\theta), \theta) - \sum_{i=1}^{n} c_{1, i} \frac{1}{\rho_i(\theta)}\sum_{j=1}^{n} c_{2, j} \rho_j^2(\theta) F(\rho_j(\theta), \theta).
+  \widetilde F_{-1}(\theta) = \sum_{i=1}^{n} c_{1, i} \rho_i(\theta) F(\rho_i(\theta), \theta) - \sum_{i=1}^{n} c_{1, i} \frac{1}{\rho_i(\theta)}\sum_{j=1}^{n} c_{2, j} \rho_j^2(\theta) F(\rho_j(\theta), \theta).
 \end{equation*}
 
 By letting $P_n(\theta) = \sum_{k=1}^{n}\frac{1}{\rho_k(\theta)}$ be a constant that is a polynomial in $\cos\theta$ and $\sin\theta$, we can write the previous formula as
 
 \begin{equation}
-  \boxed{F_{-1}(\theta) = \sum_{i=1}^{n} F(\rho_i(\theta), \theta)\rho_i(\theta)\Big(c_{1, i} - c_{2, i}P_n(\theta)\rho_i(\theta)\Big)}
+  \boxed{\widetilde F_{-1}(\theta) = \sum_{i=1}^{n} F(\rho_i(\theta), \theta)\rho_i(\theta)\Big(c_{1, i} - c_{2, i}P_n(\theta)\rho_i(\theta)\Big)}
 \end{equation}
+
+\subsection{Lagrange basis method}
+
+For this section and the following, we will no longer use $\theta$ in the notation, it will be implicit. Let's denote the regular function $G(\rho) = \rho^2 F(\rho)$, so that $G(0) = F_{-2}$ and $G'(0) = F_{-1}$. Let $\ell_i(\rho)$ be the Lagrange basis of degree $n-1$ associated to the radial points $\rho_i$, defined as
+
+\begin{equation}
+  \ell_i(\rho) = \prod_{j\neq i}\frac{\rho - \rho_j}{\rho_i - \rho_j}, \qquad i = 1, \dots, n.
+\end{equation}
+
+The lagrange interpolant of $G$ and its derivative are given by
+
+\begin{equation}
+  \Pi_{n-1}G(\rho) = \sum_{i=1}^{n} G(\rho_i)\ell_i(\rho), \qquad (\Pi_{n-1}G)'(\rho) = \sum_{i=1}^{n} G(\rho_i)\ell_i'(\rho).
+\end{equation}
+
+So that the numerical Laurent's coefficients, denoted $\widetilde F_{-2}$ and $\widetilde F_{-1}$, are simply the evaluation of the interpolant and its derivative at the origin $\rho = 0$:
+
+\begin{equation}
+  \widetilde F_{-2} = \Pi_{n-1}G(0) = \sum_{i=1}^{n} G(\rho_i)\ell_i(0), \qquad \widetilde F_{-1} = (\Pi_{n-1}G)'(0) = \sum_{i=1}^{n} G(\rho_i)\ell_i'(0).
+\end{equation}
+
+with $\displaystyle{\ell_i(0) = \prod_{j\neq i}\frac{\rho_j}{\rho_j - \rho_i}}$ and $\displaystyle{\ell_i'(0) = \ell_i(0)\left(\frac{1}{\rho_i} - P_n\right)}$, so that we can finally write the Laurent's coefficients as
+
+\begin{equation}
+  \widetilde F_{-2} = \sum_{i=1}^{n} \ell_i(0)\rho_i^2 F(\rho_i), \qquad \widetilde F_{-1} = \sum_{i=1}^{n} \ell_i(0)\rho_i\left(1 - P_n\rho_i\right)F(\rho_i).
+\end{equation}
+
+This is a particular case of the Richardson extrapolation, with the two families of coefficients $c_{1, i}$ and $c_{2, i}$ collapsing into a single family of coefficients $\ell_i(0)$:
+
+$$c_{1, i} = c_{2, i} = \ell_i(0) = c_i = \prod_{j\neq i}\frac{\rho_j}{\rho_j - \rho_i}.$$
+
+Finally, the numerical Laurent's coefficients can be written as
+
+\begin{equation}
+  \widetilde F_{-2}(\theta) = \sum_{i=1}^{n}A_i(\theta)F(\rho_i(\theta), \theta), \qquad \widetilde F_{-1}(\theta) = \sum_{i=1}^{n}B_i(\theta)F(\rho_i(\theta), \theta).
+\end{equation}
+
+With $A_i(\theta) = c_i(\theta)\rho_i^2(\theta)$ and $B_i(\theta) = c_i(\theta)\rho_i(\theta)\left(1 - P_n(\theta)\rho_i(\theta)\right)$.
+
+Each of these formula simply consist in the numerical evaluation of the polar kernel at the radial points $\rho_i(\theta)$, multiplied by some weights.
 
 \subsection{Final quadrature rule}
 
@@ -131,14 +171,13 @@ Let's then denote $I(\theta)$ the integral of the complete polar kernel over the
 A final quadrature rule for it is the following:
 
 \begin{equation}
-  I(\theta) \approx \tilde I(\theta) = \sum_{i=1}^{n} \widetilde w_i(\theta) F(\rho_i(\theta), \theta)
+  I(\theta) \approx \widetilde I(\theta) = \sum_{i=1}^{n} \widetilde w_i(\theta) F(\rho_i(\theta), \theta)
 \end{equation}
 
-With the new weights $\tilde w_i(\theta)$ defined as
+With the new weights $\widetilde w_i(\theta)$ defined as
 
 \begin{align*}
-  \widetilde{w}_i(\theta) & = w_i(\theta) - c_{1,i}\rho_i(\theta)W_{-1} + c_{2,i}\rho_i^2(\theta)\left(P_n(\theta)W_{-1} - W_{-2}(\theta)\right) + \\
-  & \rho_i(\theta)\left\{\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right|\left(c_{1,i} - P_{n}(\theta)c_{2,i}\rho_i(\theta)\right) - \left(\frac{\gamma(\theta)}{\beta^2(\theta)} + \frac{1}{\hat\rho(\theta)}\right)c_{2,i}\rho_i(\theta)\right\}
+  \widetilde{w}_i(\theta) & = w_i(\theta) - A_i(\theta)\left\{W_{-2}(\theta) + \frac{\gamma(\theta)}{\beta^2(\theta)} + \frac{1}{\hat\rho(\theta)}\right\} + B_i(\theta)\left\{\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right| - W_{-1}\right\}
 \end{align*}
 
 and the auxiliary constants : 
@@ -155,132 +194,7 @@ and the auxiliary constants :
   W_{-1} = 2H_n, \qquad W_{-2}(\theta) = \frac{2}{\hat\rho(\theta)}n(n+1)
 \end{equation}
 
-With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number.
-
-\section{Why the regularised sum converges: an exact polynomial identity}
-\textit{(This section was written by Claude, Anthropic, at the author's request. The central identity \eqref{eq:exact-reduction} below was verified numerically.)}
-
-\medskip
-
-Throughout this section we fix $\theta$ and suppress it from the notation, writing $F_i = F(\rho_i, \theta)$, $w_i$, $\rho_i$, $\hat\rho$, etc. We focus on the contribution of the \emph{first line} of the weights $\widetilde w_i$ of Section 4.2, namely
-\begin{equation}
-  S_n \;:=\; \sum_{i=1}^{n}\Big[\,w_i - c_{1,i}\,\rho_i\,W_{-1} + c_{2,i}\,\rho_i^2\big(P_n W_{-1} - W_{-2}\big)\Big]F_i,
-\end{equation}
-which is the discretisation of the regular integral $\int_0^{\hat\rho}\{F - F_{-1}/\rho - F_{-2}/\rho^2\}\,\mathrm d\rho$ of equation (7). The remaining ($\ln$ and $1/\hat\rho$) terms of $\widetilde w_i$ merely multiply the finite constants $F_{-1}, F_{-2}$ and raise no difficulty; only $S_n$ does, for the reason recalled now.
-
-\subsection{The apparent paradox}
-
-Let us write $\widehat F_{-1}, \widehat F_{-2}$ for the \emph{computed} (extrapolated) values, i.e. the right-hand sides of the boxed formulas (5)--(6), to distinguish them from the exact limits (3). Collecting (5)--(6), a direct rearrangement gives
-\begin{equation}
-  S_n \;=\; \sum_{i=1}^{n} w_i F_i \;-\; \widehat F_{-1}\,W_{-1} \;-\; \widehat F_{-2}\,W_{-2}
-       \;=\; \sum_{i=1}^{n} w_i\Big(F_i - \frac{\widehat F_{-1}}{\rho_i} - \frac{\widehat F_{-2}}{\rho_i^2}\Big)
-       \;=:\; \mathrm{GL}_n[\,h_n\,],
-\end{equation}
-the $n$-point Gauss--Legendre rule applied to $h_n(\rho) = F(\rho) - \widehat F_{-1}/\rho - \widehat F_{-2}/\rho^2$.
-
-By the Remark of Section 4.2, $W_{-1} = 2H_n \to \infty$ and $W_{-2} = \tfrac{2}{\hat\rho}n(n+1)\to\infty$. Since $\widehat F_{-1}, \widehat F_{-2}$ converge to the finite limits $F_{-1}, F_{-2}$, the pieces $\sum_i w_i F_i$ and $\widehat F_{-2}W_{-2}$ each diverge \emph{quadratically} in $n$ (both behaving like $F_{-2}\,\tfrac{2}{\hat\rho}n^2$), while $\widehat F_{-1}W_{-1}$ diverges \emph{logarithmically}; yet $S_n$ converges. This is the exact arithmetic counterpart of the continuous mechanism: neither $F_{-1}/\rho$ nor $F_{-2}/\rho^2$ is integrable at $0$, but their combination with $F$ is. The conjecture that the arithmetic divergences cancel through the weights $w_i$, exactly as the continuous singular terms cancel through $F$, is correct. We prove it below \emph{without ever estimating the divergent pieces} -- and, in particular, without invoking any (exponential) convergence rate of the extrapolation.
-
-\subsection{Extrapolation is interpolation of $G = \rho^2 F$}
-
-Set $G(\rho) := \rho^2 F(\rho)$, a regular function with $G(0) = F_{-2}$ and $G'(0) = F_{-1}$ (compare (3)). Let
-\[
-  \ell_i(\rho) = \prod_{j\neq i}\frac{\rho - \rho_j}{\rho_i - \rho_j}, \qquad \Pi_{n-1}G = \sum_{i=1}^{n} G(\rho_i)\,\ell_i,
-\]
-denote the Lagrange basis and the degree-$(n-1)$ polynomial interpolating $G$ at the nodes.
-
-\medskip
-\noindent\textbf{Lemma.} \emph{The Richardson coefficients are the Lagrange weights at the origin, $c_{1,i} = c_{2,i} = \ell_i(0)$, and}
-\begin{equation}
-  \widehat F_{-2} = \big(\Pi_{n-1}G\big)(0), \qquad \widehat F_{-1} = \big(\Pi_{n-1}G\big)'(0).
-\end{equation}
-
-\noindent\emph{Proof.} Since $\rho_i^2 F_i = G(\rho_i)$, formula (5) reads $\widehat F_{-2} = \sum_i \ell_i(0) G(\rho_i) = (\Pi_{n-1}G)(0)$. Logarithmic differentiation of $\ell_i$ gives $\ell_i'(\rho)/\ell_i(\rho) = \sum_{j\neq i}(\rho-\rho_j)^{-1}$, hence at $\rho = 0$,
-\[
-  \ell_i'(0) = \ell_i(0)\Big(\tfrac{1}{\rho_i} - P_n\Big),
-\]
-using $P_n = \sum_k 1/\rho_k$. Evaluating the identities $\sum_i \ell_i \equiv 1$ and $\sum_i \ell_i' \equiv 0$ at $0$ yields $\sum_i \ell_i(0)/\rho_i = P_n$. Therefore
-\[
-  \big(\Pi_{n-1}G\big)'(0) = \sum_i G(\rho_i)\,\ell_i'(0) = \sum_i \rho_i F_i\,\ell_i(0) - P_n\,\widehat F_{-2},
-\]
-which is precisely the collapsed formula (6) with $c_{1,i} = c_{2,i} = \ell_i(0)$. \hfill$\square$
-
-\medskip
-In words: the construction returns the first two Taylor coefficients at $\rho = 0$ of the interpolating polynomial of $G$.
-
-\subsection{The exact reduction}
-
-\noindent\textbf{Proposition.} \emph{For $n \geq 3$,}
-\begin{equation}\label{eq:exact-reduction}
-  \boxed{\;S_n = \int_0^{\hat\rho} Q_n(\rho)\,\mathrm d\rho\;}, \qquad
-  Q_n(\rho) := \frac{\Pi_{n-1}G(\rho) - \widehat F_{-2} - \widehat F_{-1}\,\rho}{\rho^2} \in \mathbb P_{n-3}.
-\end{equation}
-\emph{(For $n \leq 2$, $Q_n \equiv 0$ and $S_n = 0$.)}
-
-\medskip
-\noindent\emph{Proof.} By the Lemma, the numerator of $Q_n$ is $\Pi_{n-1}G$ minus its own degree-$1$ Taylor part at $0$; it therefore vanishes to second order at $0$, and dividing by $\rho^2$ leaves a polynomial of degree $(n-1) - 2 = n-3$. At each node, $\Pi_{n-1}G(\rho_i) = G(\rho_i) = \rho_i^2 F_i$, so
-\[
-  Q_n(\rho_i) = F_i - \frac{\widehat F_{-1}}{\rho_i} - \frac{\widehat F_{-2}}{\rho_i^2} = h_n(\rho_i).
-\]
-Hence $S_n = \mathrm{GL}_n[h_n] = \sum_i w_i Q_n(\rho_i) = \mathrm{GL}_n[Q_n]$. Since $\deg Q_n = n-3 \leq 2n-1$, the $n$-point Gauss--Legendre rule integrates $Q_n$ exactly, which gives the claim. \hfill$\square$
-
-\medskip
-This is the heart of the matter. The regularised sum is, \emph{identically}, the integral over $[0,\hat\rho]$ of a bounded polynomial of degree $n-3$. There is no genuine cancellation catastrophe in exact arithmetic: the divergence of $W_{-1}, W_{-2}$ merely reflects that a single finite number, $\int_0^{\hat\rho}Q_n$, has been expressed in a basis whose individual coordinates blow up. In particular $S_n$ is finite and $O(1)$ for every $n$, under no hypothesis on $F$ beyond the existence of the two-term Laurent expansion (4). This is the precise content of the proposed analogy between the discrete and the continuous regularisations.
-
-(The conditioning of \emph{evaluating} $S_n$ in floating-point arithmetic --- the growth of $\sum_i |\widetilde w_i|$ --- is a separate and genuine matter, not addressed here.)
-
-\subsection{Convergence without analyticity}
-
-Let $R := \int_0^{\hat\rho} h_\infty\,\mathrm d\rho$ be the exact regular integral, with
-\[
-  h_\infty(\rho) = F - \frac{F_{-1}}{\rho} - \frac{F_{-2}}{\rho^2} = \frac{G(\rho) - G(0) - G'(0)\rho}{\rho^2}.
-\]
-Writing $E := \Pi_{n-1}G - G$ for the interpolation error and subtracting from \eqref{eq:exact-reduction},
-\begin{equation}
-  S_n - R = \int_0^{\hat\rho}\big(Q_n - h_\infty\big)\,\mathrm d\rho
-          = \int_0^{\hat\rho}\frac{E(\rho) - E(0) - E'(0)\rho}{\rho^2}\,\mathrm d\rho.
-\end{equation}
-The integral form of the Taylor remainder, $E(\rho) - E(0) - E'(0)\rho = \int_0^\rho (\rho - s)\,E''(s)\,\mathrm ds$, gives $|E(\rho) - E(0) - E'(0)\rho| \leq \tfrac{\rho^2}{2}\sup_{[0,\rho]}|E''|$, whence
-\begin{equation}
-  \boxed{\;\big|S_n - R\big| \;\leq\; \frac{\hat\rho}{2}\,\big\lVert (\Pi_{n-1}G)'' - G'' \big\rVert_{\infty,\,[0,\hat\rho]}\;.}
-\end{equation}
-Thus $S_n \to R$ as soon as the interpolant of $G = \rho^2 F$ converges in $C^2[0,\hat\rho]$. For Gauss--Legendre nodes this holds whenever $G$ possesses a fixed finite number of continuous derivatives --- by Jackson's theorem on best polynomial approximation, combined with the Markov--Bernstein inequalities controlling the two derivatives against the (slowly growing, $O(\sqrt n)$) Lebesgue constant of the Legendre nodes. The resulting rate is \emph{algebraic}, set by the smoothness of $G$ alone; analyticity of $F$, and hence the exponential convergence of the underlying Richardson process, is sufficient but in no way necessary.
-
-Two points deserve emphasis. First, the divergent constants $W_{-1}, W_{-2}$ have vanished entirely from the error bound: the regularisation has already been performed exactly, at the algebraic level, by the Proposition, so the cancellation never needs to be estimated. Second, the bound is conservative --- the pointwise factor $\sup|E''|$ ignores the cancellation provided by integration against $\mathrm d\rho$, so the observed convergence is typically faster. As an illustration, take $G(\rho) = 1 + \rho + \rho^{9/2}$ (so that $F$ is genuinely singular, $F_{-1} = F_{-2} = 1$, and $G \in C^4 \setminus C^5$, hence not analytic) on $[0,1]$: one measures $|S_n - R| = O(n^{-6.7})$ while $W_{-2} = \tfrac{2}{\hat\rho}n(n+1)$ grows quadratically --- a clean numerical confirmation that the apparent divergence is harmless and that the convergence is algebraic, governed purely by the regularity of $\rho^2 F$.
-
-\section{The final quadrature rule with a single extrapolation coefficient}
-\textit{(This section, like Section 5, was written by Claude, Anthropic, at the author's request.)}
-
-\medskip
-
-Leaning on Section 5 --- whose Lemma (§5.2) showed that the two families of Richardson coefficients coincide and equal the Lagrange weights at the origin --- we record the final quadrature rule in its most compact form. For each $\theta$ define the single coefficient
-\begin{equation}
-  c_i(\theta) \;:=\; c_{1,i}(\theta) = c_{2,i}(\theta) = \ell_i(0)
-              \;=\; \prod_{\substack{j=1\\ j\neq i}}^{n}\frac{\rho_j(\theta)}{\rho_j(\theta)-\rho_i(\theta)},
-\end{equation}
-characterised equivalently by the moment conditions
-\begin{equation}
-  \sum_{i=1}^{n} c_i(\theta)\,\rho_i^{\,k}(\theta) = \delta_{k0}, \qquad k = 0,1,\dots,n-1,
-\end{equation}
-which give in particular $\sum_i c_i = 1$ and $\sum_i c_i/\rho_i = P_n(\theta)$.
-
-This collapse to a \emph{single} coefficient relies on the Laurent expansion (4) proceeding in integer powers of $\rho$ --- the gauge $\varphi_j(\rho) = \rho^j$, i.e.\ $p = 1$ in the notation of the companion note on Richardson extrapolation. Both $F_{-2} = G(0)$ and $F_{-1} = G'(0)$ are then read off the single interpolant $\Pi_{n-1}G$ of $G = \rho^2 F$, which is what forces $c_{1,i} = c_{2,i}$.
-
-With this notation the extrapolated coefficients (5)--(6) read
-\begin{equation}
-  F_{-2}(\theta) = \sum_{i=1}^{n} c_i(\theta)\,\rho_i^2(\theta)\,F_i, \qquad
-  F_{-1}(\theta) = \sum_{i=1}^{n} c_i(\theta)\,F_i\,\rho_i(\theta)\big(1 - P_n(\theta)\,\rho_i(\theta)\big),
-\end{equation}
-with $F_i = F(\rho_i(\theta), \theta)$. The final quadrature rule is
-\begin{equation}
-  I(\theta) \approx \tilde I(\theta) = \sum_{i=1}^{n} \widetilde w_i(\theta)\,F(\rho_i(\theta), \theta),
-\end{equation}
-where the single coefficient $c_i\rho_i$ now factors out of every correction term:
-\begin{equation}\label{eq:final-weight}
-  \boxed{\;\widetilde w_i(\theta) = w_i(\theta) + c_i(\theta)\,\rho_i(\theta)\left[\big(1 - P_n(\theta)\,\rho_i(\theta)\big)\left(\ln\Big|\tfrac{\hat\rho(\theta)}{\beta(\theta)}\Big| - W_{-1}\right) - \rho_i(\theta)\left(W_{-2}(\theta) + \tfrac{\gamma(\theta)}{\beta^2(\theta)} + \tfrac{1}{\hat\rho(\theta)}\right)\right].\;}
-\end{equation}
-The auxiliary constants $w_i(\theta)$, $W_{-1}$, $W_{-2}(\theta)$ and $P_n(\theta)$ are exactly as in Section 4.2; for Gauss--Legendre nodes, $W_{-1} = 2H_n$ and $W_{-2}(\theta) = \tfrac{2}{\hat\rho(\theta)}\,n(n+1)$.
-
-Two structural remarks close the construction. First, the factor $\big(1 - P_n\rho_i\big)$ multiplying the logarithmic group is exactly the one already carried by $F_{-1}$ above: the bracket separates cleanly the contribution attached to $\ln|\hat\rho/\beta|$ (the regular integral and the logarithmic term) from that attached to the $1/\rho^2$ free term (collected in $W_{-2} + \gamma/\beta^2 + 1/\hat\rho$). Second, the purely algebraic part of \eqref{eq:final-weight} --- the terms in $w_i$, $-W_{-1}$ and $-W_{-2}$, obtained by dropping the $\ln$ and free-term contributions --- is precisely the quantity $S_n(\theta)$ of Section 5, hence equals the exact integral of a polynomial of degree $n-3$; this is what guarantees that \eqref{eq:final-weight} stays bounded as $n$ grows despite $W_{-1}, W_{-2} \to \infty$.
+With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number. These last two formulas are, for the moment, a conjecture. (Elaborate to prove it?)
 
 % \bibliographystyle{unsrt}
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
