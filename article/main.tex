@@ -196,6 +196,46 @@ and the auxiliary constants :
 
 With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number. These last two formulas are, for the moment, a conjecture. (Elaborate to prove it?)
 
+\subsection{Convergence and error study}
+
+To begin our reasoning, assume that we have computed the Laurent's coefficients up to a relative error $\epsilon_{-k}$, $k\in\{1, 2\}$:
+
+\begin{equation}
+  F_{k} = \widetilde F_{-k}(1+\epsilon_{-k}), \qquad k\in\{1, 2\}
+\end{equation}
+
+Now let's denote
+
+\begin{align}
+  G(\rho, \theta) & = F(\rho, \theta) - \frac{F_{-1}(\theta)}{\rho} - \frac{F_{-2}(\theta)}{\rho^2} \\
+\widetilde G(\rho, \theta) & = F(\rho, \theta) - \frac{\widetilde F_{-1}(\theta)}{\rho} - \frac{\widetilde F_{-2}(\theta)}{\rho^2} \\
+\end{align}
+
+\begin{equation}
+  I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}G(\rho, \theta)\mathrm d\rho\mathrm d\theta, \qquad \widetilde I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}\widetilde G(\rho, \theta)\mathrm d\rho\mathrm d\theta
+\end{equation}
+
+On one hand, after the theory of the Bernstein's ellipses, if we assume that $G$ and $\widetilde G$ are analytic, we can make a error majoration regarding the Gauss-Legendre quadrature of $I$ and $\widetilde I$:
+
+\begin{align}
+  \left|I - Q_n[G]\right| & \leq \frac{64}{15}\frac{M}{(1 - \rho_B^{-2})\rho_B^{2n}} \\
+  \left|\widetilde I - Q_n[\widetilde G]\right| & \leq \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
+\end{align}
+
+On the other hand, we can substract $\widetilde I$ to $I$ to get:
+
+\begin{equation}
+  |I - \widetilde I| \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}(1+\max F_{-k})
+\end{equation}
+
+where $\displaystyle{C(\hat x) = \int_{0}^{2\pi}\hat\rho(\theta)\mathrm d\theta}$.
+
+Thus, 
+
+\begin{align}
+  |I - Q_n[\widetilde G]| & = |I - \widetilde I + \widetilde I - Q_n[\widetilde G]| & \leq |I - \widetilde I| + |\widetilde I - Q_n[\widetilde G]| & \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}(1+\max F_{-k}) + \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
+\end{align}
+
 % \bibliographystyle{unsrt}
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
 %%% and comment out the ``thebibliography'' section.
