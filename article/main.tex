@@ -160,6 +160,29 @@ With $A_i(\theta) = c_i(\theta)\rho_i^2(\theta)$ and $B_i(\theta) = c_i(\theta)\
 
 Each of these formula simply consist in the numerical evaluation of the polar kernel at the radial points $\rho_i(\theta)$, multiplied by some weights.
 
+\subsubsection{Properties of $A_i(\theta)$ and $B_i(\theta)$}
+
+\begin{equation}
+  \sum_{i=1}^{n} A_i = 
+  \begin{cases}
+    \rho_1, & n = 1 \\
+    -\rho_1\rho_2, & n = 2 \\
+    0, & n \geq 3
+  \end{cases}, \qquad
+  \sum_{i=1}^{n} B_i = 
+  \begin{cases}
+    0, & n = 1 \\
+    \rho_1 + \rho_2, & n = 2 \\
+    0, & n \geq 3
+  \end{cases}
+\end{equation}
+
+These three cases illustrates the following definition :
+
+\begin{equation}
+  \sum_{i=1}^{n} A_i = (\Pi_{n-1}[\rho^2])(0), \qquad \sum_{i=1}^{n} B_i = (\Pi_{n-1}[\rho^2])'(0)
+\end{equation}
+
 \subsection{Final quadrature rule}
 
 Let's then denote $I(\theta)$ the integral of the complete polar kernel over the radial direction, defined as:
@@ -177,55 +200,66 @@ A final quadrature rule for it is the following:
 With the new weights $\widetilde w_i(\theta)$ defined as
 
 \begin{align*}
-  \widetilde{w}_i(\theta) & = w_i(\theta) - A_i(\theta)\left\{W_{-2}(\theta) + \frac{\gamma(\theta)}{\beta^2(\theta)} + \frac{1}{\hat\rho(\theta)}\right\} + B_i(\theta)\left\{\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right| - W_{-1}\right\}
+  \widetilde{w}_i(\theta) & = w_i(\theta) - A_i(\theta)\left\{W_{-2,n}(\theta) + \frac{\gamma(\theta)}{\beta^2(\theta)} + \frac{1}{\hat\rho(\theta)}\right\} + B_i(\theta)\left\{\ln\left|\frac{\hat\rho(\theta)}{\beta(\theta)}\right| - W_{-1,n}(\theta)\right\}
 \end{align*}
 
 and the auxiliary constants : 
 
 \begin{itemize}
   \item $w_i(\theta) = \frac{\hat\rho(\theta)}{2}w_i^{\text{Ref}}$ are the weights of the reference quadrature over the segment $[-1, 1]$.
-  \item $W_{-1} = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i(\theta)} = \sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{1+x_i^{\text{Ref}}}$.
-  \item $W_{-2}(\theta) = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i^2(\theta)} = \frac{2}{\hat\rho(\theta)}\sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{\left(1+x_i^{\text{Ref}}\right)^2}$.
+  \item $W_{-1,n}(\theta) = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i(\theta)} = \sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{1+x_i^{\text{Ref}}}$.
+  \item $W_{-2,n}(\theta) = \sum_{i=1}^{n} \frac{w_i(\theta)}{\rho_i^2(\theta)} = \frac{2}{\hat\rho(\theta)}\sum_{i=1}^{n} \frac{w_i^{\text{Ref}}}{\left(1+x_i^{\text{Ref}}\right)^2}$.
 \end{itemize}
 
-\textbf{Remark}: in the case of Gauss-Legendre quadrature, the constants $W_{-1}$ and $W_{-2}$ can be computed analytically as:
+\textbf{Remark}: in the case of Gauss-Legendre quadrature, the constants $W_{-1,n}$ and $W_{-2,n}$ can be computed analytically as:
 
 \begin{equation}
-  W_{-1} = 2H_n, \qquad W_{-2}(\theta) = \frac{2}{\hat\rho(\theta)}n(n+1)
+  W_{-1,n} = 2H_n, \qquad W_{-2,n}(\theta) = \frac{2}{\hat\rho(\theta)}n(n+1), \qquad P_n(\theta) = \frac{n(n+1)}{\hat\rho(\theta)}
 \end{equation}
 
 With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number. These last two formulas are, for the moment, a conjecture. (Elaborate to prove it?)
 
+\subsection{Properties of the new weights $\widetilde w_i(\theta)$}
+
+\begin{equation}
+  \text{For } n \geq 3, \quad
+  \sum_{i=1}^{n} \widetilde w_i(\theta) = \hat\rho(\theta)
+\end{equation}
+
+This is easy to understand : either look at the definition of $\widetilde w_i(\theta)$ and use the properties of $A_i(\theta)$ and $B_i(\theta)$, or integrate the constant function $F(\rho, \theta) = 1$ between $0$ and $\hat\rho(\theta)$, which is equivalent.
+
 \subsection{Convergence and error study}
+
+\subsubsection{General idea}
 
 To begin our reasoning, assume that we have computed the Laurent's coefficients up to a relative error $\epsilon_{-k}$, $k\in\{1, 2\}$:
 
 \begin{equation}
-  F_{k} = \widetilde F_{-k}(1+\epsilon_{-k}), \qquad k\in\{1, 2\}
+  \widetilde F_{-k} = F_{-k}(1+\epsilon_{-k}), \qquad k\in\{1, 2\}
 \end{equation}
 
 Now let's denote
 
 \begin{align}
-  G(\rho, \theta) & = F(\rho, \theta) - \frac{F_{-1}(\theta)}{\rho} - \frac{F_{-2}(\theta)}{\rho^2} \\
-\widetilde G(\rho, \theta) & = F(\rho, \theta) - \frac{\widetilde F_{-1}(\theta)}{\rho} - \frac{\widetilde F_{-2}(\theta)}{\rho^2} \\
+  R(\rho, \theta) & = F(\rho, \theta) - \frac{F_{-1}(\theta)}{\rho} - \frac{F_{-2}(\theta)}{\rho^2} \\
+\widetilde R(\rho, \theta) & = F(\rho, \theta) - \frac{\widetilde F_{-1}(\theta)}{\rho} - \frac{\widetilde F_{-2}(\theta)}{\rho^2} \\
 \end{align}
 
 \begin{equation}
-  I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}G(\rho, \theta)\mathrm d\rho\mathrm d\theta, \qquad \widetilde I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}\widetilde G(\rho, \theta)\mathrm d\rho\mathrm d\theta
+  I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}R(\rho, \theta)\mathrm d\rho\mathrm d\theta, \qquad \widetilde I = \int_{0}^{2\pi}\int_{0}^{\hat\rho(\theta)}\widetilde R(\rho, \theta)\mathrm d\rho\mathrm d\theta
 \end{equation}
 
-On one hand, after the theory of the Bernstein's ellipses, if we assume that $G$ and $\widetilde G$ are analytic, we can make a error majoration regarding the Gauss-Legendre quadrature of $I$ and $\widetilde I$:
+On one hand, after the theory of the Bernstein's ellipses, if we assume that $R$ and $\widetilde R$ are analytic, we can make a error majoration regarding the Gauss-Legendre quadrature of $I$ and $\widetilde I$:
 
 \begin{align}
-  \left|I - Q_n[G]\right| & \leq \frac{64}{15}\frac{M}{(1 - \rho_B^{-2})\rho_B^{2n}} \\
-  \left|\widetilde I - Q_n[\widetilde G]\right| & \leq \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
+  \left|I - Q_n[R]\right| & \leq \frac{64}{15}\frac{M}{(1 - \rho_B^{-2})\rho_B^{2n}} \\
+  \left|\widetilde I - Q_n[\widetilde R]\right| & \leq \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
 \end{align}
 
 On the other hand, we can substract $\widetilde I$ to $I$ to get:
 
 \begin{equation}
-  |I - \widetilde I| \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}(1+\max F_{-k})
+  |I - \widetilde I| \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}||F_{-k}||_{\infty}
 \end{equation}
 
 where $\displaystyle{C(\hat x) = \int_{0}^{2\pi}\hat\rho(\theta)\mathrm d\theta}$.
@@ -233,10 +267,179 @@ where $\displaystyle{C(\hat x) = \int_{0}^{2\pi}\hat\rho(\theta)\mathrm d\theta}
 Thus, 
 
 \begin{align}
-  |I - Q_n[\widetilde G]| & = |I - \widetilde I + \widetilde I - Q_n[\widetilde G]| & \leq |I - \widetilde I| + |\widetilde I - Q_n[\widetilde G]| & \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}(1+\max F_{-k}) + \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
+  |I - Q_n[\widetilde R]| & = |I - \widetilde I + \widetilde I - Q_n[\widetilde R]| & \leq |I - \widetilde I| + |\widetilde I - Q_n[\widetilde R]| & \leq C(\hat x) \sum_{k=1}^2\frac{\epsilon_{-k}}{\rho_{\min}^k}||F_{-k}||_{\infty} + \frac{64}{15}\frac{\widetilde M}{(1 - \widetilde \rho_B^{-2})\widetilde \rho_B^{2n}}
 \end{align}
 
-% \bibliographystyle{unsrt}
+\subsubsection{Richardson extrapolation}
+
+We can show that the following majorations hold for any sequence $\rho_i(\theta)$ of $n$ radial points:
+
+\begin{equation}
+  |\widetilde F_{-2}(\theta) - F_{2}(\theta)| \leq \frac{||R^{(n)}||_{\infty}(\theta)}{n!}\prod_{i=1}^{n}\rho_i(\theta), \qquad |\widetilde F_{-1}(\theta) - F_{1}(\theta)| \leq P_n(\theta)\frac{||R^{(n+1)}||_{\infty}(\theta)}{n!}\prod_{i=1}^{n}\rho_i(\theta)
+\end{equation}
+
+Which shows that the speed of convergence is conditionned by the product of the radial points $\prod_{i=1}^{n}\rho_i(\theta)$. In the case of a geometric sequence $\rho_i(\theta) = \hat\rho(\theta)q^{i-1}$, we have $\prod_{i=1}^{n}\rho_i(\theta) = \hat\rho^n(\theta)q^{\frac{n(n-1)}{2}}$, which is a very fast convergence. In the case of a sequence of Gauss-Legendre quadrature points, we have $\prod_{i=1}^{n}\rho_i(\theta) = \hat\rho^n(\theta)\frac{(n!)^2}{(2n)!}$, which is a slower convergence (see Figure \ref{fig:convergence_comparison}).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/gl_vs_geometric_extrapolation.png}
+  \caption{Convergence comparison between geometric and Gauss-Legendre sequences for the function $\rho\to 1/(1+\rho)$}
+  \label{fig:convergence_comparison}
+\end{figure}
+
+That's why geometric sequences are still preferred over Gauss-Legendre quadrature points for pure Richardson extrapolation.
+
+\subsection{Gauss-Legendre quadrature}
+
+To delve deeper into these general ideas, let's consider :
+
+\begin{align}
+  \widetilde I_{\epsilon,h,n}(\theta) & = Q_n[\widetilde R_{\epsilon, h}](\theta) = \sum_{i=1}^{n} w_i(\theta) \left\{F_h(\rho_i(\theta), \theta) - \frac{\widetilde F_{-1, \epsilon, h}(\theta)}{\rho_i(\theta)} - \frac{\widetilde F_{-2, \epsilon, h}(\theta)}{\rho_i^2(\theta)}\right\} \\
+& = \sum_{i=1}^{n}\left\{F_h(\rho_i(\theta), \theta) - \frac{F_{-1, h}(\theta)}{\rho_i(\theta)} - \frac{F_{-2, h}(\theta)}{\rho_i^2(\theta)}\right\}w_i(\theta) - \sum_{k=1}^{2}F_{-k, h}(\theta)\epsilon_{-k}\sum_{i=1}^{n}\frac{w_i(\theta)}{\rho_i^k(\theta)} \\
+& = Q_n[R_h](\theta) - \sum_{k=1}^{2}F_{-k, h}(\theta)\epsilon_{-k}W_{-k,n}(\theta)
+\end{align}
+
+Where $h$ is the mesh size. Thanks to standard results on the Gauss-Legendre quadrature for any function in $\mathcal C^{2n}([0, \hat\rho(\theta)])$, we have the following error majoration (deleting the $\theta$ dependency for clarity):
+
+\begin{equation}
+  Q_n[R_h] = \int_{0}^{\hat\rho}R_h(\rho)\mathrm d\rho + \frac{2^{2n+1}(n!)^4}{(2n+1)[(2n)!]^3}R_h^{(2n)}(\rho_0)
+\end{equation}
+
+for some $\rho_0 \in [0, \hat\rho]$. Our next goal is to show that the error term $R_h^{(2n)}(\rho_0)$ converges with the mesh size $h$ and the number of quadrature points $n$. By using $G_h(\rho) = \rho^2 F_h(\rho) = \mathcal O_{\rho\to 0}(1)$, we can straightforwardly express $R_h$ in terms of $G$, and bound its derivatives, assuming, as Guiggiani, that $F_h$ is analytic in a neighborhood of the origin:
+
+\begin{align}
+  R_h(\rho) & = \sum_{k=0}^{+\infty}F_k\rho^k, \qquad \Longrightarrow \qquad R_h^{(2n)}(\rho) = \sum_{k=2n}^{+\infty}F_k\frac{k!}{(k-2n)!}\rho^{k-2n} \\
+\end{align}
+
+with $\displaystyle{F_k = \frac{G_h^{(k+2)}(0)}{(k+2)!} \leq \frac{1}{(k+2)!}||G_h^{(k+2)}||_{\infty, [0, \hat\rho]}}$ and $\rho^{k-2n} \leq \hat\rho^{k-2n}$, so that we can write
+
+\begin{equation}
+  |R_h^{(2n)}(\rho)| \leq \sum_{k=2n}^{+\infty}k!\frac{||G_h^{(k+2)}||_{\infty, [0, \hat\rho]}}{(k+2)!(k-2n)!}\hat\rho^{k-2n}
+\end{equation}
+
+\textsc{Bounding of $G$ and its derivatives}: let us defined the following functions:
+
+$$\begin{array}{ccccc}
+\phi_h & : & \hat\tau\subset\mathbb R^{d-1} & \to & \mathbb R \\
+ & & \hat x & \mapsto & \det M_h(\hat x) \\
+\end{array}, \qquad \begin{array}{ccccc}
+\psi_{\hat x} & : & \mathbb R\times [0, 2\pi[ & \to & \mathbb R^{d-1} \\
+ & & (\rho, \theta) & \mapsto &\hat x + \rho \mathbf u(\theta) \\
+ \end{array}\\$$
+
+$$\begin{array}{ccccc}
+\chi_h & : & \hat\tau\subset\mathbb R^{d-1} & \to & \tau\subset\mathbb R^d\\
+ & & \hat x & \mapsto & x \\
+\end{array}$$
+
+where $\chi$ is the mapping from the reference space to the physical element, $\psi_{\hat x}$ is the mapping from polar coordinates to the reference space, and $M_h$ is the metric tensor of the mapping $\chi_h$, defined as:
+
+\begin{equation}
+  M_h(\hat x) = D\chi_h(\hat x)^TD\chi_h(\hat x), \qquad (M_h)_{ab} = \sum_{k=1}^{d-1}\frac{\partial\chi_{h,k}}{\partial \hat x_a}\frac{\partial\chi_{h,k}}{\partial \hat x_b}, \quad (a, b)\in \{1, \dots, d-1\}^2 = \{1, 2\}^2
+\end{equation}
+
+Finally, the vector $\mathbf u(\theta)$ is the unit trigonometric vector defined as $\mathbf u(\theta) = (\cos\theta, \sin\theta)$ for our case $d = 3$. We can then expand $G$ as
+
+\begin{equation}
+  G(\rho, \theta) = H_h(\rho, \theta)J_h\circ\psi_{\hat x}(\rho, \theta)
+\end{equation}
+
+where
+
+\begin{equation}
+  H_h(\rho, \theta) = \rho^3K\Big(x = \chi_h(\hat x), y = \chi_h\circ\psi_{\hat x}(\rho, \theta)\Big)\hat u\circ\psi_{\hat x}(\rho, \theta), \quad J_h(\hat x) = \sqrt{\phi_h(\hat x)} = \sqrt{\det M_h(\hat x)}
+\end{equation}
+
+As the kernel $K$ is regularized by the term $\rho^3$ in $H_h$, we can ensure that $H_h = \mathcal O_{h\to 0} (1)$ as well as all its derivatives. Applying the Leipniz formula, we have
+
+\begin{equation}
+  \frac{\partial^mG(\rho, \theta)}{\partial \rho^m} = \sum_{k=0}^{m}\binom{m}{k} \frac{\partial^k H_h(\rho, \theta)}{\partial \rho^k} \frac{\partial^{m-k} (J_h\circ\psi_{\hat x})}{\partial \rho^{m-k}}(\rho, \theta)
+\end{equation}
+
+We then let 
+
+\begin{align}
+\left\{
+\begin{aligned}
+\gamma_{h,m} &= \underset{k\leq m}{\text{sup}}\,\,
+\underset{\theta\in[0,2\pi[}{\text{sup}}\,\,
+\underset{\rho\in[0,\hat\rho]}{\text{sup}}\,\,
+\left\|
+\frac{\partial^k H_h(\rho,\theta)}{\partial \rho^k}
+\right\|
+= \underset{h\to0}{\mathcal O}(1)\\
+M_m &= \underset{k\leq m}{\text{max}}\binom{m}{k}
+= \binom{m}{\lfloor m/2\rfloor}
+\end{aligned}
+\right.
+\end{align}
+
+So that we can write
+
+\begin{equation}
+  \left|\frac{\partial^m G(\rho, \theta)}{\partial \rho^m}\right| \leq (m+1)M_m\gamma_{h,m}\sum_{k=0}^{m} \left|\frac{\partial^k(J_h\circ\psi_{\hat x})}{\partial \rho^{k}}(\rho, \theta)\right|
+\end{equation}
+
+\textsc{Bounding of the $k$-th radial derivative of $J_h\circ\psi_{\hat x}$}: using the Faà di Bruno formula for functions of the form $h(x) = f[g_1(x), \cdots g_m(x)]$ (see Constantine, 1996), one can write:
+
+\begin{align}
+  \frac{\partial^k (J_h\circ\psi_{\hat x})}{\partial\rho^k}(\rho, \theta) & = \sum_{i=0}^{k}\binom{k}{i}\cos^i(\theta)\sin^{k-i}(\theta)\frac{\partial^k J_h}{\partial \hat x_1^i\partial \hat x_2^{k-i}}(\psi_{\hat x}(\rho, \theta)) \\
+  & \leq (k+1)M_k\sum_{i=0}^{k}\left|\frac{\partial^k J_h}{\partial \hat x_1^i\partial \hat x_2^{k-i}}(\psi_{\hat x}(\rho, \theta))\right|
+\end{align}
+
+\textsc{Bounding of the carthesian derivatives of $J_h$}: there's no need to expand an explicit formula for the derivatives of $J_h$ in terms parametrization $\chi_h$, because we can use a useful hypothesis on the mesh quality. Indeed, to ensure non-degeneracy of the elements, we can assume that
+
+\begin{equation}
+  \exists C_Q > 0, \quad \forall h > 0, \quad \forall m>0, \quad \forall \hat x \in \hat\tau, \quad \left\|D^{m}\chi(\hat x)\right\| \leq C_Q h^{m}
+\end{equation}
+
+Where $D^{m}\chi(\hat x)$ is the tensor of order $m$ defined containing all the $m$-th order derivatives of $\chi_h$ at $\hat x$, defined as
+
+\begin{equation}
+  \left(D^{m}\chi_h(\hat x)\right)_{i, \alpha_1, \cdots \alpha_m} = \frac{\partial^m \chi_{h, i}}{\partial \hat x_{\alpha_1}\cdots\partial \hat x_{\alpha_m}}(\hat x), \qquad i\in\{1, 2, 3\}, \quad (\alpha_1, \cdots, \alpha_m)\in\{1, 2\}^m
+\end{equation}
+
+In particular, for $\alpha = 1$, we have
+
+\begin{equation}
+\left\|M_h(\hat x)\right\|
+=
+\left\|D\chi_h(\hat x)^T D\chi_h(\hat x)\right\|
+\le C_Q^2 h^2.
+\end{equation}
+
+Furthermore, the Hadamard's inequality (HI) states that 
+
+\begin{equation}
+  |\phi_h(\hat x)| = |\text{det}(M_h(\hat x))| \overset{\text{(HI)}}{\leq} \prod_{i=1}^{d-1}\left\|M_h(\hat x)_{i, :}\right\| \leq \left\|M_h(\hat x)\right\|^{d-1} \leq C_Q^{2(d-1)}h^{2(d-1)}
+\end{equation}
+
+Remarks : theses inequalities holds perfectly if we consider the $\infty$-norm, but all the norms are equivalent in finite dimension, so we can use any norm; that leads to different majoration constants but the idea remains the same. This ensure that we can define the following function:
+
+$$\begin{array}{ccccl}
+\mu & : & \hat\tau\subset\mathbb R^{d-1} & \to & \mathbb R\\
+ & & \hat x & \mapsto & \sqrt{h^{-2(d-1)}\det M_h(\hat x)} = h^{-(d-1)}J_h(\hat x) \leq C_Q^{d-1}\\
+\end{array}$$
+
+By the non-degeneracy hypothesis, we have $\mu = \mathcal O_{h\to 0}(1)$ and all its derivatives are also bounded. So that we can write $J_h(\hat x) = h^{d-1}\mu(\hat x)$, and
+
+\begin{equation}
+  \left|\frac{\partial^m G(\rho, \theta)}{\partial \rho^m}\right| \leq h^{d-1}(m+1)M_m\gamma_{h,m}\sum_{k=0}^{m}(k+1)M_k\sum_{i=0}^{k}\left\|\frac{\partial^i\mu}{\partial \hat x^i\partial\hat x^{k-i}}\left(\psi_{\hat x}(\rho, \theta)\right)\right\|
+\end{equation}
+
+Naturally, let now $\mu_k = \,\, \underset{i\leq k}{\text{sup}}\left\|\frac{\partial^k\mu}{\partial \hat x_1^i\partial \hat x_2^{k-i}}\right\|_{\infty, \hat\tau}$ and $\lambda_m = \,\, \underset{k\leq m}{\text{max}}\mu_k$, we have the simplified following majoration:
+
+\begin{equation}
+  \left|\frac{\partial^m G(\rho, \theta)}{\partial \rho^m}\right| \leq h^{d-1}(m+1)^4M_m^2\gamma_{h,m}\lambda_m
+\end{equation}
+
+Thus, the remainder term of Laurent's serie expansion can be bounded as
+
+\begin{equation}
+  |R_h^{(2n)}(\rho)| \leq h^{d-1}\sum_{k=2n}^{+\infty}k!\frac{(k+3)^4M_{k+2}^2\gamma_{h,k+2}\lambda_{k+2}}{(k+2)!(k-2n)!}\hat\rho^{k-2n}
+\end{equation}
+
+% \bibliographystyle{unsrt} 
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
 %%% and comment out the ``thebibliography'' section.
 
