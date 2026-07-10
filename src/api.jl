@@ -1,7 +1,7 @@
 # Public API functions
 
 """
-	polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂)
+	polar_kernel_fun(K, el::Inti.ReferenceInterpolant, û, x̂, ori)
 
 Given a kernel `K`, a reference element `el`, a function `û` defined on the reference element, 
 and a point `x̂` on the reference element, returns a function `F` that computes the complete 
@@ -25,6 +25,7 @@ The kernel `K` is called as `K(qx, qy)` where `qx` and `qy` are named tuples wit
 - `el::Inti.ReferenceInterpolant`: The reference element
 - `û`: Function defined on the reference element
 - `x̂`: Point on the reference element (singularity location)
+- `ori`: Orientation of the element (used for normal computation)
 
 # Returns
 - `F(ρ, θ)`: A function that evaluates the kernel in polar coordinates
