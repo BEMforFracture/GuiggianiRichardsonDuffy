@@ -226,7 +226,7 @@ With $H_n = \sum_{i=1}^{n} \frac{1}{i}$ the $n$-th harmonic number. These last t
   \sum_{i=1}^{n} \widetilde w_i(\theta) = \hat\rho(\theta)
 \end{equation}
 
-This is easy to understand : either look at the definition of $\widetilde w_i(\theta)$ and use the properties of $A_i(\theta)$ and $B_i(\theta)$, or integrate the constant function $F(\rho, \theta) = 1$ between $0$ and $\hat\rho(\theta)$, which is equivalent.
+This is easy to understand: either look at the definition of $\widetilde w_i(\theta)$ and use the properties of $A_i(\theta)$ and $B_i(\theta)$, or integrate the constant function $F(\rho, \theta) = 1$ between $0$ and $\hat\rho(\theta)$, which is equivalent. In a more general way, if the integrand $F$ is not singular (i.e. $F \sim \mathcal O(1)$), then the quadrature rule is the standard quadrature as if reference quadrature was used to integrate the function $F$ between $0$ and $\hat\rho(\theta)$. If the integrand is singular as $1/\rho$, the customed quadrature just performs a Cauchy principal value. The true ingredients are the values of the Laurent coefficients $F_{-1}$ and $F_{-2}$, which are computed numerically; they can be zero (up to the algorithm precision) or not, depending on the considered singularity.
 
 \subsection{Convergence and error study}
 
@@ -289,7 +289,7 @@ Which shows that the speed of convergence is conditionned by the product of the 
 
 That's why geometric sequences are still preferred over Gauss-Legendre quadrature points for pure Richardson extrapolation.
 
-\subsection{Gauss-Legendre quadrature}
+\subsubsection{Gauss-Legendre quadrature}
 
 To delve deeper into these general ideas, let's consider :
 
@@ -338,6 +338,12 @@ where $\chi$ is the mapping from the reference space to the physical element, $\
   M_h(\hat x) = D\chi_h(\hat x)^TD\chi_h(\hat x), \qquad (M_h)_{ab} = \sum_{k=1}^{d-1}\frac{\partial\chi_{h,k}}{\partial \hat x_a}\frac{\partial\chi_{h,k}}{\partial \hat x_b}, \quad (a, b)\in \{1, \dots, d-1\}^2 = \{1, 2\}^2
 \end{equation}
 
+\textbf{Lemma 1}: using the Faà di Bruno formula for functions of the form $h(x) = f[g_1(x), \cdots, g_m(x)]$ (see Constantine, 1996), one can write, for any function $f : \mathbb R^{d-1} \to \mathbb R$,
+
+\begin{equation}\label{eq:lemma1}
+  \frac{\partial^k (f\circ\psi_{\hat x})}{\partial\rho^k}(\rho, \theta) = \sum_{i=0}^{k}\binom{k}{i}\cos^i(\theta)\sin^{k-i}(\theta)\frac{\partial^k f}{\partial \hat x_1^i\partial \hat x_2^{k-i}}(\psi_{\hat x}(\rho, \theta))
+\end{equation}
+
 Finally, the vector $\mathbf u(\theta)$ is the unit trigonometric vector defined as $\mathbf u(\theta) = (\cos\theta, \sin\theta)$ for our case $d = 3$. We can then expand $G$ as
 
 \begin{equation}
@@ -350,7 +356,7 @@ where
   H_h(\rho, \theta) = \rho^3K\Big(x = \chi_h(\hat x), y = \chi_h\circ\psi_{\hat x}(\rho, \theta)\Big)\hat u\circ\psi_{\hat x}(\rho, \theta), \quad J_h(\hat x) = \sqrt{\phi_h(\hat x)} = \sqrt{\det M_h(\hat x)}
 \end{equation}
 
-As the kernel $K$ is regularized by the term $\rho^3$ in $H_h$, we can ensure that $H_h = \mathcal O_{h\to 0} (1)$ as well as all its derivatives. Applying the Leipniz formula, we have
+As the kernel $K$ is regularized by the term $\rho^3$ in $H_h$, we can ensure that $H_h = \mathcal O_{\rho\to 0} (1)$. Applying the Leipniz formula, we have
 
 \begin{equation}
   \frac{\partial^mG(\rho, \theta)}{\partial \rho^m} = \sum_{k=0}^{m}\binom{m}{k} \frac{\partial^k H_h(\rho, \theta)}{\partial \rho^k} \frac{\partial^{m-k} (J_h\circ\psi_{\hat x})}{\partial \rho^{m-k}}(\rho, \theta)
@@ -380,7 +386,7 @@ So that we can write
   \left|\frac{\partial^m G(\rho, \theta)}{\partial \rho^m}\right| \leq (m+1)M_m\gamma_{h,m}\sum_{k=0}^{m} \left|\frac{\partial^k(J_h\circ\psi_{\hat x})}{\partial \rho^{k}}(\rho, \theta)\right|
 \end{equation}
 
-\textsc{Bounding of the $k$-th radial derivative of $J_h\circ\psi_{\hat x}$}: using the Faà di Bruno formula for functions of the form $h(x) = f[g_1(x), \cdots g_m(x)]$ (see Constantine, 1996), one can write:
+\textsc{Bounding of the $k$-th radial derivative of $J_h\circ\psi_{\hat x}$}: using the lemma \ref{eq:lemma1}, we can write
 
 \begin{align}
   \frac{\partial^k (J_h\circ\psi_{\hat x})}{\partial\rho^k}(\rho, \theta) & = \sum_{i=0}^{k}\binom{k}{i}\cos^i(\theta)\sin^{k-i}(\theta)\frac{\partial^k J_h}{\partial \hat x_1^i\partial \hat x_2^{k-i}}(\psi_{\hat x}(\rho, \theta)) \\
@@ -390,7 +396,7 @@ So that we can write
 \textsc{Bounding of the carthesian derivatives of $J_h$}: there's no need to expand an explicit formula for the derivatives of $J_h$ in terms parametrization $\chi_h$, because we can use a useful hypothesis on the mesh quality. Indeed, to ensure non-degeneracy of the elements, we can assume that
 
 \begin{equation}
-  \exists C_Q > 0, \quad \forall h > 0, \quad \forall m>0, \quad \forall \hat x \in \hat\tau, \quad \left\|D^{m}\chi(\hat x)\right\| \leq C_Q h^{m}
+  \exists C_Q > 0, \quad \forall h > 0, \quad \forall m>0, \quad \forall \hat x \in \hat\tau, \quad \left\|D^{m}\chi_h(\hat x)\right\| \leq C_Q h^{m}
 \end{equation}
 
 Where $D^{m}\chi(\hat x)$ is the tensor of order $m$ defined containing all the $m$-th order derivatives of $\chi_h$ at $\hat x$, defined as
@@ -437,6 +443,43 @@ Thus, the remainder term of Laurent's serie expansion can be bounded as
 
 \begin{equation}
   |R_h^{(2n)}(\rho)| \leq h^{d-1}\sum_{k=2n}^{+\infty}k!\frac{(k+3)^4M_{k+2}^2\gamma_{h,k+2}\lambda_{k+2}}{(k+2)!(k-2n)!}\hat\rho^{k-2n}
+\end{equation}
+
+\textsc{Explicit majoration of $\gamma_{h, k}$}: let's recall the definition of $\gamma_{h, k}$:
+
+\begin{equation}
+  \gamma_{h, k} = \underset{m\leq k}{\text{sup}}\,\,
+\underset{\theta\in[0,2\pi[}{\text{sup}}\,\,
+\underset{\rho\in[0,\hat\rho]}{\text{sup}}\,
+\left\|\frac{\partial^m H_h(\rho,\theta)}{\partial \rho^m}\right\|
+\end{equation}
+
+where 
+
+\begin{align}
+  \frac{\partial^m H_h(\rho, \theta)}{\partial \rho^m} & = \frac{\partial^m}{\partial \rho^m}\left\{ \rho^s K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\hat u\circ \psi_{\hat x}(\rho, \theta)\right\}\\
+  & = \sum_{k=0}^{m}\binom{m}{k}\frac{\partial^k}{\partial\rho^k}\Big(\rho^sK(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\Big)\frac{\partial^{m-k}}{\partial\rho^{m-k}}\Big(\hat u\circ \psi_{\hat x}(\rho, \theta)\Big) \\
+  & \overset{\ref{eq:lemma1}}{\leq}(m+1)^2\delta_{m}M_{m}^2\sum_{k=0}^{m}\frac{\partial^k}{\partial\rho^k}\Big(\rho^sK(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\Big)
+\end{align}
+
+where $\displaystyle{\delta_m = \,\, \underset{i\leq m}{\text{sup}}\left\|\frac{\partial^{m}\hat u\left(\hat x\right)}{\partial \hat x_1^i\partial \hat x_2^{m-i}}\right\|_{\infty, \hat\tau}}$ is a constant that depends only on the geometry of the element, and $s$ is the order of singularity of the function $\rho\to K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))$ at the origin, such that $K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta)) = \mathcal O_{\rho\to 0}(\rho^{-s})$. The idea was originally used for hypersingular 3D kernels, where $s = 3$ (see Guiggiani, 1992), but we write the computations with general order $s$ because the idea remains the same.
+
+\textbf{Lemma 2}: if $f : \mathbb R \to E$ is a function of class $\mathcal C^{m}(E)$, then we have the following useful calculation:
+
+\begin{equation}
+  \frac{\partial^n}{\partial \rho^n}\Big(\rho^sf(\rho)\Big) = \sum_{j = \max\left\{s-n, 0\right\}}^{n} \binom{n}{j}\frac{s!}{(s-n+j)!}\rho^{s-n+j}f^{(j)}(\rho)
+\end{equation}
+
+Thus, 
+
+\begin{align}
+  \frac{\partial^k}{\partial\rho^k}\Big(\rho^sK(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\Big) & = \sum_{j=\max\{k-s, 0\}}^{k} \binom{k}{j}\frac{s!}{(s-k+j)!}\rho^{s-k+j}\frac{\partial^j}{\partial\rho^j}K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta)) \\
+\end{align}
+
+Then, we notice, as well as another article (T.G. Anderson, M. Bonnet, L.M. Faria and C. Pérez-Arancibia, 2024, formula 6.27), that the partial derivatives of the kernel $K$ are bounded:
+
+\begin{equation}
+  \left\|D_y^{\alpha}K(x, y)\right\| \leq C_K(\alpha)\left\|x-y\right\|^{-(|\alpha|+s)}, \quad\alpha\in\mathbb N^d, \quad |\alpha| = \sum_{i=1}^{d}\alpha_i
 \end{equation}
 
 % \bibliographystyle{unsrt} 
