@@ -231,6 +231,7 @@ This is easy to understand: either look at the definition of $\widetilde w_i(\th
 \subsection{Convergence and error study}
 
 \subsubsection{General idea}
+\label{sec:bernstein-R}
 
 To begin our reasoning, assume that we have computed the Laurent's coefficients up to a relative error $\epsilon_{-k}$, $k\in\{1, 2\}$:
 
@@ -352,7 +353,7 @@ Finally, the vector $\mathbf u(\theta)$ is the unit trigonometric vector defined
 
 where
 
-\begin{equation}
+\begin{equation}\label{eq:Hh-def}
   H_h(\rho, \theta) = \rho^3K\Big(x = \chi_h(\hat x), y = \chi_h\circ\psi_{\hat x}(\rho, \theta)\Big)\hat u\circ\psi_{\hat x}(\rho, \theta), \quad J_h(\hat x) = \sqrt{\phi_h(\hat x)} = \sqrt{\det M_h(\hat x)}
 \end{equation}
 
@@ -395,7 +396,7 @@ So that we can write
 
 \textsc{Bounding of the carthesian derivatives of $J_h$}: there's no need to expand an explicit formula for the derivatives of $J_h$ in terms parametrization $\chi_h$, because we can use a useful hypothesis on the mesh quality. Indeed, to ensure non-degeneracy of the elements, we can assume that
 
-\begin{equation}
+\begin{equation}\label{eq:nondegen-upper}
   \exists C_Q > 0, \quad \forall h > 0, \quad \forall m>0, \quad \forall \hat x \in \hat\tau, \quad \left\|D^{m}\chi_h(\hat x)\right\| \leq C_Q h^{m}
 \end{equation}
 
@@ -441,13 +442,13 @@ Naturally, let now $\mu_k = \,\, \underset{i\leq k}{\text{sup}}\left\|\frac{\par
 
 Thus, the remainder term of Laurent's serie expansion can be bounded as
 
-\begin{equation}
+\begin{equation}\label{eq:Rh2n-bound}
   |R_h^{(2n)}(\rho)| \leq h^{d-1}\sum_{k=2n}^{+\infty}k!\frac{(k+3)^4M_{k+2}^2\gamma_{h,k+2}\lambda_{k+2}}{(k+2)!(k-2n)!}\hat\rho^{k-2n}
 \end{equation}
 
 \textsc{Explicit majoration of $\gamma_{h, k}$}: let's recall the definition of $\gamma_{h, k}$:
 
-\begin{equation}
+\begin{equation}\label{eq:gamma-def}
   \gamma_{h, k} = \underset{m\leq k}{\text{sup}}\,\,
 \underset{\theta\in[0,2\pi[}{\text{sup}}\,\,
 \underset{\rho\in[0,\hat\rho]}{\text{sup}}\,
@@ -466,19 +467,19 @@ where $\displaystyle{\delta_m = \,\, \underset{i\leq m}{\text{sup}}\left\|\frac{
 
 \textbf{Lemma 2}: if $f : \mathbb R \to E$ is a function of class $\mathcal C^{m}(E)$, then we have the following useful calculation:
 
-\begin{equation}
+\begin{equation}\label{eq:lemma2}
   \frac{\partial^n}{\partial \rho^n}\Big(\rho^sf(\rho)\Big) = \sum_{j = \max\left\{s-n, 0\right\}}^{n} \binom{n}{j}\frac{s!}{(s-n+j)!}\rho^{s-n+j}f^{(j)}(\rho)
 \end{equation}
 
 Thus, 
 
-\begin{align}
-  \frac{\partial^k}{\partial\rho^k}\Big(\rho^sK(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\Big) & = \sum_{j=\max\{k-s, 0\}}^{k} \binom{k}{j}\frac{s!}{(s-k+j)!}\rho^{s-k+j}\frac{\partial^j}{\partial\rho^j}K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta)) \\
+\begin{align}\label{eq:lemma2-applied}
+  \frac{\partial^k}{\partial\rho^k}\Big(\rho^sK(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))\Big) & = \sum_{j=\max\{k-s, 0\}}^{k} \binom{k}{j}\frac{s!}{(s-k+j)!}\rho^{s-k+j}\frac{\partial^j}{\partial\rho^j}K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))
 \end{align}
 
 Then, we notice, as well as another article (T.G. Anderson, M. Bonnet, L.M. Faria and C. Pérez-Arancibia, 2024, formula 6.27), that the partial derivatives of the kernel $K$ are bounded:
 
-\begin{equation}
+\begin{equation}\label{eq:kernel-deriv-bound}
   \left\|D_y^{\alpha}K(x, y)\right\| \leq C_K(\alpha)\left\|x-y\right\|^{-(|\alpha|+s)}, \quad\alpha\in\mathbb N^d, \quad |\alpha| = \sum_{i=1}^{d}\alpha_i
 \end{equation}
 
