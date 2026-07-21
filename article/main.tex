@@ -481,12 +481,12 @@ Condition \ref{eq:nondegen-lower} can be rewritten as $\boxed{r\geq c_Qh\rho}$, 
 
 \begin{align}
   \exists \hat K, K(x, y) = \frac{1}{r^s}\hat K(\mathbf{\hat r}, n_x, n_y), \quad\forall n_x, n_y \in \mathbb S^{d}, z\to \hat K(z, n_x, n_y) \text{ is of class } \mathcal C^{\infty}(\mathbb R^d), \\
-  \text{i.e } \forall \alpha\in\mathbb N^d, \quad \exists C_K(\alpha) > 0, \quad \left|\frac{\partial^{|\alpha|}\hat K}{\partial z^{\alpha}}(z, n_x, n_y)\right| \leq C_K(\alpha), \quad \forall z\in\mathbb R^d
+  \text{i.e } \forall \alpha\in\mathbb N^d, \quad \exists C_K(|\alpha|) > 0, \quad \left|\frac{\partial^{|\alpha|}\hat K}{\partial z^{\alpha}}(z, n_x, n_y)\right| \leq C_K(|\alpha|), \quad \forall z\in\mathbb R^d
 \end{align}
 
 Such that
 
-\begin{align}
+\begin{align}\label{eq:reg-pol-kernel}
   \rho^s K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))
   & = \left(\frac{\rho}{r}\right)^s
   \hat K\!\left(\hat{\mathbf A}_{\hat x}(\rho, \theta),
@@ -495,108 +495,100 @@ Such that
   & = \frac{1}{\left\|\bm A_{\hat x}(\rho, \theta)\right\|^s}
   \hat K\!\left(\hat{\mathbf A}_{\hat x}(\rho, \theta),
   n\circ\chi_h(\hat x),
+  n\circ\chi_h\circ\psi_{\hat x}(\rho,\theta)\right) \\
+  & = A_{\hat x}(\rho, \theta)^{-s}
+  \hat K\!\left(\hat{\mathbf A}_{\hat x}(\rho, \theta),
+  n\circ\chi_h(\hat x),
   n\circ\chi_h\circ\psi_{\hat x}(\rho,\theta)\right)
 \end{align}
 
-\subsubsection{Completing the majoration of $\gamma_{h,k}$ - to delete}
+We will denote $\hat K\!\left(\hat{\mathbf A}_{\hat x}(\rho, \theta),
+  n\circ\chi_h(\hat x),
+  n\circ\chi_h\circ\psi_{\hat x}(\rho,\theta)\right)$ as $\hat K_{\hat x}(\rho, \theta)$ for clarity, keeping in mind that this is the kernel evaluated in polar coordinates centered at point $x = \chi_h(\hat x)$.
 
-\textit{The derivation below completes the majoration of $\gamma_{h,k}$ left open above; it was worked out by Claude (Anthropic), continuing the formalism and notations introduced in this note.}
+\textbf{Lemma 3}:
 
-\paragraph{A complementary non-degeneracy hypothesis.}
-
-Hypothesis \eqref{eq:nondegen-upper} only controls $\chi_h$ \emph{from above}: it prevents an element from varying faster than a curve of typical scale $h$, but it does not prevent $\chi_h$ from being locally degenerate, i.e. from mapping two distinct points of $\hat\tau$ onto (near-)coincident points of $\tau$. Controlling $\|x-y\|$ \emph{from below} is exactly what is needed to use \eqref{eq:kernel-deriv-bound}, whose right-hand side blows up as $y\to x$. We therefore introduce the complementary, and equally standard, non-degeneracy hypothesis:
-
-\begin{equation}\label{eq:nondegen-lower}
-  \exists\, c_Q > 0, \quad \forall h > 0, \quad \forall (\hat x, \hat y)\in\hat\tau^2, \quad \left\|\chi_h(\hat x) - \chi_h(\hat y)\right\| \geq c_Q\, h\, \|\hat x - \hat y\|.
+\begin{equation}\label{eq:lemma3}
+  \forall \bm\lambda\in\mathbb N^d, \forall \bm x\in\mathbb R^d\setminus\{\bm O\}, \qquad \left|\partial^{\bm\lambda}\|\bm x\|_2\right| \leq \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}\|\bm x\|_2^{1-|\bm\lambda|}
 \end{equation}
 
-Together, \eqref{eq:nondegen-upper} (for $m=1$, via the mean value theorem) and \eqref{eq:nondegen-lower} state that $\chi_h$ is bi-Lipschitz on $\hat\tau$ with constants of order exactly $h$ in both directions: this is the usual ``no degenerate/flattened element'' assumption of a shape-regular mesh, and it is genuinely stronger than \eqref{eq:nondegen-upper} alone. Applied to $\hat y = \psi_{\hat x}(\rho,\theta) = \hat x + \rho\mathbf u(\theta)$, and using $\|\hat x - \hat y\| = \rho\|\mathbf u(\theta)\| = \rho$, this gives the key estimate used throughout what follows:
+Where $\bm\lambda ! = \prod_{i=1}^{d}\lambda_i!$ and $|\bm\lambda| = \sum_{i=1}^{d}\lambda_i$.
+\\
+\textit{Remark:} The majoration constant $C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}$ is not optimal, but it is better than the one that would be obtained after using the Faà di Bruno formula.
 
-\begin{equation}\label{eq:distance-lower}
-  \|x - y\| = \left\|\chi_h(\hat x) - \chi_h\circ\psi_{\hat x}(\rho,\theta)\right\| \geq c_Q\, h\, \rho, \qquad \forall \rho \in [0, \hat\rho],\ \forall \theta\in[0,2\pi[.
-\end{equation}
-
-\paragraph{An exact cancellation at order $k=0$.}
-
-Combining \eqref{eq:kernel-deriv-bound} with $\alpha=0$ and \eqref{eq:distance-lower},
+\textit{Proof of Lemma 3.} Let $\bm x\in\mathbb R^d\setminus\{\bm O\}$. First, the function $\|\cdot\|$ is analytic at $\bm x$, so by extension it admits an holomorphic continuation in a neighborhood of $\bm x$ in $\mathbb C^d\setminus\Sigma$, where $\Sigma$ is the singular complex variety defined as $\Sigma = \{\bm z\in\mathbb C^d, \sum_{i=1}^{d}z_i^2 = 0\}$. By the Cauchy's estimate, if we have an open ball $B(\bm x, R)\subset\mathbb C^d\setminus\Sigma$, we have the following majoration for any multi-index $\bm\lambda\in\mathbb N^d$:
 
 \begin{equation}
-  \left|K\big(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho,\theta)\big)\right| \leq C_K(0)\,\|x-y\|^{-s} \leq C_K(0)\,c_Q^{-s}\,h^{-s}\,\rho^{-s}.
+  \left|\partial^{\bm\lambda}\|\bm x\|_2\right| \leq \frac{\bm\lambda !}{R^{|\bm\lambda|}}\underset{\bm z\in B(\bm x, R)}{\text{sup}}\,\|\bm z\|_2
 \end{equation}
 
-Multiplying by $\rho^s\|\hat u\circ\psi_{\hat x}(\rho,\theta)\| \leq \rho^s\delta_0$ (recall $\delta_0 = \|\hat u\|_{\infty, \hat\tau}$), the factor $\rho^{-s}$ is cancelled \emph{exactly} by the regularizing prefactor $\rho^s$ carried by $H_h$. We obtain, for every $\rho\in[0,\hat\rho]$ and $\theta\in[0,2\pi[$ (the bound extends to $\rho=0$ by continuity, consistently with $H_h = \mathcal O_{\rho\to0}(1)$):
+If we want to make this inequality more explicit, we should find such a radius $R$ that depends only on $\bm x$. Let's compute the distance from $\bm x$ to the singular variety $\Sigma$. Let $\bm z=\bm y+i\bm c\in\Sigma$.
 
-\begin{equation}\label{eq:gamma0}
-  |H_h(\rho, \theta)| \leq \Gamma_0\, h^{-s}, \qquad \Gamma_0 := C_K(0)\,c_Q^{-s}\,\delta_0.
-\end{equation}
+\begin{align*}
+  \bm z\in \Sigma
+  &\Longleftrightarrow \bm z\cdot\bm z = 0 \\
+  &\Longleftrightarrow (\bm y + i\bm c)\cdot(\bm y + i\bm c) = 0 \\
+  &\Longleftrightarrow |\bm y|^2 - |\bm c|^2 = 2i\,\bm y\cdot\bm c \\
+  &\Longleftrightarrow
+  \begin{cases}
+    |\bm y|^2 - |\bm c|^2 = 0,\\
+    \bm y\cdot\bm c = 0.
+  \end{cases}
+\end{align*}
 
-In particular $\gamma_{h,0} \leq \Gamma_0\, h^{-s}$: the correct order is $h^{-s}$, not $\mathcal O_{h\to0}(1)$ as anticipated in \eqref{eq:gamma-def}. This is in fact expected: $H_h$ carries the full strength of an order-$s$ hypersingularity, now concentrated on a patch of physical size $h$ shrinking around $x$, and there is no reason for this to stay bounded as $h\to0$.
+Furthermore, we have
 
-\paragraph{Why the same computation fails for $k\geq1$.}
+\begin{align*}
+  |\bm x -\bm z|^2 & = |\bm x - \bm y - i \bm c|^2 \\
+  & = |\bm x - \bm y|^2 + |\bm c|^2 \\
+\end{align*}
 
-One could hope to bound $\gamma_{h,k}$, $k\geq1$, by repeating the argument above on each term of $\partial_\rho^kH_h$ after expanding through Lemma 2 \eqref{eq:lemma2-applied}. This fails termwise. Differentiating $\rho\mapsto K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho,\theta))$ $j$ times, via Lemma \ref{eq:lemma1} and the (multivariate) Faà di Bruno formula, produces a sum over partitions of $j$ of terms of the form
-$$D_y^{m}K(x,y)\prod_{l=1}^{m} D^{k_l}\chi_h(\hat y), \qquad \sum_{l}k_l = j, \quad 1\leq m\leq j,$$
-i.e. a $K$-derivative of order $m$ (the number of parts of the partition) times $m$ derivatives of $\chi_h$ whose orders sum to $j$. Bounding each geometric factor with \eqref{eq:nondegen-upper} ($\prod_l\|D^{k_l}\chi_h\|\leq C_Q^m h^{j}$, since $\sum_lk_l=j$) and the kernel factor with \eqref{eq:kernel-deriv-bound}--\eqref{eq:distance-lower} ($\|D_y^mK(x,y)\|\leq C_K(m)(c_Qh\rho)^{-(m+s)}$) shows every such term is $\mathcal O\big(h^{j-m-s}\rho^{-(m+s)}\big)$. Multiplying by the prefactor $\rho^{s-k+j}$ that Lemma 2 attaches to the corresponding $j$-th order term, the net power of $\rho$ is $\rho^{j-k-m}$ -- \emph{strictly negative} for every admissible triple $(k,j,m)$ with $k\geq1$, since $j\leq k$ and $m\geq1$. Every term of the expansion, bounded individually through the triangle inequality, therefore diverges as $\rho\to0^+$.
+So $\displaystyle{
+  \operatorname{dist}(\bm x,\Sigma)^2
+  =
+  \inf_{\substack{
+  \bm y,\bm c\in\mathbb R^d\\
+  |\bm y|=|\bm c|,\ \bm y\perp\bm c
+  }}
+  |\bm x-\bm y|^2+|\bm c|^2
+} = \inf_{\substack{
+  \bm y,\bm c\in\mathbb R^d\\
+  \bm y\perp\bm c
+  }}
+  |\bm x-\bm y|^2+|\bm y|^2
+$. For $d\geq 2$, for every $\bm y\in\mathbb R^d$ it always exists a $\bm c\in\mathbb R^d$ such that $\bm y\perp\bm c$. So we can write
 
-This does not contradict the regularity of $H_h$ at the origin: it only shows that the terms of the Leibniz/Faà di Bruno expansion of $\partial_\rho^k(\rho^sK)$ cancel each other exactly as $\rho\to0$, and that this cancellation -- visible in the exact identity $\rho^sK=H_h/\hat u\circ\psi_{\hat x}$, an $\mathcal O(1)$-in-$\rho$ quantity times $h^{-s}$ -- is destroyed as soon as $K$ and $\chi_h$ are bounded separately and recombined with the triangle inequality. A genuinely different route is therefore needed for $k\geq1$: differentiating $\rho^s K$ termwise loses exactly the cancellation that made \eqref{eq:gamma0} work.
+\begin{equation*}
+  \operatorname{dist}(\bm x,\Sigma)^2 = \inf_{\bm y\in\mathbb R^d}|\bm x-\bm y|^2+|\bm y|^2
+\end{equation*}
 
-\paragraph{An exact algebraic factorization, valid at every order.}
+If we let $f(\bm y) = |\bm x-\bm y|^2+|\bm y|^2$, we have $\nabla f(\bm y) = 4\bm y - 2\bm x$. The minimum is reached for $\nabla f(\bm y) = 0$, i.e. $\bm y = \frac{\bm x}{2}$. Thus, we have
 
-The $k=0$ computation above cancelled exactly because $\rho^s$ was cancelled \emph{before} bounding $K$, not after. The fix for $k\geq1$ is to keep it that way at every order: rather than bound $K$ pointwise and reintroduce $\rho^s$ afterwards through Lemma 2, we factor $\rho^s$ out of $K$ \emph{algebraically}, once and for all, using the specific (pseudo-homogeneous) structure that hypersingular BEM kernels possess and from which \eqref{eq:kernel-deriv-bound} itself is classically derived (Guiggiani, 1992):
+\begin{equation*}
+  \boxed{\operatorname{dist}(\bm x,\Sigma) = \frac{|\bm x|}{\sqrt 2}}
+\end{equation*}
 
-\begin{equation}\label{eq:pseudo-hom}
-  K(x,y) = \frac{\kappa(x,\omega)}{\|x-y\|^{s}}, \qquad \omega = \frac{y-x}{\|y-x\|}\in\mathbb S^{d-1},
-\end{equation}
+This formula gives us how close we are from the "danger zone" in the complex space. Thus, we let $R = \theta\|\bm x\|_2$ with $0< \theta< 1/\sqrt{2}$ as a relaxing parameter, as well as $C(\theta) = \frac{\bm\lambda !}{R^{|\bm\lambda|}} \underset{\bm z\in B(\bm x, R)}{\text{sup}}\,\|\bm z\|_2$. For all $\bm z \in B(\bm x, R)$, we have $\|\bm z\|_2 \leq \|\bm x\|_2 + R = (1+\theta)\|\bm x\|_2$\footnote{Here, we perform a non optimal majoration.}, so that we can write 
 
-where, for every $x$, $\omega\mapsto \kappa(x,\omega)$ is of class $\mathcal C^{2n}(\mathbb S^{d-1})$ with
+$$\underset{\bm z\in B(\bm x, R)}{\text{sup}}\,\|\bm z\|_2 \leq (1+\theta)\|\bm x\|_2$$
 
-\begin{equation}\label{eq:angular-bound}
-  \exists\, C_\kappa(\beta) > 0, \quad \left\|D_\omega^\beta \kappa(x,\omega)\right\| \leq C_\kappa(\beta), \qquad \forall\, \omega\in\mathbb S^{d-1},\ \beta\in\mathbb N^{d-1},\ |\beta|\leq 2n.
-\end{equation}
+and also $\displaystyle{C(\theta) \leq \bm\lambda !\frac{1+\theta}{\theta^{|\bm\lambda|}} \|\bm x\|_2^{1-|\bm\lambda|}} = \bm\lambda!g(\theta)\|\bm x\|_2^{1-|\bm\lambda|}$. The function $g$ is decreasing on $]0, 1/\sqrt{2}[$, so the best majorant that we can take is the minimum majorant reached at the maximum value of $\theta$, i.e. $\theta = 1/\sqrt{2}$, which gives us $g(1/\sqrt{2}) = (1 + 1/\sqrt{2})\sqrt 2^{|\bm\lambda|}$. Thus, we have the desired majoration \ref{eq:lemma3}.
 
-Write, using the fundamental theorem of calculus along the segment $[\hat x,\, \hat x+\rho\mathbf u(\theta)]$,
-
-\begin{equation}\label{eq:Xi-def}
-  \chi_h\circ\psi_{\hat x}(\rho,\theta) - \chi_h(\hat x) = \rho\,\Xi(\rho,\theta), \qquad \Xi(\rho,\theta) := \int_0^1 D\chi_h\big(\hat x + t\rho\mathbf u(\theta)\big)\,\mathbf u(\theta)\,\mathrm dt.
-\end{equation}
-
-Unlike $\big(\chi_h\circ\psi_{\hat x}(\rho,\theta)-\chi_h(\hat x)\big)/\rho$, the function $\Xi(\rho,\theta)$ is defined and smooth for every $\rho\geq0$, \emph{including} $\rho=0$, where $\Xi(0,\theta)=D\chi_h(\hat x)\mathbf u(\theta)$: \eqref{eq:Xi-def} is an \emph{exact} identity, not an asymptotic one. Differentiating $j$ times under the integral sign and using \eqref{eq:nondegen-upper},
+\textbf{Lemma 4:} We have the following useful lower bound:
 
 \begin{equation}
-  \left\|\partial_\rho^j\Xi(\rho,\theta)\right\| = \left\|\int_0^1 t^jD^{j+1}\chi_h\big(\hat x+t\rho\mathbf u(\theta)\big)[\mathbf u(\theta)]^{\otimes(j+1)}\,\mathrm dt\right\| \leq \frac{C_Qh^{j+1}}{j+1},
+  \forall \bm k_1, \ldots, \bm k_n \in p(n, \bm\lambda), \quad \prod_{i=1}^{n}(i+1)!^{|\bm k_i|} \geq \Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{|\bm\lambda|}
 \end{equation}
 
-while \eqref{eq:nondegen-lower}, applied to $\hat y = \hat x + \rho\mathbf u(\theta)$ and letting $\rho\to0$, gives $\|\Xi(\rho,\theta)\|\geq c_Qh$ for every $\rho\geq0$. Setting
+Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{0}^{+\infty}t^{x-1}e^{-t}\mathrm dt}$.
 
-\begin{equation}
-  \xi(\rho,\theta) := \frac{\Xi(\rho,\theta)}{h}, \qquad \vartheta(\rho,\theta) := \|\xi(\rho,\theta)\|, \qquad \omega(\rho,\theta) := \frac{\xi(\rho,\theta)}{\vartheta(\rho,\theta)},
-\end{equation}
+\textbf{Lemma 5:} We can achieve the following upper bound for the derivatives of scalar $A_{\hat x}(\rho, \theta)$:
 
-we thus have $c_Q \leq \vartheta(\rho,\theta)\leq C_Q$ \emph{uniformly in $h$}, and, by ordinary (real) Leibniz and Faà di Bruno applied to the norm and quotient maps -- legitimate everywhere on $[0,\hat\rho]\times[0,2\pi[$ since $\vartheta$ never vanishes -- both $\vartheta$ and $\omega$, together with all their $\rho$-derivatives up to order $2n$, are bounded by constants depending only on the derivative order, $C_Q$ and $c_Q$, again uniformly in $h$.
+\begin{equation*}
+  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq h^{2n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}A_{\hat x}(\rho, \theta)^{1-|\bm\lambda|}|p(n, \bm\lambda)|n!(c_Qe^{\hat\rho(\theta)h})^{|\bm\lambda|}\Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{-|\bm\lambda|}
+\end{equation*}
 
-Since $\|x-y\| = \rho\|\Xi(\rho,\theta)\| = \rho\,h\,\vartheta(\rho,\theta)$ exactly, substituting \eqref{eq:pseudo-hom} into the definition of $H_h$ gives the exact identity
-
-\begin{equation}\label{eq:Hh-factored}
-  H_h(\rho,\theta) = \rho^s\,\frac{\kappa\big(x,\omega(\rho,\theta)\big)}{\rho^sh^s\vartheta(\rho,\theta)^s}\,\big[\hat u\circ\psi_{\hat x}\big](\rho,\theta) = h^{-s}\,\mathcal H(\rho,\theta), \qquad \mathcal H(\rho,\theta) := \frac{\kappa\big(x,\omega(\rho,\theta)\big)\,\big[\hat u\circ\psi_{\hat x}\big](\rho,\theta)}{\vartheta(\rho,\theta)^{s}},
-\end{equation}
-
-in which $\rho^s$ has cancelled \emph{algebraically}, with no asymptotics involved -- exactly as at $k=0$, but now at the level of the function itself, before any differentiation. Every factor of $\mathcal H$ has $\rho$-derivatives bounded independently of $h$: $\omega(\rho,\theta)$ and its derivatives are $h$-uniformly bounded (above); $\kappa(x,\cdot)$ and its angular derivatives are bounded by \eqref{eq:angular-bound}, so $\rho\mapsto \kappa(x,\omega(\rho,\theta))$ has $h$-uniformly bounded derivatives by ordinary Faà di Bruno; $[\hat u\circ\psi_{\hat x}](\rho,\theta)$ has $\rho$-derivatives bounded by $\delta_m$, exactly as already used above (Lemma \ref{eq:lemma1}); and $t\mapsto t^{-s}$ is smooth with bounded derivatives on $[c_Q, C_Q]$, so $\vartheta(\rho,\theta)^{-s}$ and its $\rho$-derivatives are $h$-uniformly bounded too. An ordinary (real) application of the Leibniz rule to the product in \eqref{eq:Hh-factored} then yields, for every $k\leq2n$,
-
-\begin{equation}\label{eq:gamma-final}
-  \boxed{\ \gamma_{h,k} \ \leq\ \Lambda_k\, h^{-s}\ }, \qquad \Lambda_k := \sup_{m\leq k}\sup_{\rho,\theta}\left|\partial_\rho^m\mathcal H(\rho,\theta)\right| < \infty,
-\end{equation}
-
-where $\Lambda_k$ is an explicit, finite, purely combinatorial constant (depending on $k$, $s$, $C_Q$, $c_Q$, $C_k(\cdot)$ and $\delta_{\leq k}$, but not on $h$), obtained without ever leaving the reals: no analytic continuation, no complex disk, no Cauchy inequality was used. Setting $k=0$ recovers \eqref{eq:gamma0} with $\Lambda_0 = \Gamma_0$, so this construction generalizes the direct computation above to every order at once. (If one further assumes, as is standard for the fundamental solutions used in practice, that $\kappa(x,\cdot)$ and $\chi_h$ are real-analytic, $\Lambda_k$ can in addition be shown to grow no faster than $\Lambda\, k!\, L^k$ for constants $\Lambda, L$ independent of $h$ and $k$; this refinement is most conveniently obtained by applying Cauchy's inequality to $\mathcal H$ itself -- whose domain of analyticity is now transparent from \eqref{eq:Hh-factored} -- rather than to $H_h$ directly, but it is not needed for what follows.)
-
-\paragraph{Consequence for the mesh-size convergence rate.}
-
-Substituting \eqref{eq:gamma-final} for $\gamma_{h,k+2}$ inside \eqref{eq:Rh2n-bound}, the factor $h^{-s}$ is common to every term of the sum and factors out unconditionally (regardless of the precise growth of $\Lambda_{k+2}$ with $k$), so that the $h^{d-1}$ prefactor of \eqref{eq:Rh2n-bound} is replaced by $h^{d-1-s}$:
-
-\begin{equation}
-  |R_h^{(2n)}(\rho)| \ \leq\ h^{d-1-s}\sum_{k=2n}^{+\infty}k!\,\frac{(k+3)^4M_{k+2}^2\,\Lambda_{k+2}\,\lambda_{k+2}}{(k+2)!(k-2n)!}\,\hat\rho^{k-2n}.
-\end{equation}
-
-Since $s\geq1$ for any genuinely singular kernel, this is strictly worse than the $\mathcal O(h^{d-1})$ that the original ansatz $\gamma_{h,k}=\mathcal O_{h\to0}(1)$ would have suggested, and it is \emph{negative} (i.e. $R_h^{(2n)}(\rho_0)$ actually diverges as $h\to0$ at fixed quadrature order $n$) as soon as $s > d-1$ -- which is precisely the hypersingular case, e.g. $s=3$, $d-1=2$ (see \S\ref{sec:bernstein-R} again: $s=3$, $d=3$). This is not a contradiction: it simply confirms, quantitatively, that mesh refinement at \emph{fixed} $n$ cannot control the error made on a self-singular (diagonal) hypersingular integral -- the exponential-in-$n$ decay of the Bernstein ellipse bound of \S\ref{sec:bernstein-R} is what must be relied upon instead, with $n$ allowed to grow (e.g. $n=n(h)\to\infty$, typically $n\sim\log(1/h)$) as the mesh is refined, so that the exponential gain in $n$ outpaces the polynomial-in-$1/h$ growth exhibited here.
+Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}}$.
 
 % \bibliographystyle{unsrt} 
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
