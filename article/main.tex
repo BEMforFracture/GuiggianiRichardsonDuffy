@@ -479,8 +479,8 @@ Condition \ref{eq:nondegen-lower} can be rewritten as $\boxed{r\geq c_Qh\rho}$, 
 
 \textbf{Homogeneous kernels}. When the kernel is homogeneous, i.e 
 
-\begin{align}
-  \exists \hat K, K(x, y) = \frac{1}{r^s}\hat K(\mathbf{\hat r}, n_x, n_y), \quad\forall n_x, n_y \in \mathbb S^{d}, z\to \hat K(z, n_x, n_y) \text{ is of class } \mathcal C^{\infty}(\mathbb R^d), \\
+$$\exists \hat K, K(x, y) = \frac{1}{r^s}\hat K(\mathbf{\hat r}, n_x, n_y), \quad\forall n_x, n_y \in \mathbb S^{d}, z\to \hat K(z, n_x, n_y) \text{ is of class } \mathcal C^{\infty}(\mathbb R^d)$$
+\begin{align}\label{ineq:reg-pol-kernel}
   \text{i.e } \forall \alpha\in\mathbb N^d, \quad \exists C_K(|\alpha|) > 0, \quad \left|\frac{\partial^{|\alpha|}\hat K}{\partial z^{\alpha}}(z, n_x, n_y)\right| \leq C_K(|\alpha|), \quad \forall z\in\mathbb R^d
 \end{align}
 
@@ -585,10 +585,32 @@ Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{
 \textbf{Lemma 5:} We can achieve the following upper bound for the derivatives of scalar $A_{\hat x}(\rho, \theta)$:
 
 \begin{equation*}
-  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq h^{2n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}A_{\hat x}(\rho, \theta)^{1-|\bm\lambda|}|p(n, \bm\lambda)|n!(c_Qe^{\hat\rho(\theta)h})^{|\bm\lambda|}\Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{-|\bm\lambda|}
+  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq c_Qh^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}\Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{-|\bm\lambda|}
 \end{equation*}
 
 Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}}$.
+
+After some rearrangements, and supposing that it exists a constant $C_{n,|\bm\lambda|}$ depending only on $n$ and $|\bm\lambda|$ such that $|p(n, \bm\lambda)| \leq C_{n,|\bm\lambda|}$, we can write
+
+\begin{equation*}
+  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq h^{n+1}\mathcal C_n
+\end{equation*}
+
+with $\displaystyle{\mathcal C_n = \mathcal C_n(h, \rho, \theta, \hat x, \chi_h) = c_Q \sum_{k=1}^{n}C_kC_{n, k}\left(\frac{e^{h\hat\rho(\theta)}}{\Gamma\left(\frac{n}{k}+2\right)}\right)^{k}}Q$ and $C_k = k!\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{k}$.
+
+Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \mathcal O_{h\to 0}(h)$.
+
+\textsc{Study of the derivatives of the regularized kernel}: Let's differentiate $A_{\hat x}(\rho, \theta)^{-s} \hat K_{\hat x}(\rho, \theta)$. Using both the Leibniz and the Faà di Bruno formulas, we can write
+
+\begin{equation*}
+  \left(\frac{f}{g^s}\right)^{(n)} = \sum_{i=0}^{n}\binom{n}{i}f^{(n-i)}\sum_{k=1}^{i}(-1)^kg^{-s-k}(s-1)^{(k)}\sum_{p(i, k)}\frac{i!}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{g^{(j)}}{j!}\right)^{k_j}
+\end{equation*}
+
+Before diving into this whole summations and product, let's establish a few useful bounds. Let's first write the polar equivalence (it obviously exists) of the bounding condition \ref{ineq:reg-pol-kernel}:
+
+\begin{equation*}
+  \exists C_{n-i}>0, \qquad \frac{\partial^{n-i}\hat K_{\hat x}(\rho, \theta)}{\partial\rho^{n-i}} \leq C_{n-i}
+\end{equation*}
 
 % \bibliographystyle{unsrt} 
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
