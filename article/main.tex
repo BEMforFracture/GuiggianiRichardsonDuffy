@@ -371,7 +371,7 @@ $$\exists \hat K, K(x, y) = \frac{1}{r^s}\hat K(\mathbf{\hat r}, n_x, n_y), \qua
   \text{i.e } \forall \alpha\in\mathbb N^d, \quad \exists C_K(|\alpha|) > 0, \quad \left|\frac{\partial^{|\alpha|}\hat K}{\partial z^{\alpha}}(z, n_x, n_y)\right| \leq C_K(|\alpha|), \quad \forall z\in\mathbb R^d
 \end{align}
 
-Such that
+Then we have 
 
 \begin{align}\label{eq:reg-pol-kernel}
   \rho^s K(\chi_h(\hat x), \chi_h\circ\psi_{\hat x}(\rho, \theta))
@@ -393,7 +393,7 @@ Where $s$ is the order of singularity of the function $\rho\to K(\chi_h(\hat x),
 
 We will denote $\hat K\!\left(\hat{\mathbf A}_{\hat x}(\rho, \theta),
   n\circ\chi_h(\hat x),
-  n\circ\chi_h\circ\psi_{\hat x}(\rho,\theta)\right)$ as $\hat K_{\hat x}(\rho, \theta)$ for clarity, keeping in mind that this is the kernel evaluated in polar coordinates centered at point $x = \chi_h(\hat x)$.
+  n\circ\chi_h\circ\psi_{\hat x}(\rho,\theta)\right)$ as $\hat K_{\hat x}(\rho, \theta)$ for clarity, keeping in mind that this is the kernel evaluated in polar coordinates in parameter space centered at point $\hat x$.
 
 As the kernel $K$ is regularized by the term $\rho^3$ in $H_h$, we can ensure that $H_h = \mathcal O_{\rho\to 0} (1)$. Applying the Leipniz formula, we have
 
@@ -408,7 +408,7 @@ With:
   \partial_{\rho}^{m-k}(J_h\circ\psi_{\hat x})(\rho, \theta) & \leq \sum_{j=0}^{m-k}\binom{m-k}{j}\left|\frac{\partial^{m-k}J_h}{\partial\hat x_1^{i}\hat x_2^{m-k-i}}(\psi_{\hat x}(\rho, \theta))\right|
 \end{align*}
 
-Where $\displaystyle{u_k = \underset{|\bm\alpha|\leq k}{\text{max}}\left\|\partial^{\bm\alpha}\hat u\right\|_{L^{\infty}(\hat\tau)}}$ is a constant that depends only on the geometry of the element. To bound the $(m-k)$-th order derivatives of $J_h$, we used the lemma \ref{eq:lemma1}.
+Where $\displaystyle{u_k = \underset{|\bm\alpha|\leq k}{\text{max}}\left\|\partial^{\bm\alpha}\hat u\right\|_{L^{\infty}(\hat\tau)}}$ is a constant that depends only on the geometry of the element. To bound the $(m-k)$-th order polar derivatives of $J_h$, we used the lemma \ref{eq:lemma1}.
 
 \textsc{Bounding of the carthesian derivatives of $J_h$}: there's no need to expand an explicit formula for the derivatives of $J_h$ in terms parametrization $\chi_h$, because we can use a useful hypothesis on the mesh quality. Indeed, to ensure non-degeneracy of the elements, we can assume that
 
@@ -447,13 +447,19 @@ $$\begin{array}{ccccl}
 By the non-degeneracy hypothesis, we have $\mu = \mathcal O_{h\to 0}(1)$ and all its derivatives are also bounded. So that we can write $J_h(\hat x) = h^{d-1}\mu(\hat x)$, and
 
 \begin{equation}
-   \partial_{\rho}^{m-k}(J_h\circ\psi_{\hat x})(\rho, \theta) \leq \lambda_mh^{d-1}\sum_{j=0}^{m-k}\binom{m-k}{j} = \lambda_mh^{d-1}2^{m-k}
+   \partial_{\rho}^{m-k}(J_h\circ\psi_{\hat x})(\rho, \theta) \leq \mu_mh^{d-1}\sum_{j=0}^{m-k}\binom{m-k}{j} = \lambda_mh^{d-1}2^{m-k}
 \end{equation}
 
 Where $\displaystyle{\mu_m = \underset{|\bm\alpha|\leq m}{\text{max}}\left\|\partial^{\bm\alpha}\mu\right\|_{L^{\infty}(\hat\tau)}}$. We can then obtain:
 
 \begin{equation}
   \partial^m_{\rho}G(\rho, \theta) \leq h^{d-1}\mu_{m}u_m\sum_{k=0}^{m}\sum_{j=0}^{k}2^{m-k}\binom{m}{k}\binom{k}{j}\partial^{j}_{\rho}\left(A_{\hat x}(\rho, \theta)^{-s}\hat K_{\hat x}(\rho, \theta)\right)
+\end{equation}
+
+By reordering the sums on the domain $0\leq j \leq k \leq m$, and using the binomial identity $\binom{m}{k}\binom{k}{j} = \binom{m}{j}\binom{m-j}{k-j}$, we finally get:
+
+\begin{equation}
+  \partial^m_{\rho}G(\rho, \theta) \leq h^{d-1}\mu_{m}u_m\sum_{j=0}^{m}\binom{m}{j}3^{m-j}\partial^{j}_{\rho}\left(A_{\hat x}(\rho, \theta)^{-s}\hat K_{\hat x}(\rho, \theta)\right)
 \end{equation}
 
 Then, we recall the shape-regularity condition which the upper bound equivalent of the non-degeneracy condition \ref{eq:nondegen-lower}:
@@ -530,13 +536,18 @@ $$\underset{\bm z\in B(\bm x, R)}{\text{sup}}\,\|\bm z\|_2 \leq (1+\theta)\|\bm 
 
 and also $\displaystyle{C(\theta) \leq \bm\lambda !\frac{1+\theta}{\theta^{|\bm\lambda|}} \|\bm x\|_2^{1-|\bm\lambda|}} = \bm\lambda!g(\theta)\|\bm x\|_2^{1-|\bm\lambda|}$. The function $g$ is decreasing on $]0, 1/\sqrt{2}[$, so the best majorant that we can take is the minimum majorant reached at the maximum value of $\theta$, i.e. $\theta = 1/\sqrt{2}$, which gives us $g(1/\sqrt{2}) = (1 + 1/\sqrt{2})\sqrt 2^{|\bm\lambda|}$. Thus, we have the desired majoration \ref{eq:lemma3}.
 
-\textbf{Corollary 1:} Let $\bm f : \mathbb R\to\mathbb R^d$ be a function of class $\mathcal C^{|\bm\lambda|}$, with $\bm\lambda\in\mathbb N^d$. Then, the following bound holds (direct application of the Faà di Bruno formula with the previous lemma):
+\textbf{Corollary 1:} Let $\bm f : \mathbb R\to\mathbb R^d$ be a function of class $\mathcal C^{|\bm\lambda|}$, with $\bm\lambda\in\mathbb N^d$. Then, the following bound holds, which is a conequence of the three following statement:
+\begin{itemize}
+  \item if $\bm v, \bm u\in \mathbb R^d$, then vectorial exponentitation can be simply bounded by  $\bm u^{\bm v}\leq \|\bm u\|_2^{\|\bm v\|_1}=\|\bm u\|_2^{|\bm v|}$
+  \item the Faà di Bruno formula for the composition of functions $h = g\circ f$ with $g : \mathbb R^d\to\mathbb R$ and $f : \mathbb R\to\mathbb R^d$:
+  \item the previous lemma \ref{eq:lemma3}
+\end{itemize}
 
 \begin{equation}
-  \left|\partial^{n}\|\bm f(\rho)\|_2\right| \leq \sum_{1\leq |\bm\lambda|\leq n}\bm\lambda !C_{\bm\lambda}\|f(\rho)\|_2^{1-|\bm\lambda|}\sum_{p(n,\bm\lambda)}n!\prod_{j=1}^{n}\frac{\left(\partial^j\bm f(\rho)\right)^{\bm k_j}}{\bm k_j!j!^{|\bm k_j|}Q}
+  \left|\partial^{n}\|\bm f(\rho)\|_2\right| \leq \sum_{1\leq |\bm\lambda|\leq n}\bm\lambda !C_{\bm\lambda}\|f(\rho)\|_2^{1-|\bm\lambda|}\sum_{p(n,\bm\lambda)}n!\prod_{j=1}^{n}\frac{\|\partial^j\bm f(\rho)\|_2^{|\bm k_j|}}{\bm k_j!j!^{|\bm k_j|}}
 \end{equation}
 
-\textbf{Lemma 4:} We have the following useful lower bounds: $\forall \bm k_1, \ldots, \bm k_n \in p(n, \bm\lambda)$
+\textbf{Lemma 4:} We have the following useful lower and upper bounds: $\forall \bm k_1, \ldots, \bm k_n \in p(n, \bm\lambda)$
 
 \begin{align}\label{ineq:lemma4}
   & \prod_{i=1}^{n}(i+1)!^{|\bm k_i|} \geq \Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{|\bm\lambda|} \\
@@ -548,7 +559,7 @@ Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{
 \textbf{Lemma 5:} We can achieve the following upper bound for the derivatives of scalar $A_{\hat x}(\rho, \theta)$:
 
 \begin{equation*}
-  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq c_Qh^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}\Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{-|\bm\lambda|}
+  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq c_Qh^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}\Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{-|\bm\lambda|}
 \end{equation*}
 
 Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}}$.
@@ -556,10 +567,10 @@ Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\righ
 After some rearrangements, and assuming that it exists a constant $C_{n,|\bm\lambda|}$ depending only on $n$ and $|\bm\lambda|$ such that $|p(n, \bm\lambda)| \leq C_{n,|\bm\lambda|}$, we can write, as $\bm\lambda!\leq |\bm\lambda|!$, the following:
 
 \begin{equation*}
-  \left|\frac{\partial ^n A_{\hat x}(\rho, \theta)}{\partial\rho^n}\right| \leq h^{n+1}\mathcal C_n
+  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq h^{n+1}\mathcal C_n
 \end{equation*}
 
-with $\displaystyle{\mathcal C_n = \mathcal C_n(h, \theta, \hat x, \chi_h) = c_Q \sum_{k=1}^{n}\binom{n+k-1}{k}C_kC_{n, k}\left(\frac{e^{h\hat\rho(\theta)}}{\Gamma\left(\frac{n}{k}+2\right)}\right)^{k}}$ and $C_k = k!\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{k}$.
+with $\displaystyle{\mathcal C_n = \mathcal C_n(h, \theta, \hat x, \chi_h) = c_Q \sum_{k=1}^{n}\binom{n+k-1}{k}C_kC_{n, k}\left(\frac{e^{h\hat\rho(\theta)}}{\Gamma\left(\frac{k}{n}+2\right)}\right)^{k}}$ and $C_k = k!\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{k}$.
 
 Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \mathcal O_{h\to 0}(h)$. We made the change of variable $k = |\bm\lambda|$, and $\binom{n+k-1}{k} = \#\left\{\bm\lambda\in\mathbb N^n, |\bm\lambda| = k\right\}$.
 
@@ -571,10 +582,10 @@ Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \ma
 
 Where $\displaystyle{s^{(k)} = s(s+1)\cdots(s+k-1) = \frac{(s+k-1)!}{(s-1)!}}$ is the rising factorial.
 
-Before diving into this whole summations and product, let's establish a few straightforward bounds. Let's first write the polar equivalence (it obviously exists) of the bounding condition \ref{ineq:reg-pol-kernel}:
+Before diving into these whole summations and product, let's establish a few straightforward bounds. Let's first write the polar equivalence (it obviously exists) of the bounding condition \ref{ineq:reg-pol-kernel}:
 
 \begin{equation}
-  \exists C_{n-i}>0, \qquad \frac{\partial^{n-i}\hat K_{\hat x}(\rho, \theta)}{\partial\rho^{n-i}} \leq \hat C_{n-i}
+  \exists C_{n-i}>0, \qquad \partial^{n-i}_{\rho}\hat K_{\hat x}(\rho, \theta) \leq \hat C_{n-i} = C_{n-i}(\theta, \hat x, \chi_h)
 \end{equation}
 
 Then, by using the mesh regularity condition \ref{eq:nondegen-lower}, we can write
@@ -583,10 +594,10 @@ Then, by using the mesh regularity condition \ref{eq:nondegen-lower}, we can wri
   A_{\hat x}(\rho, \theta)^{-s-k} = (r/\rho)^{-s-k} \leq (c_Qh)^{-s-k}
 \end{equation}
 
-Now, our next goal is to bound the term $\displaystyle{P_{p(i, k)} = \frac{1}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{\partial^jA_{\hat x}(\rho, \theta)}{j!}\right)^{k_j}}$. 
+Now, our next goal is to bound the term $\displaystyle{P_{p(i, k)} = \frac{1}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{\partial^j_{\rho}A_{\hat x}(\rho, \theta)}{j!}\right)^{k_j}}$. 
 
 \begin{equation}
-  P_{p(i, k)} = \prod_{j=1}^{i}\frac{\left(\partial^jA_{\hat x}(\rho, \theta)\right)^{k_j}}{j!^{k_j}k_j!} \leq \prod_{j=1}^{i}\frac{\left(h^{j+1}\mathcal C_j\right)^{k_j}}{j!^{k_j}k_j!}
+  P_{p(i, k)} = \prod_{j=1}^{i}\frac{\left(\partial^j_{\rho}A_{\hat x}(\rho, \theta)\right)^{k_j}}{j!^{k_j}k_j!} \leq \prod_{j=1}^{i}\frac{\left(h^{j+1}\mathcal C_j\right)^{k_j}}{j!^{k_j}k_j!}
 \end{equation}
 
 On one hand, $\displaystyle{\prod_{j=1}^{i}\left(h^{j+1}\mathcal C_j\right)^{k_j}} = h^{k+i}\prod_{j=1}^{i}\mathcal C_j^{k_j}$, by definition of the set $p(i, k)$. On the other hand, by lemma \ref{ineq:lemma4},
@@ -598,13 +609,13 @@ On one hand, $\displaystyle{\prod_{j=1}^{i}\left(h^{j+1}\mathcal C_j\right)^{k_j
 Thus,
 
 \begin{equation}
-  \sum_{p(i,k)}P_{p(i, k)} \leq h^{k+i}\mathcal C_{i,k}\left(\frac{\left(\frac{i}{k}+1\right)}{\Gamma\left(\frac{i}{k}+2\right)}\right)^{k}, \qquad \mathcal C_{i,k} = \sum_{p(i, k)}\prod_{j=1}^{i}\mathcal C_j^{k_j}, \qquad k \overset{\text{\tiny recall}}{=} \sum_{j=1}^{i}k_j
+  \sum_{p(i,k)}P_{p(i, k)} \leq h^{k+i}\mathcal C_{i,k}\left(\frac{\frac{i}{k}+1}{\Gamma\left(\frac{i}{k}+2\right)}\right)^{k}, \qquad \mathcal C_{i,k} = \sum_{p(i, k)}\prod_{j=1}^{i}\mathcal C_j^{k_j}, \qquad k \overset{\text{\tiny recall}}{=} \sum_{j=1}^{i}k_j
 \end{equation}
 
 Finally,
 
 \begin{equation}
-  \partial^k\left(A_{\hat x}(\rho, \theta)^{-s}\hat K_{\hat x}(\rho, \theta)\right) \leq \left(\frac{1}{hc_Q}\right)^s\sum_{i=0}^{k}(k)_i\hat C_{k-i}h^{i}\sum_{j=1}^{i}s^{(j)}\mathcal C_{i,j}\left(\frac{\left(\frac{i}{j}+1\right)}{\Gamma\left(\frac{i}{j}+2\right)}\right)^{j}
+  \partial^j_\rho\left(A_{\hat x}(\rho, \theta)^{-s}\hat K_{\hat x}(\rho, \theta)\right) \leq \left(\frac{1}{hc_Q}\right)^s\sum_{i=0}^{j}(j)_i\hat C_{j-i}h^{i}\sum_{k=1}^{i}s^{(k)}\mathcal C_{i,k}\left(\frac{\frac{i}{k}+1}{\Gamma\left(\frac{i}{k}+2\right)}\right)^{k}
 \end{equation}
 
 With $\displaystyle{(k)_i = \frac{k!}{(k-i)!}}$ the falling factorial.
