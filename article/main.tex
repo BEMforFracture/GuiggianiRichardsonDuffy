@@ -273,10 +273,12 @@ Thus,
 
 \subsubsection{Richardson extrapolation}
 
+\textbf{Lemma 1:}
+
 We can show that the following majorations hold for any sequence $\rho_i(\theta)$ of $n$ radial points:
 
 \begin{equation}
-  |\widetilde F_{-2}(\theta) - F_{-2}(\theta)| \leq \frac{||R^{(n)}||_{\infty}(\theta)}{n!}\prod_{i=1}^{n}\rho_i(\theta), \qquad |\widetilde F_{-1}(\theta) - F_{-1}(\theta)| \leq P_n(\theta)\frac{||R^{(n+1)}||_{\infty}(\theta)}{n!}\prod_{i=1}^{n}\rho_i(\theta)
+  |\widetilde F_{-2} - F_{-2}| \leq \frac{||\partial^n_\rho G||_{\infty}}{n!}\prod_{i=1}^{n}\rho_i, \qquad |\widetilde F_{-1} - F_{-1}| \leq \left\{\frac{\left\|\partial_\rho^{n+1}G\right\|_{\infty}}{(n+1)!}+P_n\frac{\left\|\partial_\rho^{n}G\right\|_{\infty}}{n!}\right\}\prod_{i=1}^{n}\rho_i
 \end{equation}
 
 Which shows that the speed of convergence is conditionned by the product of the radial points $\prod_{i=1}^{n}\rho_i(\theta)$. In the case of a geometric sequence $\rho_i(\theta) = \hat\rho(\theta)q^{i-1}$, we have $\prod_{i=1}^{n}\rho_i(\theta) = \hat\rho^n(\theta)q^{\frac{n(n-1)}{2}}$, which is a very fast convergence. In the case of a sequence of Gauss-Legendre quadrature points, we have $\prod_{i=1}^{n}\rho_i(\theta) = \hat\rho^n(\theta)\frac{(n!)^2}{(2n)!}$, which is a slower convergence (see Figure \ref{fig:convergence_comparison}).
@@ -289,6 +291,35 @@ Which shows that the speed of convergence is conditionned by the product of the 
 \end{figure}
 
 That's why geometric sequences are still preferred over Gauss-Legendre quadrature points for pure Richardson extrapolation.
+
+\textit{Proof of Lemma 1:} Let $e(\rho) = G(\rho) - \Pi_{n-1}G(\rho)$ be the interpolation error of $G$ by its Lagrange interpolant $\Pi_{n-1}G$. We have the following formula for the interpolation error, which is quite general on polynomial interpolation:
+
+\begin{equation}
+  e(\rho) = G[\rho_1, \cdots, \rho_n, \rho]\prod_{i=1}^{n}(\rho - \rho_i)
+\end{equation}
+
+Where $G[\rho_1, \cdots, \rho_n, \rho]$ is the divided difference of order $n$ of $G$ at the points $\rho_1, \cdots, \rho_n, \rho$. By using the mean value theorem for divided differences, we can write
+
+\begin{equation}
+  G[\rho_1, \cdots, \rho_n, \rho] = \frac{G^{(n)}(\xi)}{n!}
+\end{equation}
+
+For some $\xi \in [0, \hat\rho]$. Thus, we can write 
+
+\begin{equation}
+  \left|\widetilde F_{-2} - F_{-2}\right| = \left|e(0)\right| \leq \frac{||\partial^n_\rho G||_{\infty}}{n!}\prod_{i=1}^{n}\rho_i
+\end{equation}
+
+Then, taking the derivative of the interpolation error, we have
+
+\begin{align*}
+  e'(\rho) & = \partial_\rho\left\{G[\rho_1, \cdots, \rho_n, \rho]\prod_{i=1}^{n}(\rho - \rho_i)\right\} \\
+  & = \partial_\rho\left\{G[\rho_1, \cdots, \rho_n, \rho]\right\}\prod_{i=1}^{n}(\rho - \rho_i) + G[\rho_1, \cdots, \rho_n, \rho]\partial_\rho\left\{\prod_{i=1}^{n}(\rho - \rho_i)\right\} \\
+  & = G[\rho_1, \cdots, \rho_n, \rho, \rho]\prod_{i=1}^{n}(\rho - \rho_i) + G[\rho_1, \cdots, \rho_n, \rho]P_n\prod_{i=1}^{n}(\rho - \rho_i) \\
+  \left|\widetilde F_{-1} - F_{-1}\right| = \left|e'(0)\right| & \leq \left\{\frac{\left\|\partial_\rho^{n+1}G\right\|_{\infty}}{(n+1)!}+P_n\frac{\left\|\partial_\rho^{n}G\right\|_{\infty}}{n!}\right\}\prod_{i=1}^{n}\rho_i
+\end{align*}
+
+using again the mean value theorem for $G[\rho_1, \cdots, \rho_n, \rho]$ and $G[\rho_1, \cdots, \rho_n, \rho, \rho]$.
 
 \subsubsection{Gauss-Legendre quadrature}
 
@@ -339,13 +370,15 @@ where $\chi$ is the mapping from the reference space to the physical element, $\
   M_h(\hat x) = D\chi_h(\hat x)^TD\chi_h(\hat x), \qquad (M_h)_{ab} = \sum_{k=1}^{d-1}\frac{\partial\chi_{h,k}}{\partial \hat x_a}\frac{\partial\chi_{h,k}}{\partial \hat x_b}, \quad (a, b)\in \{1, \dots, d-1\}^2 = \{1, 2\}^2
 \end{equation}
 
+Finally, the vector $\mathbf u(\theta)$ is the unit trigonometric vector defined as $\mathbf u(\theta) = (\cos\theta, \sin\theta)$ for our case $d = 3$. 
+
 \textbf{Lemma 1}: using the Faà di Bruno formula for functions of the form $h(x) = f[g_1(x), \cdots, g_m(x)]$ (see Constantine, 1996), one can write, for any function $f : \mathbb R^{d-1} \to \mathbb R$,
 
 \begin{equation}\label{eq:lemma1}
   \partial^k_{\rho} (f\circ\psi_{\hat x})(\rho, \theta) = \sum_{i=0}^{k}\binom{k}{i}\cos^i(\theta)\sin^{k-i}(\theta)\frac{\partial^k f}{\partial \hat x_1^i\partial \hat x_2^{k-i}}(\psi_{\hat x}(\rho, \theta))
 \end{equation}
 
-Finally, the vector $\mathbf u(\theta)$ is the unit trigonometric vector defined as $\mathbf u(\theta) = (\cos\theta, \sin\theta)$ for our case $d = 3$. We can then expand $G$ as
+We can then expand $G$ as
 
 \begin{equation}
   G(\rho, \theta) = H_h(\rho, \theta)J_h\circ\psi_{\hat x}(\rho, \theta)
@@ -431,7 +464,7 @@ In particular, for $\alpha = 1$, we have
 \le C_Q^2 h^2.
 \end{equation}
 
-Condition \ref{eq:nondegen-lower} can be rewritten as $\boxed{r\geq c_Qh\rho}$, which represent the bi-Lipschitz property of the parametrization $\chi_h$. Furthermore, the Hadamard's inequality (HI) states that 
+Condition \ref{eq:nondegen-lower} can be rewritten as $\boxed{r\geq c_Qh\rho}$, which represents the bi-Lipschitz property of the parametrization $\chi_h$. Furthermore, the Hadamard's inequality (HI) states that 
 
 \begin{equation}
   |\phi_h(\hat x)| = |\text{det}(M_h(\hat x))| \overset{\text{(HI)}}{\leq} \prod_{i=1}^{d-1}\left\|M_h(\hat x)_{i, :}\right\| \leq \left\|M_h(\hat x)\right\|^{d-1} \leq C_Q^{2(d-1)}h^{2(d-1)}
@@ -538,7 +571,7 @@ and also $\displaystyle{C(\theta) \leq \bm\lambda !\frac{1+\theta}{\theta^{|\bm\
 
 \textbf{Corollary 1:} Let $\bm f : \mathbb R\to\mathbb R^d$ be a function of class $\mathcal C^{|\bm\lambda|}$, with $\bm\lambda\in\mathbb N^d$. Then, the following bound holds, which is a conequence of the three following statement:
 \begin{itemize}
-  \item if $\bm v, \bm u\in \mathbb R^d$, then vectorial exponentitation can be simply bounded by  $\bm u^{\bm v}\leq \|\bm u\|_2^{\|\bm v\|_1}=\|\bm u\|_2^{|\bm v|}$
+  \item if $\bm v, \bm u\in \mathbb R^d$, then vectorial exponentitation can be simply bounded by  $\left|\bm u^{\bm v}\right|\leq \|\bm u\|_2^{\|\bm v\|_1}=\|\bm u\|_2^{|\bm v|}$
   \item the Faà di Bruno formula for the composition of functions $h = g\circ f$ with $g : \mathbb R^d\to\mathbb R$ and $f : \mathbb R\to\mathbb R^d$:
   \item the previous lemma \ref{eq:lemma3}
 \end{itemize}
@@ -577,10 +610,14 @@ Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \ma
 \textsc{Study of the derivatives of the regularized kernel}: Let's differentiate $A_{\hat x}(\rho, \theta)^{-s} \hat K_{\hat x}(\rho, \theta)$. Using both the Leibniz and the Faà di Bruno formulas, we can write
 
 \begin{equation*}
-  \left(\frac{f}{g^s}\right)^{(n)} = \sum_{i=0}^{n}\binom{n}{i}f^{(n-i)}\sum_{k=1}^{i}(-1)^kg^{-s-k}s^{(k)}\sum_{p(i, k)}\frac{i!}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{\partial^jg}{j!}\right)^{k_j}
+  \left(\frac{f}{g^s}\right)^{(n)} = \sum_{i=0}^{n}\binom{n}{i}f^{(n-i)}\sum_{k=0}^{i}(-1)^kg^{-s-k}s^{(k)}\sum_{p(i, k)}\frac{i!}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{\partial^jg}{j!}\right)^{k_j}
 \end{equation*}
 
-Where $\displaystyle{s^{(k)} = s(s+1)\cdots(s+k-1) = \frac{(s+k-1)!}{(s-1)!}}$ is the rising factorial.
+With, by convention, 
+
+$$\displaystyle{\sum_{p(i, 0)}\frac{i!}{\prod_{j=1}^{i}k_j!}\prod_{j=1}^{i}\left(\frac{\partial^jg}{j!}\right)^{k_j}} = \delta_{i,0},$$
+
+so that we can retrieve, for $n = 0$, the original function $\displaystyle{\frac{f}{g^s}}$, and where $\displaystyle{s^{(k)} = s(s+1)\cdots(s+k-1) = \frac{(s+k-1)!}{(s-1)!}}$ is the rising factorial.
 
 Before diving into these whole summations and product, let's establish a few straightforward bounds. Let's first write the polar equivalence (it obviously exists) of the bounding condition \ref{ineq:reg-pol-kernel}:
 
@@ -618,7 +655,18 @@ Finally,
   \partial^j_\rho\left(A_{\hat x}(\rho, \theta)^{-s}\hat K_{\hat x}(\rho, \theta)\right) \leq \left(\frac{1}{hc_Q}\right)^s\sum_{i=0}^{j}(j)_i\hat C_{j-i}h^{i}\sum_{k=1}^{i}s^{(k)}\mathcal C_{i,k}\left(\frac{\frac{i}{k}+1}{\Gamma\left(\frac{i}{k}+2\right)}\right)^{k}
 \end{equation}
 
-With $\displaystyle{(k)_i = \frac{k!}{(k-i)!}}$ the falling factorial.
+With $\displaystyle{(k)_i = \frac{k!}{(k-i)!}}$ the falling factorial ; which gives, at the end,
+
+\begin{align}
+  \partial^m_{\rho}G(\rho, \theta) & \leq h^{d-s-1}\frac{\mu_{m}u_m}{c_Q^s}\sum_{0\leq k\leq i\leq j\leq m}h^{i}\binom{m}{j}3^{m-j}s^{(k)}(j)_i\hat C_{j-i}\mathcal C_{i,k}\left(\frac{i/k+1}{\Gamma(i/k+2)}\right)^{k} \\
+  & = \underset{h\to0}{\mathcal O}\left(h^{d-s-1}\right)
+\end{align}
+
+again with the convention
+
+\begin{equation*}
+  \mathcal C_{i,0} = \delta_{i,0}
+\end{equation*}
 
 % \bibliographystyle{unsrt} 
 %\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
