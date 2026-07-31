@@ -34,12 +34,12 @@ using StaticArrays
 # Fonction test et valeurs exactes
 # ------------------------------------------------------------------
 
-θ = 0.0
+θ = 1.0
 
 y1 = SVector(0.0, 0.0, 0.0)
 y2 = SVector(1.0, 0.0, 0.0)
-y3 = SVector(0.0, 1.0, 0.0)
-y4 = SVector(1.0, 1.0, 0.0)
+y3 = SVector(0.0, 1.0, 1.0)
+y4 = SVector(1.0, 1.0, 1.0)
 
 el = Inti.LagrangeSquare(y1, y2, y3, y4)
 
@@ -49,9 +49,33 @@ û = ξ -> 1.0
 x̂ = SVector(0.5, 0.5)
 ori = 1
 F = GuiggianiRichardsonDuffy.polar_kernel_fun(K, el, û, x̂, ori)
-G(ρ) = ρ^2 * F(ρ, θ)
-const F2_exact = 1.0
-const F1_exact = -1.0
+
+exp = AnalyticalExpansion()
+ℒ = GuiggianiRichardsonDuffy.laurents_coeffs(K, el, 1, û, x̂, exp)
+
+F2_exact, F1_exact = ℒ(θ)
+
+const xhat  = [0.37, -0.61]              # point singulier, coord. absolues (pas a l'origine)
+const theta = 0.8
+const d     = [cos(theta), sin(theta)]
+
+function r_computed(rho)
+    yy = xhat + rho * d                                # point courant, coordonnee absolue
+    return sqrt((yy[1]-xhat[1])^2 + (yy[2]-xhat[2])^2) # soustraction -> annulation
+end
+
+G_formule_directe(rho) = 1.0 / (1.0 + rho)             # G ecrit directement, sans passer par r
+
+function G_pipeline_realiste(rho)
+    r = r_computed(rho)                                # ~ rho, mais bruite independamment de rho
+    F = 1.0 / (r^2 * (1.0 + rho))                      # F evalue "comme en BEM" : 1/r^2 * (...)
+    return rho^2 * F                                   # regularisation par rho^2, apres coup
+end
+
+G(ρ) = G_formule_directe(ρ)
+# G(ρ) = G_pipeline_realiste(ρ) 
+F2_exact, F1_exact = 1, -1
+
 const rho_hat  = 1.0
 
 # ------------------------------------------------------------------
@@ -98,17 +122,21 @@ geometric_nodes(n::Int; rho0::Real = 0.5, contract::Real = 0.5) =
     rho0 .* contract .^ (0:n-1)
 
 # ------------------------------------------------------------------
-# Balayage en n et calcul des erreurs sur F_{-1}
+# Balayage en n et calcul des erreurs sur F_{-1} et F_{-2}
 # ------------------------------------------------------------------
-ns      = 2:15
-err_gl  = Float64[]
-err_geo = Float64[]
+ns      = 2:20
+err_gl1  = Float64[]
+err_gl2  = Float64[]
+err_geo1 = Float64[]
+err_geo2 = Float64[]
 
 for n in ns
-    _, F1_gl  = extrapolate(gl_nodes(n, rho_hat))
-    _, F1_geo = extrapolate(geometric_nodes(n))
-    push!(err_gl,  abs(F1_gl  - F1_exact))
-    push!(err_geo, abs(F1_geo - F1_exact))
+    F2_gl, F1_gl  = extrapolate(gl_nodes(n, rho_hat))
+    F2_geo, F1_geo = extrapolate(geometric_nodes(n))
+    push!(err_gl1,  abs(F1_gl  - F1_exact))
+    push!(err_gl2,  abs(F2_gl  - F2_exact))
+    push!(err_geo1, abs(F1_geo - F1_exact))
+    push!(err_geo2, abs(F2_geo - F2_exact))
 end
 
 clip(x) = max(x, eps())   # plancher a la precision machine (pour l'echelle log)
@@ -116,7 +144,7 @@ clip(x) = max(x, eps())   # plancher a la precision machine (pour l'echelle log)
 # ------------------------------------------------------------------
 # Trace des courbes de convergence
 # ------------------------------------------------------------------
-plt = plot(collect(ns), clip.(err_gl);
+plt1 = plot(collect(ns), clip.(err_gl1);
     yscale    = :log10,
     marker    = :circle,
     linewidth = 2,
@@ -127,19 +155,48 @@ plt = plot(collect(ns), clip.(err_gl);
     legend    = :topright,
     dpi       = 300,
 )
-plot!(plt, collect(ns), clip.(err_geo);
+plot!(plt1, collect(ns), clip.(err_geo1);
     marker    = :utriangle,
     linestyle = :dash,
     linewidth = 2,
     label     = "Suite geometrique (rho0=0.5, contract=0.5)",
 )
 
-savefig(plt, joinpath(@__DIR__, "gl_vs_geometric_extrapolation.pdf"))
-savefig(plt, joinpath(@__DIR__, "gl_vs_geometric_extrapolation.png"))
+savefig(plt1, joinpath(@__DIR__, "gl_vs_geometric_extrapolationF1.pdf"))
+savefig(plt1, joinpath(@__DIR__, "gl_vs_geometric_extrapolationF1.png"))
 
 println("Figure enregistree dans : ", @__DIR__)
 println()
 println("n   |  erreur GL   |  erreur geometrique")
-for (n, eg, ee) in zip(ns, err_gl, err_geo)
+for (n, eg, ee) in zip(ns, err_gl1, err_geo1)
+    println(rpad(n, 4), "|  ", eg, "  |  ", ee)
+end
+
+plt2 = plot(collect(ns), clip.(err_gl2);
+    yscale    = :log10,
+    marker    = :circle,
+    linewidth = 2,
+    label     = "Noeuds Gauss-Legendre",
+    xlabel    = "nombre de points n",
+    ylabel    = "erreur absolue sur F₋₂",
+    title     = "Extrapolation du coefficient de Laurent F₋₂",
+    legend    = :topright,
+    dpi       = 300,
+)
+
+plot!(plt2, collect(ns), clip.(err_geo2);
+    marker    = :utriangle,
+    linestyle = :dash,
+    linewidth = 2,
+    label     = "Suite geometrique (rho0=0.5, contract=0.5)",
+)
+
+savefig(plt2, joinpath(@__DIR__, "gl_vs_geometric_extrapolation_F2.pdf"))
+savefig(plt2, joinpath(@__DIR__, "gl_vs_geometric_extrapolation_F2.png"))
+
+println("Figure enregistree dans : ", @__DIR__)
+println()
+println("n   |  erreur GL   |  erreur geometrique")
+for (n, eg, ee) in zip(ns, err_gl2, err_geo2)
     println(rpad(n, 4), "|  ", eg, "  |  ", ee)
 end
