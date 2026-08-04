@@ -671,7 +671,7 @@ Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{
   We can achieve the following upper bound for the derivatives of scalar $A_{\hat x}(\rho, \theta)$:
 
 \begin{equation*}
-  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq c_Qh^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}P_{n, \bm\lambda}\prod_{i=1}^{n}(i+1)^{-|\bm k_i|}
+  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq c_Q    h^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}P_{n, \bm\lambda}\prod_{i=1}^{n}(i+1)^{-|\bm k_i|}
 \end{equation*}
 
 Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}}$.
@@ -707,7 +707,7 @@ so that we can retrieve, for $n = 0$, the original function $\displaystyle{\frac
   \left\|\partial^\ell_\rho\bm A_{\hat x}(\rho, \theta)\right\|_2\leq C_Q\frac{h^{\ell+1}}{\ell+1}e^{\hat\rho(\theta)h}, \qquad \left\|\partial^j_\rho\hat{\bm A}_{\hat x}(\rho, \theta)\right\|_2\leq h^{j}e^{\hat\rho(\theta)h}D_j
 \end{equation}
 
-With $\displaystyle{D_j = \sum_{0\leq k\leq i\leq j}}\frac{(j)_ik!}{j-i+1}c_Q^{-k}\mathcal C_{i,k}P_{i,k}$
+With $\displaystyle{D_j = \sum_{0\leq k\leq i\leq j}}\frac{(j)_ik!}{j-i+1}\frac{c_Q}{\widetilde{c_Q}^{1+k}}\mathcal C_{i,k}P_{i,k}$
 
 \end{lemma}
 
