@@ -545,7 +545,7 @@ Then, we recall the shape-regularity condition which is the upper bound equivale
 
 \begin{lemma}\label{lemma:phi-derivatives}
   \begin{equation}
-    |\partial^{\bm\nu}\phi_h(\hat x)| \leq (2c_Q^2d)^{d-1}(d-1)^{|\bm\nu|}h^{|\bm\nu|+2(d-1)}, \qquad \forall \bm\nu\in\mathbb N^{d-1}, \forall \hat x\in\hat\tau
+    |\partial^{\bm\nu}\phi_h(\hat x)| \leq (2C_Q^2d)^{d-1}(d-1)^{|\bm\nu|}h^{|\bm\nu|+2(d-1)}, \qquad \forall \bm\nu\in\mathbb N^{d-1}, \forall \hat x\in\hat\tau
   \end{equation}
 \end{lemma}
 
@@ -568,9 +568,9 @@ Then, we recall the shape-regularity condition which is the upper bound equivale
 
 \textsc{Bounding of the polar regularized kernel's derivatives}.
 
-\begin{lemma}
+\begin{lemma}\label{lemma:majoration-norm-cauchy}
 
-\begin{equation}\label{lemma:majoration-norm-cauchy}
+\begin{equation}
   \forall \bm\lambda\in\mathbb N^d, \forall \bm x\in\mathbb R^d\setminus\{\bm O\}, \qquad \left|\partial^{\bm\lambda}\|\bm x\|_2\right| \leq \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}\|\bm x\|_2^{1-|\bm\lambda|}
 \end{equation}
 
@@ -655,38 +655,29 @@ and also $\displaystyle{C(\theta) \leq \bm\lambda !\frac{1+\theta}{\theta^{|\bm\
 \end{equation}
 \end{corollary}
 
-\begin{lemma}\label{lemma:product-inequalities-gamma}
-  We have the following useful lower and upper bounds: $\forall \bm k_1, \ldots, \bm k_n \in p(n, \bm\lambda)$
+% \begin{lemma}\label{lemma:product-inequalities-gamma}
+%   We have the following useful lower and upper bounds: % $\forall \bm k_1, \ldots, \bm k_n \in p(n, \bm\lambda)$
 
-\begin{align}\label{ineq:product-inequalities-gamma}
-  & \prod_{i=1}^{n}(i+1)!^{|\bm k_i|} \geq \Gamma\left(\frac{n}{|\bm\lambda|}+2\right)^{|\bm\lambda|} \\
-  & \prod_{i=1}^{n}(i+1)^{|\bm k_i|} \leq \left(\frac{n}{|\bm\lambda|}+1\right)^{|\bm\lambda|}
-\end{align}
+% \begin{align}\label{ineq:product-inequalities-gamma}
+%  & \prod_{i=1}^{n}(i+1)!^{|\bm k_i|} \geq % \Gamma\left(\frac{n}% {|\bm\lambda|}+2\right)^{|\bm\lambda|} \\
+%   & \prod_{i=1}^{n}(i+1)^{|\bm k_i|} \leq \left(\frac{n}{|\bm\lambda|}+1\right)^{|\bm\lambda|}
+% \end{align}
 
-Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{0}^{+\infty}t^{x-1}e^{-t}\mathrm dt}$.
+% Where  $\Gamma$ is the Euler's Gamma function: $\displaystyle{\Gamma(x) = \int_{0}^{+\infty}t^{x-1}e^{-t}\mathrm dt}$.
 
-\end{lemma}
+% \end{lemma}
 
 \begin{lemma}\label{lemma:majoration-derivatives-A}
   We can achieve the following upper bound for the derivatives of scalar $A_{\hat x}(\rho, \theta)$:
 
-\begin{equation*}
-  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq c_Q    h^{n}\sum_{1\leq |\bm\lambda| \leq n}C_{\bm\lambda}|p(n, \bm\lambda)|n!e^{|\bm\lambda|\hat\rho(\theta)h}P_{n, \bm\lambda}\prod_{i=1}^{n}(i+1)^{-|\bm k_i|}
-\end{equation*}
+\begin{equation}
+  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq h^{n+1}\mathcal C_n
+\end{equation}
 
-Where $\displaystyle{C_{\bm\lambda} = \bm\lambda !\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{|\bm\lambda|}}$.
+with $\displaystyle{\mathcal C_n = \mathcal C_n(h, \theta, \hat x, \chi_h) = \sum_{1\leq|\bm\lambda|\leq n}C_{\bm\lambda}|p(n, \bm\lambda)|e^{|\bm\lambda|h\hat\rho(\theta)}P_{n, \bm\lambda}\prod_{i=1}^{n}(i+1)^{-|\bm k_i|}\widetilde{c_Q}\left(\frac{C_Q}{\widetilde{c_Q}}\right)^{|\bm\lambda|}}$ and $C_k = k!\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{k}$.
 
+Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \mathcal O_{h\to 0}(h)$.
 \end{lemma}
-
-After some rearrangements, and assuming that it exists a constant $C_{n,|\bm\lambda|}$ depending only on $n$ and $|\bm\lambda|$ such that $|p(n, \bm\lambda)| \leq C_{n,|\bm\lambda|}$, we can write, as $\bm\lambda!\leq |\bm\lambda|!$, the following:
-
-\begin{equation*}
-  \left|\partial^n_{\rho} A_{\hat x}(\rho, \theta)\right| \leq h^{n+1}c_Q\mathcal C_n
-\end{equation*}
-
-with $\displaystyle{\mathcal C_n = \mathcal C_n(h, \theta, \hat x, \chi_h) = \sum_{k=1}^{n}e^{kh\hat\rho(\theta)}P_{n, \bm\lambda}}\prod_{i=1}^{n}(i+1)^{-|\bm k_i|}$ and $C_k = k!\left(1+\frac{1}{\sqrt 2}\right)\sqrt 2^{k}$.
-
-Also, we have $\mathcal C_n = \mathcal O_{h\to 0}(1)$ and $\mathcal C_n \neq \mathcal O_{h\to 0}(h)$. We made the change of variable $k = |\bm\lambda|$, and $\binom{n+k-1}{k} = \#\left\{\bm\lambda\in\mathbb N^n, |\bm\lambda| = k\right\}$.
 
 \textsc{Bounding of the derivatives of the regularized kernel}: Let's differentiate $A_{\hat x}(\rho, \theta)^{-s} \hat K_{\hat x}(\rho, \theta)$. Using both the Leibniz and the Faà di Bruno formulas, we can write
 
@@ -707,7 +698,7 @@ so that we can retrieve, for $n = 0$, the original function $\displaystyle{\frac
   \left\|\partial^\ell_\rho\bm A_{\hat x}(\rho, \theta)\right\|_2\leq C_Q\frac{h^{\ell+1}}{\ell+1}e^{\hat\rho(\theta)h}, \qquad \left\|\partial^j_\rho\hat{\bm A}_{\hat x}(\rho, \theta)\right\|_2\leq h^{j}e^{\hat\rho(\theta)h}D_j
 \end{equation}
 
-With $\displaystyle{D_j = \sum_{0\leq k\leq i\leq j}}\frac{(j)_ik!}{j-i+1}\frac{c_Q}{\widetilde{c_Q}^{1+k}}\mathcal C_{i,k}P_{i,k}$
+With $\displaystyle{D_j = \sum_{0\leq k\leq i\leq j}}\frac{(j)_ik!}{j-i+1}\frac{C_Q}{\widetilde{c_Q}^{1+k}}\mathcal C_{i,k}P_{i,k}$
 
 \end{lemma}
 
