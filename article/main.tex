@@ -771,14 +771,30 @@ Finally, the desired bound on the derivatives of the $G$ function is given by:
 
 \begin{equation}
   \boxed{
-    \left\|\partial^m_\rho G(\rho, \theta)\right\| \leq h^{m+d-s-p-1}\mathcal G_{m,s}(\theta, h)
+    \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-p-1}\mathcal G_{m,s}(\theta, h)
   }
 \end{equation}
 
-This bound is optimal with $h$, \textit{i.e.} $\displaystyle{\mathcal G_{m,s}(\rho,\theta)\begin{cases}
+This bound is optimal with $h$, \textit{i.e.} $\displaystyle{\mathcal G_{m,s}(\theta, h)\begin{cases}
     =\underset{h\to 0}{\mathcal O}(1)\\
     \neq\underset{h\to 0}{\mathcal O}(h)
-  \end{cases}}$
+  \end{cases}}$. Let's use another notation, by noticing that the constant $\mathcal G_{m,s}(\theta, h)$ can be made independant of $h$:
+
+\begin{equation}
+  \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-p-1}\mathcal G_{m,s}(\theta) \lesssim h^{m+d-s-p-1}
+\end{equation}
+
+\begin{corollary}
+  \begin{equation}
+    F_k \lesssim h^{k+d-p-2}
+  \end{equation}
+\end{corollary}
+
+\begin{corollary}
+  \begin{equation}
+    \partial^{2n}_\rho R_h \lesssim h^{2n+d-p}
+  \end{equation}
+\end{corollary}
 
 % again with the convention
 
