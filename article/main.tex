@@ -545,9 +545,35 @@ Then, we recall the shape-regularity condition which is the upper bound equivale
 
 \begin{lemma}\label{lemma:phi-derivatives}
   \begin{equation}
-    |\partial^{\bm\nu}\phi_h(\hat x)| \leq (2C_Q^2d)^{d-1}(d-1)^{|\bm\nu|}h^{|\bm\nu|+2(d-1)}, \qquad \forall \bm\nu\in\mathbb N^{d-1}, \forall \hat x\in\hat\tau
+    |\partial^{\bm\nu}\phi_h(\hat x)| \leq (2C_Q^2d)^{d-1}(d-1)^{|\bm\nu|}h^{|\bm\nu|+2(d-1)}(d-1)!, \qquad \forall \bm\nu\in\mathbb N^{d-1}, \forall \hat x\in\hat\tau
   \end{equation}
 \end{lemma}
+
+\begin{proof}[Proof of lemma \ref{lemma:phi-derivatives}]
+  By the Leibniz formula for the determinant, we have
+  \begin{equation}
+    \phi_h = \det M_h = \sum_{\sigma\in\mathfrak S_{d-1}}\text{sgn}(\sigma)\prod_{i=1}^{d-1}(M_h)_{i, \sigma(i)}
+  \end{equation}
+  Furthermore, by the generalized Leibniz formula for the derivatives of a product, we have
+  \begin{equation}
+    \partial_{\hat x_j}^k\prod_{i=1}^{d-1}(M_h)_{\sigma(i),i} = \sum_{\substack{k_1, \dots, k_{d-1}\in\mathbb N \\ k_1 + \cdots + k_{d-1} = k}}\frac{k!}{k_1!\cdots k_{d-1}!}\prod_{i=1}^{d-1}\partial_{\hat x_j}^{k_i}(M_h)_{\sigma(i),i}
+  \end{equation}
+
+  Where each term $\partial_{\hat x_j}^{k_i}(M_h)_{\sigma(i),i}$ can be bounded by the non-degeneracy condition \ref{eq:nondegen-upper}:
+  \begin{equation}
+    \partial_{\hat x_j}^{k_i}(M_h)_{\sigma(i),i} = \sum_{\ell=1}^{d}\left(\frac{\partial^{k_i+1}\chi_{h,\ell}}{\partial \hat x_{\sigma(i)}\partial\hat x_{j}^{\ell}}\frac{\partial\chi_{h,k}}{\partial \hat x_i} + \frac{\partial\chi_{h,k}}{\partial \hat x_{\sigma(i)}}\frac{\partial^{k_i+1}\chi_{h,\ell}}{\partial \hat x_i\partial\hat x_j}\right) \leq 2C_Q^2d\, h^{k_i+2}
+  \end{equation}
+  Thus, we can write
+  \begin{align}
+    |\partial_{\hat x_j}^k\prod_{i=1}^{d-1}(M_h)_{\sigma(i),i}| & \leq (2C_Q^2d)^{d-1}h^{k+2(d-1)}\sum_{\substack{k_1, \dots, k_{d-1}\in\mathbb N \\ k_1 + \cdots + k_{d-1} = k}}\frac{k!}{k_1!\cdots k_{d-1}!} \\
+    & = (2C_Q^2d)^{d-1}h^{k+2(d-1)}(d-1)^k
+  \end{align}
+  Since $\#\mathfrak S_{d-1} = (d-1)!$, we can conclude that
+  \begin{equation}
+    |\partial_{\hat x_j}^k\phi_h| \leq (2C_Q^2d)^{d-1}(d-1)^kh^{k+2(d-1)}(d-1)!
+  \end{equation}
+  Which leads to the desired result.
+\end{proof}
 
 \begin{lemma}\label{lemma:J-derivatives}
   \begin{equation}
@@ -555,8 +581,16 @@ Then, we recall the shape-regularity condition which is the upper bound equivale
 , \qquad \forall \bm\nu\in\mathbb N^{d-1}, \forall \hat x\in\hat\tau
   \end{equation}
 
-  Where $\displaystyle{\mathcal J_{\bm\nu} = \sum_{r=1}^{n}\sqrt 2r!\bm\nu!\widetilde{c_Q}^{(d-1)(1-2r)}(2C_Q^2d)^d(d-1)^n}P_{\bm\nu, r}$.
+  Where $\displaystyle{\mathcal J_{\bm\nu} = \sum_{r=1}^{n}\sqrt 2r!\bm\nu!\widetilde{c_Q}^{(d-1)(1-2r)}(2C_Q^2d)^d(d-1)^n(d-1)!P_{\bm\nu, r}}$.
 \end{lemma}
+
+\begin{proof}[Proof of lemma \ref{lemma:J-derivatives}] By the generalized Faà di Bruno formula, and the lemma \ref{lemma:phi-derivatives}, we have
+\begin{align}
+  \left|\partial^{\bm\nu}J_h\right| & \leq \sum_{r=1}^{n}\sqrt 2r!(\widetilde{c_Q}h)^{(d-1)(1-2r)}\bm\nu!(2C_Q^2d)^{r}(d-1)^n(d-1)!h^{n+2(d-1)}P_{\bm\nu, r} \\
+  & = h^{d+|\bm\nu| - 1}\sum_{r=1}^{n}\sqrt 2r!\bm\nu!\widetilde{c_Q}^{(d-1)(1-2r)}(2C_Q^2d)^d(d-1)^n(d-1)!P_{\bm\nu, r} \\
+\end{align}
+as desired.
+\end{proof}
 
 \begin{corollary} By a simple application of the lemma \ref{lemma:J-derivatives} and the lemma \ref{lemma:FaadiBruno-polar}, we can write
   \begin{equation}
@@ -565,8 +599,6 @@ Then, we recall the shape-regularity condition which is the upper bound equivale
 
   Where $\displaystyle{\mathcal J_n = \sum_{k=0}^{n}\binom{n}{k}\mathcal J_{(k, n-k)}}$.
 \end{corollary}
-
-\textsc{Bounding of the polar regularized kernel's derivatives}.
 
 \begin{lemma}\label{lemma:majoration-norm-cauchy}
 
