@@ -788,50 +788,69 @@ With $\displaystyle{(k)_i = \frac{k!}{(k-i)!}}$ the falling factorial.
   \left|\partial^{k-i}_\rho(\hat u\circ\psi_{\hat x})(\rho, \theta)\right| \leq\sum_{j=0}^{k-i}\binom{k-i}{j}\frac{\partial^{k-i}\hat u}{\partial\hat x_1^j\partial \hat x_2^{k-i-j}}(\psi_{\hat x}(\rho, \theta))
 \end{equation}
 
-Let's assume that $\hat u$ is a polynomial of degree $p$, so that $\partial^{k-i}\hat u = 0$ for $k-i > p$. In the boundary element methods, we usually have $p\in\{1, 2, 3\}$. Thus, we can write
+\begin{lemma}\label{u-derivative-bound}
+  Let $x_\tau$ be a fixed point inside $\tau$, such that $\forall h>0, \tau_h\subset B_h(x_\tau)$. If $u$ is $\mathcal C^m$ in a vicinity of $x_\tau$, then
+  \begin{equation}
+    \forall\bm\lambda\in\mathbb N^d, |\bm\lambda|\leq m,\qquad \left\|\partial^{\bm\lambda}u\right\|_{\infty,\tau_h} := u_{\bm\lambda} = \underset{h\to 0}{\mathcal O}(1)
+  \end{equation}
+\end{lemma}
+
+\begin{lemma}\label{u-hat-derivative-bound}
+  Let $\bm\nu_{ij} = (i, j - i)$. Then we have
+  \begin{equation}
+    \left\|\partial^{\bm\nu_{ij}}\hat u(\hat y)\right\| \leq h^j\hat u_{ij}
+  \end{equation}
+
+  With $\displaystyle{\hat u_{ij} = i!(j-i)!\sum_{1\leq|\bm\lambda|\leq j}u_{\bm\lambda}C_Q^{|\bm\lambda|}\sum_{s=1}^{j}P^s_{\bm\nu_{ij}, \bm\lambda}}$
+\end{lemma}
+
+\begin{lemma}\label{u-hat-psi-derivatives-bound}
+  \begin{equation}
+    \left\|\partial_\rho^j(\hat u_h\circ\psi_{\hat x})(\rho, \theta)\right\| \leq h^j\mathcal U_j
+  \end{equation}
+  With $\displaystyle{\mathcal U_j = j!\sum_{i=0}^{j}\sum_{1\leq|\bm\lambda|\leq j}\sum_{s=1}^{j}u_{\bm\lambda}C_Q^{|\bm\lambda|}P^s_{\bm\nu_{ij}, \bm\lambda}}$
+\end{lemma}
 
 \begin{align*}
-  \partial_\rho^k H_h(\rho, \theta) & \leq h^{i-s}\sum_{i=0}^{k}\binom{k}{i}\mathcal K_{j,s}(\theta, h)\partial_\rho^{k-i}(\hat u\circ\psi_{\hat x})(\rho, \theta) \\
-  & = h^{i-s}\sum_{i=\max(0, k-p)}^{k}\binom{k}{i}\mathcal K_{i,s}(\theta, h)\partial_\rho^{k-i}(\hat u\circ\psi_{\hat x})(\rho, \theta) \\
-  & \leq h^{k-p-s}u_k\sum_{i=\max(0, k-p)}^{k}\binom{k}{i}\mathcal K_{i,s}(\theta, h) \\
-  & = h^{k-p-s}\mathcal H_{k,s}(\theta, h)
+  \left\|\partial_\rho^k H_h(\rho, \theta)\right\| & \leq \sum_{i=0}^{k}\binom{k}{i}h^{i-s}\mathcal K_{i,s}(\theta, h)\left\|\partial_\rho^{k-i}(\hat u\circ\psi_{\hat x})(\rho, \theta)\right\| \\
+  & \leq \sum_{i=0}^{k}\binom{k}{i}h^{i-s}\mathcal K_{i,s}(\theta, h)h^{k-i}\mathcal U_{k-i} \\
+  & = h^{k-s}\sum_{i=0}^{k}\binom{k}{i}\mathcal K_{i,s}(\theta, h)h^{k-i}\mathcal U_{k-i} \\
+  & = h^{k-s}\mathcal H_{k,s}(\theta, h)
 \end{align*}
-
-Where $\displaystyle{u_k = \underset{|\bm\alpha|\leq k}{\text{max}}\left\|\partial^{\bm\alpha}\hat u\right\|_{L^{\infty}(\hat\tau)}}$ is a constant that depends only on the geometry of the element. Supposing $p$ is fixed and the order of derivatives will be as high as we want, $k-p$ will be considered positive.
 
 Finally, the desired bound on the derivatives of the $G$ function is given by:
 
 \begin{equation}
   \boxed{
-    \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-p-1}\mathcal G_{m,s}(\theta, h)
+    \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-1}\mathcal G_{m,s}(\theta, h)
   }
 \end{equation}
 
-This bound is optimal with $h$, \textit{i.e.} $\displaystyle{\mathcal G_{m,s}(\theta, h)\begin{cases}
+With $\displaystyle{\mathcal G_{m,s}(\theta, h) = \sum_{k=0}^{m}\binom{m}{k}\mathcal H_{k,s}(\theta, h)\mathcal J_{m-k}}$. This bound is optimal with $h$, \textit{i.e.} $\displaystyle{\mathcal G_{m,s}(\theta, h)\begin{cases}
     =\underset{h\to 0}{\mathcal O}(1)\\
     \neq\underset{h\to 0}{\mathcal O}(h)
   \end{cases}}$. Let's use another notation, by noticing that the constant $\mathcal G_{m,s}(\theta, h)$ can be made independant of $h$:
 
 \begin{equation}
-  \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-p-1}\mathcal G_{m,s}(\theta) \lesssim h^{m+d-s-p-1}
+  \left\|\partial^m_\rho G_h(\rho, \theta)\right\| \leq h^{m+d-s-1}\mathcal G_{m,s}(\theta) \lesssim h^{m+d-s-1}
 \end{equation}
 
 \begin{corollary}
   \begin{equation}
-    F_k \lesssim h^{k+d-p-2}
+    F_k \lesssim h^{k+d-2}
   \end{equation}
 \end{corollary}
 
 \begin{corollary}
   \begin{equation}
-    \partial^{2n}_\rho R_h \lesssim h^{2n+d-p}
+    \partial^{2n}_\rho R_h \lesssim h^{2n+d}
   \end{equation}
 \end{corollary}
 
 Thus, we have this important claim:
 
 \begin{equation}
-  \boxed{Q_n[R_h] = \int_{0}^{\hat\rho}R_h(\rho)\mathrm d\rho + \underset{h\to 0}{\mathcal O}(h^{2n+d-p})}
+  \boxed{Q_n[R_h] = \int_{0}^{\hat\rho}R_h(\rho)\mathrm d\rho + \underset{h\to 0}{\mathcal O}(h^{2n+d})}
 \end{equation}
 
 % again with the convention
