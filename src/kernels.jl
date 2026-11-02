@@ -1,4 +1,13 @@
 # = Kernels and their split versions =#
+#
+# Convention: `SK(target, source)` evaluates the split with r̂ = (x - y) / |x - y|, where
+# x = coords(target) and y = coords(source), as in Inti (`r = coords(target) - coords(source)`).
+# Every `_extract_split_parts` method must use this convention, so that
+# `prod(SK(target, source)) == K(target, source)`; a direction `r̂` passed explicitly as third
+# argument must follow it as well (see `test/test-split-kernels.jl`).
+# The singular part must be the positive scalar d^s (s = singularity order; log(d) for the 2D
+# single layer): `AutoDiffExpansion` and `SemiRichardsonExpansion` discard it and only evaluate
+# the regular part K̂(r̂) in the limit y -> x (`src/expansion_methods.jl`).
 
 struct SplitKernel{K <: Inti.AbstractKernel} <: Inti.AbstractKernel{Tuple}
 	kernel::K
@@ -63,10 +72,10 @@ function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Laplace{N}},
 	ny = Inti.normal(source)
 
 	if N == 3
-		K̂ = -1 / (4π) * dot(r̂, ny)
+		K̂ = 1 / (4π) * dot(r̂, ny)
 		return (1 / d^2, K̂)
 	elseif N == 2
-		K̂ = -1 / (2π) * dot(r̂, ny)
+		K̂ = 1 / (2π) * dot(r̂, ny)
 		return (1 / d, K̂)
 	else 
 		notimplemented()
@@ -78,10 +87,10 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Laplace
 	nx = Inti.normal(target)
 
 	if N == 3
-		K̂ = 1 / (4π) * dot(r̂, nx)
+		K̂ = -1 / (4π) * dot(r̂, nx)
 		return (1 / d^2, K̂)
 	elseif N == 2
-		K̂ = 1 / (2π) * dot(r̂, nx)
+		K̂ = -1 / (2π) * dot(r̂, nx)
 		return (1 / d, K̂)
 	else 
 		notimplemented()
@@ -114,7 +123,7 @@ function _extract_split_parts(K::Inti.SingleLayerKernel{T, <:Inti.Elastostatic{N
 	ν = λ / (2 * (μ + λ))
 
 	if N == 3
-		K̂ = 1 / (8π * μ * (1 - ν)) * ((3 - 4 * ν) * LinearAlgebra.I + r̂ * transpose(r̂))
+		K̂ = 1 / (16π * μ * (1 - ν)) * ((3 - 4 * ν) * LinearAlgebra.I + r̂ * transpose(r̂))
 		return (1 / d, K̂)
 	else
 		notimplemented()
@@ -128,8 +137,8 @@ function _extract_split_parts(K::Inti.DoubleLayerKernel{T, <:Inti.Elastostatic{N
 	ny = Inti.normal(source)
 
 	if N == 3
-		K̂ = 1 / (8π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(ny) - ny * transpose(r̂)))
-		return (-1 / d^2, K̂)
+		K̂ = 1 / (8π * (1 - ν)) * (dot(r̂, ny) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) - (1 - 2ν) * (r̂ * transpose(ny) - ny * transpose(r̂)))
+		return (1 / d^2, K̂)
 	else
 		notimplemented()
 	end
@@ -142,8 +151,8 @@ function _extract_split_parts(K::Inti.AdjointDoubleLayerKernel{T, <:Inti.Elastos
 	nx = Inti.normal(target)
 
 	if N == 3
-		K̂ = 1 / (8π * (1 - ν)) * (dot(r̂, nx) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (r̂ * transpose(nx) - nx * transpose(r̂)))
-		return (-1 / d^2, K̂)
+		K̂ = 1 / (8π * (1 - ν)) * (-dot(r̂, nx) * ((1 - 2ν) * LinearAlgebra.I + 3 * r̂ * transpose(r̂)) + (1 - 2ν) * (nx * transpose(r̂) - r̂ * transpose(nx)))
+		return (1 / d^2, K̂)
 	else
 		notimplemented()
 	end

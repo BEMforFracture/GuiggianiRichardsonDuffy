@@ -110,7 +110,8 @@ function _create_laurent_coeffs_function(
 	# Return lightweight closure
 	return function (θ)
 		Â = A(θ) / norm(A(θ))
-		_, K̂ = SK(qx, qx, Â)
+		# y - x ≈ ρ A(θ): the direction r̂ = (x - y) / |x - y| of the split convention is -Â
+		_, K̂ = SK(qx, qx, -Â)
 		v = û(x̂)
 		f_dom = map(v -> K̂ * v, v) * μ / norm(A(θ))^(-s)
 		h = rho_max_fun(θ) * params.first_contract
@@ -157,7 +158,10 @@ function _create_laurent_coeffs_function(
 	nx = Inti._normal(Dτ, ori)
 	D²τ = Inti.hessian(el, x̂)
 	qx = (coords = x, normal = nx)
-	N = length(x)
+	# Dimension statique : avec un `Int`, `ntuple` ne connaît pas la longueur de δ et toute la
+	# closure perd son type (ℒ rend un Tuple{Any, Any}, ~3× plus lent, et la boucle radiale de
+	# l'intégrale en pâtit aussi).
+	N = Val(length(x))
 
 	# Return lightweight closure
 	return function (θ)
@@ -174,7 +178,8 @@ function _create_laurent_coeffs_function(
 			A = Dτ * uθ + ρ / 2 * δ
 			Â = A / norm(A)
 
-			_, K̂ = SK(qx, qy, Â)
+			# y - x ≈ ρ A (second order in ρ): the direction r̂ = (x - y) / |x - y| of the split convention is -Â
+			_, K̂ = SK(qx, qy, -Â)
 
 			v = û(ŷ)
 			return map(v -> K̂ * v, v) * μ / norm(A)^(-S + 1)
